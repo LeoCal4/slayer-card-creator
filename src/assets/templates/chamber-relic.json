@@ -8,9 +8,10 @@
     { "id": "cr-art", "type": "image", "x": 10, "y": 50, "width": 355, "height": 240, "imageSource": "art", "imageFit": "cover", "opacity": 1, "visible": true, "locked": false },
     { "id": "cr-footer", "type": "rect", "x": 0, "y": 400, "width": 375, "height": 123, "fillSource": "class.secondary", "opacity": 0.85, "visible": true, "locked": false },
     { "id": "cr-name", "type": "text", "x": 12, "y": 12, "width": 300, "height": 30, "field": "name", "fontSize": 20, "fill": "#ffffff", "fontStyle": "bold", "align": "left", "visible": true, "locked": false },
-    { "id": "cr-cost", "type": "badge", "x": 320, "y": 8, "width": 46, "height": 46, "shape": "circle", "field": "cost", "fill": "#1a1a2e", "textFill": "#ffd700", "fontSize": 20, "visible": true, "locked": false, "showIfField": "cost" },
+    { "id": "cr-cost", "type": "badge", "x": 320, "y": 8, "width": 46, "height": 46, "shape": "circle", "field": "cost", "fill": "#1a1a2e", "textFill": "#ffd700", "fontSize": 45, "visible": true, "locked": false, "showIfField": "cost" },
     { "id": "cr-type", "type": "text", "x": 12, "y": 298, "width": 200, "height": 22, "field": "type", "fontSize": 12, "fill": "#eeeeee", "fontStyle": "italic", "align": "left", "visible": true, "locked": false },
     { "id": "cr-phases", "type": "phase-icons", "x": 260, "y": 298, "width": 105, "height": 28, "orientation": "horizontal", "iconSize": 24, "gap": 4, "align": "right", "fill": "#1a1a2e", "textFill": "#ffffff", "cornerRadius": 4, "visible": true, "locked": false },
+    { "id": "cr-rarity", "type": "rarity-diamond", "x": 328, "y": 338, "width": 38, "height": 38, "visible": true, "locked": false },
     { "id": "cr-effect", "type": "text", "x": 12, "y": 410, "width": 351, "height": 100, "field": "effect", "fontSize": 13, "fill": "#f0f0f0", "align": "left", "lineHeight": 1.4, "visible": true, "locked": false }
   ]
 }

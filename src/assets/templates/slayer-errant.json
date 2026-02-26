@@ -8,9 +8,10 @@
     { "id": "se-art", "type": "image", "x": 10, "y": 50, "width": 355, "height": 260, "imageSource": "art", "imageFit": "cover", "opacity": 1, "visible": true, "locked": false },
     { "id": "se-footer", "type": "rect", "x": 0, "y": 420, "width": 375, "height": 103, "fillSource": "class.secondary", "opacity": 0.85, "visible": true, "locked": false },
     { "id": "se-name", "type": "text", "x": 12, "y": 12, "width": 300, "height": 30, "field": "name", "fontSize": 20, "fill": "#ffffff", "fontStyle": "bold", "align": "left", "visible": true, "locked": false },
-    { "id": "se-cost", "type": "badge", "x": 320, "y": 8, "width": 46, "height": 46, "shape": "circle", "field": "cost", "fill": "#1a1a2e", "textFill": "#ffd700", "fontSize": 20, "visible": true, "locked": false, "showIfField": "cost" },
+    { "id": "se-cost", "type": "badge", "x": 320, "y": 8, "width": 46, "height": 46, "shape": "circle", "field": "cost", "fill": "#1a1a2e", "textFill": "#ffd700", "fontSize": 45, "visible": true, "locked": false, "showIfField": "cost" },
     { "id": "se-effect", "type": "text", "x": 12, "y": 430, "width": 351, "height": 80, "field": "effect", "fontSize": 13, "fill": "#f0f0f0", "align": "left", "lineHeight": 1.4, "visible": true, "locked": false },
     { "id": "se-stats", "type": "text", "x": 12, "y": 318, "width": 150, "height": 24, "field": "stats", "fontSize": 16, "fill": "#ffffff", "fontStyle": "bold", "align": "left", "visible": true, "locked": false },
-    { "id": "se-phases", "type": "phase-icons", "x": 260, "y": 318, "width": 105, "height": 28, "orientation": "horizontal", "iconSize": 24, "gap": 4, "align": "right", "fill": "#1a1a2e", "textFill": "#ffffff", "cornerRadius": 4, "visible": true, "locked": false }
+    { "id": "se-phases", "type": "phase-icons", "x": 260, "y": 318, "width": 105, "height": 28, "orientation": "horizontal", "iconSize": 24, "gap": 4, "align": "right", "fill": "#1a1a2e", "textFill": "#ffffff", "cornerRadius": 4, "visible": true, "locked": false },
+    { "id": "se-rarity", "type": "rarity-diamond", "x": 328, "y": 360, "width": 38, "height": 38, "visible": true, "locked": false }
   ]
 }
