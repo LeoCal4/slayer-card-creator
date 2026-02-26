@@ -1,8 +1,8 @@
 export type CardType =
   | 'Slayer' | 'Errant' | 'Action' | 'Ploy'
-  | 'Intervention' | 'Chamber' | 'Relic' | 'Dungeon' | 'Phase'
+  | 'Intervention' | 'Chamber' | 'Relic' | 'Dungeon' | 'Phase' | 'Status'
 
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'mythic'
+export type Rarity = 'common' | 'rare' | 'epic'
 
 export interface CardData {
   id: string

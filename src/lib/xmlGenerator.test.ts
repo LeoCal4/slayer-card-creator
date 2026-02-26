@@ -16,6 +16,11 @@ const project: ProjectFile = {
     Phase:   [],
     Dungeon: [],
   },
+  rarityConfig: {
+    common: { aliases: ['comune'], color: '#4ade80' },
+    rare:   { aliases: ['rara'],   color: '#f87171' },
+    epic:   { aliases: ['epica'],  color: '#60a5fa' },
+  },
   templates: [],
   cards: [
     { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common',
@@ -23,8 +28,8 @@ const project: ProjectFile = {
     { id: 'c2', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'rare',
       cost: 2, effect: 'Deal 3 damage.' },
     { id: 'c3', name: 'Ancient Phase', class: 'Warrior', type: 'Phase', rarity: 'common', effect: '' },
-    { id: 'c4', name: 'The Dungeon', class: 'Warrior', type: 'Dungeon', rarity: 'uncommon', effect: 'Lurk.' },
-    { id: 'c5', name: 'Shadowstep', class: 'Warrior Mage', type: 'Errant', rarity: 'uncommon',
+    { id: 'c4', name: 'The Dungeon', class: 'Warrior', type: 'Dungeon', rarity: 'epic', effect: 'Lurk.' },
+    { id: 'c5', name: 'Shadowstep', class: 'Warrior Mage', type: 'Errant', rarity: 'epic',
       cost: 1, power: 2, hp: 3, effect: 'Evade.' },
   ],
   artFolderPath: '',

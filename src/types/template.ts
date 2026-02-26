@@ -61,12 +61,20 @@ export interface PhaseIconsLayer extends LayerBase {
   cornerRadius?: number
 }
 
+export interface RarityDiamondLayer extends LayerBase {
+  type: 'rarity-diamond'
+  stroke?: string
+  strokeWidth?: number
+  opacity?: number
+}
+
 export type TemplateLayer =
   | RectLayer
   | ImageLayer
   | TextLayer
   | BadgeLayer
   | PhaseIconsLayer
+  | RarityDiamondLayer
 
 export interface Template {
   id: string

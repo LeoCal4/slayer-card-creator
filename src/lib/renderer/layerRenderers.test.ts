@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import Konva from 'konva'
-import { renderRect, renderText, renderImage, renderBadge, renderPhaseIcons } from './layerRenderers'
+import { renderRect, renderText, renderImage, renderBadge, renderPhaseIcons, renderRarityDiamond } from './layerRenderers'
 import type { RenderContext } from './cardRenderer'
-import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer } from '@/types/template'
+import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer } from '@/types/template'
 
 const baseCtx: RenderContext = {
   card: {
@@ -19,6 +19,11 @@ const baseCtx: RenderContext = {
     classColors: { Warrior: { primary: '#ff0000', secondary: '#880000', cockatriceColor: 'R' } },
     phaseAbbreviations: { Encounter: 'E', Preparation: 'P' },
     phaseMap: { Slayer: ['Encounter', 'Preparation'] },
+    rarityConfig: {
+      common: { aliases: ['comune'], color: '#4ade80' },
+      rare:   { aliases: ['rara'],   color: '#f87171' },
+      epic:   { aliases: ['epica'],  color: '#60a5fa' },
+    },
     templates: [], cards: [], artFolderPath: '', frameImages: {},
   },
   artImages: new Map(),
@@ -164,5 +169,35 @@ describe('renderPhaseIcons', () => {
     }
     const node = renderPhaseIcons(basePhaseIcons, ctx)
     expect(node).toBeInstanceOf(Konva.Group)
+  })
+})
+
+const baseDiamond: RarityDiamondLayer = {
+  id: 'l-diamond', type: 'rarity-diamond', x: 20, y: 20, width: 40, height: 40,
+}
+
+describe('renderRarityDiamond', () => {
+  it('returns a Konva.RegularPolygon at the correct center position', () => {
+    const node = renderRarityDiamond(baseDiamond, baseCtx)
+    expect(node).toBeInstanceOf(Konva.RegularPolygon)
+    // Center = x + width/2, y + height/2
+    expect(node!.attrs.x).toBe(40)
+    expect(node!.attrs.y).toBe(40)
+  })
+
+  it('fills with the rarity color from project.rarityConfig', () => {
+    const node = renderRarityDiamond(baseDiamond, baseCtx)
+    // card.rarity === 'common', rarityConfig.common.color === '#4ade80'
+    expect(node!.attrs.fill).toBe('#4ade80')
+  })
+
+  it('fills with rare color when card rarity is rare', () => {
+    const ctx: RenderContext = { ...baseCtx, card: { ...baseCtx.card, rarity: 'rare' } }
+    const node = renderRarityDiamond(baseDiamond, ctx)
+    expect(node!.attrs.fill).toBe('#f87171')
+  })
+
+  it('returns null for a hidden layer', () => {
+    expect(renderRarityDiamond({ ...baseDiamond, visible: false }, baseCtx)).toBeNull()
   })
 })

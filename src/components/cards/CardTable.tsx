@@ -16,7 +16,7 @@ import type { CardData, CardType, Rarity } from '@/types/card'
 const CARD_TYPES: CardType[] = [
   'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase',
 ]
-const RARITIES: Rarity[] = ['common', 'uncommon', 'rare', 'mythic']
+const RARITIES: Rarity[] = ['common', 'rare', 'epic']
 
 function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp', type: CardType): boolean {
   switch (field) {

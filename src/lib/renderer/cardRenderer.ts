@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import { shouldShowLayer } from '@/lib/layerHelpers'
-import { renderRect, renderText, renderImage, renderBadge, renderPhaseIcons } from './layerRenderers'
+import { renderRect, renderText, renderImage, renderBadge, renderPhaseIcons, renderRarityDiamond } from './layerRenderers'
 import type { CardData } from '@/types/card'
 import type { Template } from '@/types/template'
 import type { ProjectFile } from '@/types/project'
@@ -34,6 +34,7 @@ export async function renderCard(ctx: RenderContext): Promise<Blob> {
     else if (layerDef.type === 'image') node = renderImage(layerDef, ctx)
     else if (layerDef.type === 'badge') node = renderBadge(layerDef, ctx)
     else if (layerDef.type === 'phase-icons') node = renderPhaseIcons(layerDef, ctx)
+    else if (layerDef.type === 'rarity-diamond') node = renderRarityDiamond(layerDef, ctx)
     if (node) layer.add(node)
   }
 

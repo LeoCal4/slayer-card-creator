@@ -2,15 +2,15 @@ import { describe, it } from 'vitest'
 import type { CardData, CardType, Rarity } from './card'
 
 describe('CardType', () => {
-  it('includes all 9 game types', () => {
+  it('includes all 10 game types', () => {
     void (['Slayer', 'Errant', 'Action', 'Ploy',
-      'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase'] satisfies CardType[])
+      'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status'] satisfies CardType[])
   })
 })
 
 describe('Rarity', () => {
-  it('includes the four rarity levels', () => {
-    void (['common', 'uncommon', 'rare', 'mythic'] satisfies Rarity[])
+  it('includes the three rarity levels', () => {
+    void (['common', 'rare', 'epic'] satisfies Rarity[])
   })
 })
 
@@ -30,7 +30,7 @@ describe('CardData', () => {
       name: 'Shadow Stalker',
       class: 'Rogue',
       type: 'Errant',
-      rarity: 'uncommon',
+      rarity: 'epic',
       effect: 'Stealth.',
       cost: 2,
       power: 2,

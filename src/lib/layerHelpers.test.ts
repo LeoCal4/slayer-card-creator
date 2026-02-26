@@ -80,6 +80,11 @@ describe('resolveFieldText', () => {
     const noCost = { ...CARD_FULL, cost: undefined }
     expect(resolveFieldText('cost', noCost)).toBe('[cost]')
   })
+
+  it('converts literal \\n sequences in text to real newlines', () => {
+    const card: CardData = { ...CARD_FULL, effect: 'Line one.\\nLine two.' }
+    expect(resolveFieldText('effect', card)).toBe('Line one.\nLine two.')
+  })
 })
 
 describe('resolveRectFill', () => {

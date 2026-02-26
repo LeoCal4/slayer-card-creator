@@ -2,9 +2,14 @@ import Papa from 'papaparse'
 import type { CardData, CardType, Rarity } from '@/types/card'
 
 const CARD_TYPES = new Set<string>([
-  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase',
+  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
 ])
-const RARITIES = new Set<string>(['common', 'uncommon', 'rare', 'mythic'])
+const RARITY_ALIASES: Record<string, string> = {
+  comune: 'common',
+  rara: 'rare',
+  epica: 'epic',
+}
+const RARITIES = new Set<string>(['common', 'rare', 'epic', ...Object.keys(RARITY_ALIASES)])
 const REQUIRED_COLUMNS = ['name', 'type', 'effect'] as const
 
 export interface ParseResult {
@@ -12,9 +17,19 @@ export interface ParseResult {
   errors: string[]
 }
 
+export interface ParseOptions {
+  delimiter?: string
+}
+
+function cleanValue(val: string | undefined): string {
+  const s = (val ?? '').trim()
+  return s === '||' ? '' : s
+}
+
 function sanitizeNumber(val: string | undefined): number | undefined {
-  if (!val) return undefined
-  const stripped = val.replace(/[^0-9.]/g, '')
+  const s = cleanValue(val)
+  if (!s) return undefined
+  const stripped = s.replace(/[^0-9.]/g, '')
   if (!stripped) return undefined
   const n = parseInt(stripped, 10)
   return isNaN(n) ? undefined : n
@@ -33,11 +48,12 @@ export function mergeByName(existing: CardData[], incoming: CardData[]): CardDat
   return result
 }
 
-export function parseCSV(raw: string): ParseResult {
+export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
   const parsed = Papa.parse<Record<string, string>>(raw, {
     header: true,
     skipEmptyLines: true,
     transformHeader: (h) => h.toLowerCase().trim(),
+    ...(options.delimiter ? { delimiter: options.delimiter } : {}),
   })
 
   const errors: string[] = []
@@ -54,14 +70,15 @@ export function parseCSV(raw: string): ParseResult {
     const rowNum = i + 2
     const rowErrors: string[] = []
 
-    const typeRaw = (row['type'] ?? '').trim()
-    const rarityRaw = (row['rarity'] ?? '').trim().toLowerCase() || 'common'
+    const typeRaw = cleanValue(row['type'])
+    const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
+    const rarityRaw = (RARITY_ALIASES[rarityInput] ?? rarityInput) as Rarity
 
     if (!CARD_TYPES.has(typeRaw)) {
       rowErrors.push(`Row ${rowNum}: invalid type "${typeRaw}"`)
     }
-    if (!RARITIES.has(rarityRaw)) {
-      rowErrors.push(`Row ${rowNum}: invalid rarity "${rarityRaw}"`)
+    if (!RARITIES.has(rarityInput)) {
+      rowErrors.push(`Row ${rowNum}: invalid rarity "${rarityInput}"`)
     }
 
     errors.push(...rowErrors)
@@ -69,15 +86,15 @@ export function parseCSV(raw: string): ParseResult {
 
     cards.push({
       id: crypto.randomUUID(),
-      name: (row['name'] ?? '').trim(),
-      class: (row['class'] ?? '').trim(),
+      name: cleanValue(row['name']),
+      class: cleanValue(row['class']),
       type: typeRaw as CardType,
-      rarity: rarityRaw as Rarity,
+      rarity: rarityRaw,
       cost: sanitizeNumber(row['cost']),
       power: sanitizeNumber(row['power']),
       hp: sanitizeNumber(row['hp']),
       vp: sanitizeNumber(row['vp']),
-      effect: (row['effect'] ?? '').trim(),
+      effect: cleanValue(row['effect']),
     })
   })
 

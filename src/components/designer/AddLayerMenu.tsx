@@ -6,9 +6,9 @@ interface Props {
   templateId: string
 }
 
-type LayerType = 'rect' | 'text' | 'image' | 'badge' | 'phase-icons'
+type LayerType = 'rect' | 'text' | 'image' | 'badge' | 'phase-icons' | 'rarity-diamond'
 
-const LAYER_TYPES: LayerType[] = ['rect', 'text', 'image', 'badge', 'phase-icons']
+const LAYER_TYPES: LayerType[] = ['rect', 'text', 'image', 'badge', 'phase-icons', 'rarity-diamond']
 
 function defaultLayer(type: LayerType): TemplateLayer {
   const base = { id: crypto.randomUUID(), x: 0, y: 0, visible: true, locked: false }
@@ -16,18 +16,21 @@ function defaultLayer(type: LayerType): TemplateLayer {
     case 'rect':
       return { ...base, type: 'rect', width: 375, height: 50, fill: '#333333' }
     case 'text':
-      return { ...base, type: 'text', x: 10, y: 10, width: 355, height: 30, field: 'name', fontSize: 18, fill: '#ffffff', align: 'left' }
+      return { ...base, type: 'text', label: 'name', x: 10, y: 10, width: 355, height: 30, field: 'name', fontSize: 18, fill: '#ffffff', align: 'left' }
     case 'image':
       return { ...base, type: 'image', width: 375, height: 523, imageSource: 'frame', imageFit: 'cover', opacity: 1 }
     case 'badge':
-      return { ...base, type: 'badge', x: 10, y: 10, width: 50, height: 50, shape: 'circle', field: 'cost', fill: '#000000', textFill: '#ffffff', fontSize: 18 }
+      return { ...base, type: 'badge', label: 'cost', x: 10, y: 10, width: 50, height: 50, shape: 'circle', field: 'cost', fill: '#000000', textFill: '#ffffff', fontSize: 18 }
     case 'phase-icons':
       return { ...base, type: 'phase-icons', x: 10, y: 10, width: 200, height: 30, orientation: 'horizontal', iconSize: 24, gap: 4, align: 'left', fill: '#333333', textFill: '#ffffff' }
+    case 'rarity-diamond':
+      return { ...base, type: 'rarity-diamond', x: 10, y: 10, width: 40, height: 40 }
   }
 }
 
 function labelFor(type: LayerType): string {
   if (type === 'phase-icons') return 'Phase Icons'
+  if (type === 'rarity-diamond') return 'Rarity Diamond'
   return type.charAt(0).toUpperCase() + type.slice(1)
 }
 

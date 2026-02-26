@@ -8,7 +8,9 @@ interface Props {
 }
 
 function layerLabel(layer: TemplateLayer): string {
-  return layer.label || layer.type
+  if (layer.label) return layer.label
+  if ('field' in layer && layer.field) return String(layer.field)
+  return layer.type
 }
 
 function EyeOpenIcon() {

@@ -16,7 +16,7 @@ function setup() {
     id: 'c2', name: 'Dragonslayer', class: 'Warrior', type: 'Slayer', rarity: 'rare', effect: '', power: 4, hp: 4,
   })
   useProjectStore.getState().addCard({
-    id: 'c3', name: 'Frost Nova', class: 'Mage', type: 'Action', rarity: 'uncommon', effect: '', cost: 2,
+    id: 'c3', name: 'Frost Nova', class: 'Mage', type: 'Action', rarity: 'epic', effect: '', cost: 2,
   })
 }
 

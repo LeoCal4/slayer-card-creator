@@ -12,6 +12,7 @@ export function CSVImportModal() {
   const existingCards = useProjectStore((s) => s.project?.cards) ?? []
 
   const [step, setStep] = useState<ModalStep | null>(null)
+  const [delimiter, setDelimiter] = useState(',')
 
   async function handleImportClick() {
     const filePath = await window.electronAPI.showOpenDialog({
@@ -22,7 +23,7 @@ export function CSVImportModal() {
     if (!filePath) return
 
     const raw = await window.electronAPI.readFile(filePath)
-    const result = parseCSV(raw)
+    const result = parseCSV(raw, { delimiter })
 
     if (result.errors.length > 0) {
       setStep({ type: 'errors', errors: result.errors, cards: result.cards })
@@ -65,12 +66,27 @@ export function CSVImportModal() {
 
   return (
     <>
-      <button
-        onClick={() => void handleImportClick()}
-        className="px-3 py-1 text-sm rounded bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
-      >
-        Import CSV
-      </button>
+      <div className="flex items-center gap-2">
+        <label htmlFor="csv-delimiter" className="text-xs text-neutral-400 uppercase tracking-wide">
+          Delimiter
+        </label>
+        <select
+          id="csv-delimiter"
+          aria-label="delimiter"
+          value={delimiter}
+          onChange={(e) => setDelimiter(e.target.value)}
+          className="bg-neutral-800 text-neutral-100 text-sm rounded px-2 py-1 outline-none"
+        >
+          <option value=",">Comma (,)</option>
+          <option value={'\t'}>Tab</option>
+        </select>
+        <button
+          onClick={() => void handleImportClick()}
+          className="px-3 py-1 text-sm rounded bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
+        >
+          Import CSV
+        </button>
+      </div>
 
       {step && (
         <div

@@ -37,6 +37,7 @@ describe('AddLayerMenu', () => {
     expect(screen.getByRole('menuitem', { name: /^image$/i })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: /^badge$/i })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: /^phase.icons$/i })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /^rarity.diamond$/i })).toBeInTheDocument()
   })
 
   it('clicking "Image" adds an image layer', async () => {
@@ -86,5 +87,21 @@ describe('AddLayerMenu', () => {
     await userEvent.click(screen.getByRole('button', { name: /add layer/i }))
     await userEvent.click(screen.getByRole('menuitem', { name: /rect/i }))
     expect(screen.queryByRole('menuitem', { name: /rect/i })).not.toBeInTheDocument()
+  })
+
+  it('text layer default label equals the field name', async () => {
+    render(<AddLayerMenu templateId="tmpl-1" />)
+    await userEvent.click(screen.getByRole('button', { name: /add layer/i }))
+    await userEvent.click(screen.getByRole('menuitem', { name: /text/i }))
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers[0]
+    expect(layer.label).toBe('name')
+  })
+
+  it('badge layer default label equals the field name', async () => {
+    render(<AddLayerMenu templateId="tmpl-1" />)
+    await userEvent.click(screen.getByRole('button', { name: /add layer/i }))
+    await userEvent.click(screen.getByRole('menuitem', { name: /badge/i }))
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers[0]
+    expect(layer.label).toBe('cost')
   })
 })

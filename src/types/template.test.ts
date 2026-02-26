@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest'
 import type {
   RectLayer, ImageLayer, TextLayer, BadgeLayer, PhaseIconsLayer,
-  TemplateLayer, Template,
+  RarityDiamondLayer, TemplateLayer, Template,
 } from './template'
 
 describe('RectLayer', () => {
@@ -76,14 +76,27 @@ describe('PhaseIconsLayer', () => {
   })
 })
 
+describe('RarityDiamondLayer', () => {
+  it('has type discriminant "rarity-diamond"', () => {
+    void ({
+      id: 'diamond', type: 'rarity-diamond', x: 10, y: 10, width: 40, height: 40,
+    } satisfies RarityDiamondLayer)
+    void ({
+      id: 'diamond2', type: 'rarity-diamond', x: 10, y: 10, width: 40, height: 40,
+      stroke: '#ffffff', strokeWidth: 2, opacity: 0.8,
+    } satisfies RarityDiamondLayer)
+  })
+})
+
 describe('TemplateLayer union', () => {
-  it('accepts all five layer types', () => {
+  it('accepts all six layer types', () => {
     void ([
       { id: 'r', type: 'rect', x: 0, y: 0, width: 10, height: 10 },
       { id: 'i', type: 'image', x: 0, y: 0, width: 10, height: 10, imageSource: 'art', imageFit: 'cover' },
       { id: 't', type: 'text', x: 0, y: 0, width: 10, height: 10, field: 'name', fontSize: 14 },
       { id: 'b', type: 'badge', x: 0, y: 0, width: 10, height: 10, shape: 'circle', field: 'cost' },
       { id: 'p', type: 'phase-icons', x: 0, y: 0, width: 10, height: 10, orientation: 'horizontal', iconSize: 20, gap: 4, align: 'left' },
+      { id: 'd', type: 'rarity-diamond', x: 0, y: 0, width: 10, height: 10 },
     ] satisfies TemplateLayer[])
   })
 })

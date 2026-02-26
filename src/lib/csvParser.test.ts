@@ -4,7 +4,7 @@ import type { CardData } from '@/types/card'
 
 const VALID_CSV = `name,class,type,rarity,effect
 Fireball,Mage,Action,common,Deal 3 damage.
-Heal Wave,Cleric,Ploy,uncommon,Restore 2 HP.`
+Heal Wave,Cleric,Ploy,rare,Restore 2 HP.`
 
 const NUMERIC_CSV = `name,class,type,rarity,cost,power,hp,vp,effect
 Swordsman,Warrior,Slayer,common,3💰,5⚔️,8❤️,,Attack.`
@@ -95,6 +95,47 @@ Bad,Mage,INVALID,common,Nope.`
     expect(cards).toHaveLength(1)
     expect(cards[0].name).toBe('Good')
     expect(errors.length).toBeGreaterThan(0)
+  })
+
+  it('accepts Status as a valid card type', () => {
+    const csv = 'name,class,type,rarity,effect\nCursed Ground,,Status,common,Ongoing effect.'
+    const { cards, errors } = parseCSV(csv)
+    expect(errors).toHaveLength(0)
+    expect(cards).toHaveLength(1)
+    expect(cards[0].type).toBe('Status')
+  })
+
+  it('normalises Italian rarity aliases to canonical values', () => {
+    const csv = `name,class,type,rarity,effect
+A,,Status,comune,Effect.
+B,,Status,rara,Effect.
+C,,Status,epica,Effect.`
+    const { cards, errors } = parseCSV(csv)
+    expect(errors).toHaveLength(0)
+    expect(cards[0].rarity).toBe('common')
+    expect(cards[1].rarity).toBe('rare')
+    expect(cards[2].rarity).toBe('epic')
+  })
+
+  it('treats a cell with exactly "||" as empty string', () => {
+    const csv = 'name,class,type,rarity,effect\nFoo,||,Action,common,Draw.'
+    const { cards, errors } = parseCSV(csv)
+    expect(errors).toHaveLength(0)
+    expect(cards[0].class).toBe('')
+  })
+
+  it('does not treat "||" as empty when embedded in a longer value', () => {
+    const csv = 'name,class,type,rarity,effect\nFoo,Mage||Rogue,Action,common,Draw.'
+    const { cards } = parseCSV(csv)
+    expect(cards[0].class).toBe('Mage||Rogue')
+  })
+
+  it('parses tab-delimited CSV when delimiter option is set to tab', () => {
+    const tsv = 'name\tclass\ttype\trarity\teffect\nFireball\tMage\tAction\tcommon\tDraw.'
+    const { cards, errors } = parseCSV(tsv, { delimiter: '\t' })
+    expect(errors).toHaveLength(0)
+    expect(cards).toHaveLength(1)
+    expect(cards[0].name).toBe('Fireball')
   })
 })
 

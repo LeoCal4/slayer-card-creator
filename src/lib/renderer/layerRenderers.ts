@@ -1,6 +1,6 @@
 import Konva from 'konva'
 import { resolveRectFill, resolveFieldText } from '@/lib/layerHelpers'
-import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer } from '@/types/template'
+import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer } from '@/types/template'
 import type { RenderContext } from './cardRenderer'
 
 export function renderRect(layer: RectLayer, ctx: RenderContext): Konva.Rect | null {
@@ -123,4 +123,20 @@ export function renderPhaseIcons(layer: PhaseIconsLayer, ctx: RenderContext): Ko
     group.add(subGroup)
   })
   return group
+}
+
+export function renderRarityDiamond(layer: RarityDiamondLayer, ctx: RenderContext): Konva.RegularPolygon | null {
+  if (layer.visible === false) return null
+  const color = ctx.project.rarityConfig[ctx.card.rarity]?.color ?? '#888888'
+  return new (Konva.RegularPolygon as any)({
+    id: layer.id,
+    x: layer.x + layer.width / 2,
+    y: layer.y + layer.height / 2,
+    sides: 4,
+    radius: Math.min(layer.width, layer.height) / 2,
+    fill: color,
+    stroke: layer.stroke,
+    strokeWidth: layer.strokeWidth,
+    opacity: layer.opacity ?? 1,
+  })
 }

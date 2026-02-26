@@ -2,7 +2,7 @@ import { useProjectStore } from '@/store/projectStore'
 import type { CardType } from '@/types/card'
 
 const CARD_TYPES: CardType[] = [
-  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase',
+  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
 ]
 
 export function PhaseMapTable() {

@@ -27,6 +27,7 @@ class MockGroup extends MockNode {
   add(_node: any) { return this }
 }
 class MockImage extends MockNode {}
+class MockRegularPolygon extends MockNode {}
 
 const Konva = {
   Stage: MockStage,
@@ -36,6 +37,7 @@ const Konva = {
   Circle: MockCircle,
   Group: MockGroup,
   Image: MockImage,
+  RegularPolygon: MockRegularPolygon,
 }
 
 export default Konva

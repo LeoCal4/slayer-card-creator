@@ -1,6 +1,7 @@
 import { useProjectStore } from '@/store/projectStore'
 import { ClassPaletteEditor } from '@/components/set-info/ClassPaletteEditor'
 import { PhaseMapTable } from '@/components/set-info/PhaseMapTable'
+import { RarityConfigTable } from '@/components/set-info/RarityConfigTable'
 
 export function SetInfoView() {
   const project = useProjectStore((s) => s.project)
@@ -98,6 +99,11 @@ export function SetInfoView() {
       <section>
         <h2 className="text-base font-semibold text-neutral-100 mb-4">Class Colours</h2>
         <ClassPaletteEditor />
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-neutral-100 mb-4">Rarity Configuration</h2>
+        <RarityConfigTable />
       </section>
 
       <section>

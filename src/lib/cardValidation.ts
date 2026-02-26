@@ -11,6 +11,7 @@ export const REQUIRED_FIELDS: Record<CardType, (keyof CardData)[]> = {
   Relic:        ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
   Dungeon:      ['name', 'type', 'effect'],
   Phase:        ['name', 'type', 'effect'],
+  Status:       ['name', 'type', 'effect'],
 }
 
 export function getMissingFields(card: CardData): (keyof CardData)[] {

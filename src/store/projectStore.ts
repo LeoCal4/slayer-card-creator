@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import type { CardData, CardType } from '@/types/card'
-import type { ClassConfig, ProjectFile, SetInfo } from '@/types/project'
+import type { CardData, CardType, Rarity } from '@/types/card'
+import type { ClassConfig, ProjectFile, RarityConfig, SetInfo } from '@/types/project'
 import type { Template, TemplateLayer } from '@/types/template'
 import { serialize, deserialize } from '@/lib/projectFile'
 import { useUiStore } from '@/store/uiStore'
@@ -43,6 +43,13 @@ const DEFAULT_PHASE_MAP: ProjectFile['phaseMap'] = {
   Relic:        ['Preparation', 'Combat'],
   Dungeon:      [],
   Phase:        [],
+  Status:       [],
+}
+
+const DEFAULT_RARITY_CONFIG: ProjectFile['rarityConfig'] = {
+  common: { aliases: ['comune'], color: '#4ade80' },
+  rare:   { aliases: ['rara'],   color: '#f87171' },
+  epic:   { aliases: ['epica'],  color: '#60a5fa' },
 }
 
 function createDefaultProject(): ProjectFile {
@@ -52,6 +59,11 @@ function createDefaultProject(): ProjectFile {
     classColors: { ...DEFAULT_CLASS_COLORS },
     phaseAbbreviations: { ...DEFAULT_PHASE_ABBREVIATIONS },
     phaseMap: { ...DEFAULT_PHASE_MAP },
+    rarityConfig: {
+      common: { ...DEFAULT_RARITY_CONFIG.common, aliases: [...DEFAULT_RARITY_CONFIG.common.aliases] },
+      rare:   { ...DEFAULT_RARITY_CONFIG.rare,   aliases: [...DEFAULT_RARITY_CONFIG.rare.aliases] },
+      epic:   { ...DEFAULT_RARITY_CONFIG.epic,   aliases: [...DEFAULT_RARITY_CONFIG.epic.aliases] },
+    },
     templates: STARTER_TEMPLATES.map((t) => ({ ...t })),
     cards: [],
     artFolderPath: '',
@@ -79,6 +91,7 @@ interface ProjectState {
 
   updatePhaseAbbreviation: (phase: string, letter: string) => void
   updatePhaseMap: (type: CardType, phases: string[]) => void
+  updateRarityConfig: (rarity: Rarity, partial: Partial<RarityConfig>) => void
 
   addTemplate: (template: Template) => void
   updateTemplate: (id: string, partial: Partial<Template>) => void
@@ -186,6 +199,14 @@ export const useProjectStore = create<ProjectState>()(
 
     updatePhaseMap: (type, phases) => {
       set((state) => { if (state.project) state.project.phaseMap[type] = phases })
+      markDirty()
+    },
+
+    updateRarityConfig: (rarity, partial) => {
+      set((state) => {
+        if (!state.project) return
+        Object.assign(state.project.rarityConfig[rarity], partial)
+      })
       markDirty()
     },
 

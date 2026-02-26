@@ -23,7 +23,7 @@ vi.stubGlobal('IntersectionObserver', class {
 const cards: CardData[] = [
   { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '' },
   { id: 'c2', name: 'Shadowblade', class: 'Rogue', type: 'Errant', rarity: 'rare', effect: '' },
-  { id: 'c3', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'uncommon', effect: '' },
+  { id: 'c3', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'epic', effect: '' },
 ]
 
 const templates: Template[] = [
@@ -37,6 +37,11 @@ const project: ProjectFile = {
   classColors: {},
   phaseAbbreviations: {},
   phaseMap: {},
+  rarityConfig: {
+    common: { aliases: ['comune'], color: '#4ade80' },
+    rare:   { aliases: ['rara'],   color: '#f87171' },
+    epic:   { aliases: ['epica'],  color: '#60a5fa' },
+  },
   templates, cards, artFolderPath: '', frameImages: {},
 }
 

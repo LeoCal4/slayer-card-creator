@@ -39,6 +39,24 @@ describe('CSVImportModal', () => {
     expect(screen.getByRole('button', { name: /import csv/i })).toBeInTheDocument()
   })
 
+  it('renders a delimiter selector with comma and tab options', () => {
+    render(<CSVImportModal />)
+    const select = screen.getByRole('combobox', { name: /delimiter/i })
+    expect(select).toBeInTheDocument()
+    expect(select).toHaveValue(',')
+  })
+
+  it('parses tab-delimited CSV when tab delimiter is selected', async () => {
+    const tsv = 'name\tclass\ttype\trarity\teffect\nFireball\tMage\tAction\tcommon\tDraw.'
+    ;(window.electronAPI.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(tsv)
+    render(<CSVImportModal />)
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /delimiter/i }), '\t')
+    await userEvent.click(screen.getByRole('button', { name: /import csv/i }))
+    await vi.waitFor(() =>
+      expect(useProjectStore.getState().project!.cards).toHaveLength(1),
+    )
+  })
+
   it('calls showOpenDialog when "Import CSV" is clicked', async () => {
     render(<CSVImportModal />)
     await userEvent.click(screen.getByRole('button', { name: /import csv/i }))

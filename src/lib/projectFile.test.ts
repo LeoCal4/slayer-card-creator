@@ -8,6 +8,11 @@ const MINIMAL: ProjectFile = {
   classColors: {},
   phaseAbbreviations: {},
   phaseMap: {},
+  rarityConfig: {
+    common: { aliases: ['comune'], color: '#4ade80' },
+    rare:   { aliases: ['rara'],   color: '#f87171' },
+    epic:   { aliases: ['epica'],  color: '#60a5fa' },
+  },
   templates: [],
   cards: [],
   artFolderPath: '',

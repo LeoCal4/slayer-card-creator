@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { Stage, Layer, Rect, Text, Image, Circle, Group, Line } from 'react-konva'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { Stage, Layer, Rect, Text, Image, Circle, Group, Line, RegularPolygon } from 'react-konva'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { shouldShowLayer, resolveRectFill, resolveFieldText } from '@/lib/layerHelpers'
-import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, TemplateLayer } from '@/types/template'
+import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 import type { CardData } from '@/types/card'
-import type { ClassConfig } from '@/types/project'
+import type { ClassConfig, RarityConfig } from '@/types/project'
 
 interface Props {
   templateId: string
@@ -15,12 +15,47 @@ function snapToGrid(v: number, size: number) {
   return Math.round(v / size) * size
 }
 
-function useSnapBound() {
+function useShiftKey() {
+  const ref = useRef(false)
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === 'Shift') ref.current = true }
+    const up = (e: KeyboardEvent) => { if (e.key === 'Shift') ref.current = false }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+    }
+  }, [])
+  return ref
+}
+
+function useDragBound() {
   const snap = useUiStore((s) => s.snapGridEnabled)
   const size = useUiStore((s) => s.snapGridSize)
-  return snap
-    ? (pos: any) => ({ x: snapToGrid(pos.x, size), y: snapToGrid(pos.y, size) })
-    : undefined
+  const shiftRef = useShiftKey()
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
+
+  const bound = useCallback((pos: { x: number; y: number }) => {
+    let { x, y } = pos
+    if (shiftRef.current && dragStartRef.current) {
+      const dx = Math.abs(x - dragStartRef.current.x)
+      const dy = Math.abs(y - dragStartRef.current.y)
+      if (dx >= dy) y = dragStartRef.current.y
+      else x = dragStartRef.current.x
+    }
+    if (snap) {
+      x = snapToGrid(x, size)
+      y = snapToGrid(y, size)
+    }
+    return { x, y }
+  }, [shiftRef, snap, size])
+
+  const saveDragStart = useCallback((e: any) => {
+    dragStartRef.current = { x: e.target.x(), y: e.target.y() }
+  }, [])
+
+  return { bound, saveDragStart }
 }
 
 function RectNode({
@@ -33,7 +68,7 @@ function RectNode({
   onHover: () => void
   onHoverEnd: () => void
 }) {
-  const snapBound = useSnapBound()
+  const { bound, saveDragStart } = useDragBound()
   return (
     <Rect
       id={layer.id}
@@ -45,7 +80,8 @@ function RectNode({
       opacity={layer.opacity ?? 1}
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
-      dragBoundFunc={snapBound}
+      dragBoundFunc={bound}
+      onDragStart={saveDragStart}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -63,7 +99,7 @@ function TextNode({
   onHover: () => void
   onHoverEnd: () => void
 }) {
-  const snapBound = useSnapBound()
+  const { bound, saveDragStart } = useDragBound()
   return (
     <Text
       id={layer.id}
@@ -77,7 +113,8 @@ function TextNode({
       lineHeight={layer.lineHeight ?? 1}
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
-      dragBoundFunc={snapBound}
+      dragBoundFunc={bound}
+      onDragStart={saveDragStart}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -96,7 +133,7 @@ function ImageNode({
   onHoverEnd: () => void
 }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
-  const snapBound = useSnapBound()
+  const { bound, saveDragStart } = useDragBound()
   useEffect(() => {
     if (!frameBase64) { setImg(null); return }
     const el = new window.Image()
@@ -112,7 +149,8 @@ function ImageNode({
       opacity={layer.opacity ?? 1}
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
-      dragBoundFunc={snapBound}
+      dragBoundFunc={bound}
+      onDragStart={saveDragStart}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -131,7 +169,7 @@ function BadgeNode({
   onHoverEnd: () => void
 }) {
   const r = Math.min(layer.width, layer.height) / 2
-  const snapBound = useSnapBound()
+  const { bound, saveDragStart } = useDragBound()
   return (
     <Group
       id={layer.id}
@@ -140,7 +178,8 @@ function BadgeNode({
       y={layer.y}
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
-      dragBoundFunc={snapBound}
+      dragBoundFunc={bound}
+      onDragStart={saveDragStart}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -169,7 +208,7 @@ function PhaseIconsNode({
   onHoverEnd: () => void
 }) {
   const { iconSize, gap } = layer
-  const snapBound = useSnapBound()
+  const { bound, saveDragStart } = useDragBound()
   return (
     <Group
       id={layer.id}
@@ -178,7 +217,8 @@ function PhaseIconsNode({
       y={layer.y}
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
-      dragBoundFunc={snapBound}
+      dragBoundFunc={bound}
+      onDragStart={saveDragStart}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -208,13 +248,52 @@ function PhaseIconsNode({
   )
 }
 
+function RarityDiamondNode({
+  layer, onSelect, rarityConfig, previewCard, onDragEnd, onHover, onHoverEnd,
+}: {
+  layer: RarityDiamondLayer
+  onSelect: () => void
+  rarityConfig: Record<string, RarityConfig>
+  previewCard: CardData | null
+  onDragEnd: (x: number, y: number) => void
+  onHover: () => void
+  onHoverEnd: () => void
+}) {
+  const { bound, saveDragStart } = useDragBound()
+  const color = previewCard ? (rarityConfig[previewCard.rarity]?.color ?? '#888888') : '#888888'
+  return (
+    <RegularPolygon
+      id={layer.id}
+      x={layer.x + layer.width / 2}
+      y={layer.y + layer.height / 2}
+      sides={4}
+      radius={Math.min(layer.width, layer.height) / 2}
+      fill={color}
+      stroke={layer.stroke}
+      strokeWidth={layer.strokeWidth}
+      opacity={layer.opacity ?? 1}
+      onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
+      draggable={!layer.locked}
+      dragBoundFunc={bound}
+      onDragStart={saveDragStart}
+      onDragEnd={(e: any) => onDragEnd(
+        e.target.x() - layer.width / 2,
+        e.target.y() - layer.height / 2,
+      )}
+      onMouseEnter={onHover}
+      onMouseLeave={onHoverEnd}
+    />
+  )
+}
+
 function LayerNode({
-  layer, onSelect, previewCard, classColors, frameBase64, phases, abbreviations, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, classColors, rarityConfig, frameBase64, phases, abbreviations, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TemplateLayer
   onSelect: () => void
   previewCard: CardData | null
   classColors: Record<string, ClassConfig>
+  rarityConfig: Record<string, RarityConfig>
   frameBase64?: string
   phases: string[]
   abbreviations: Record<string, string>
@@ -284,6 +363,19 @@ function LayerNode({
       />
     )
   }
+  if (layer.type === 'rarity-diamond') {
+    return (
+      <RarityDiamondNode
+        layer={layer}
+        onSelect={onSelect}
+        rarityConfig={rarityConfig}
+        previewCard={previewCard}
+        onDragEnd={onDragEnd}
+        onHover={onHover}
+        onHoverEnd={onHoverEnd}
+      />
+    )
+  }
   return null
 }
 
@@ -304,6 +396,7 @@ export function DesignerCanvas({ templateId }: Props) {
 
   const previewCard = project.cards.find((c) => c.id === previewCardId) ?? null
   const classColors = project.classColors
+  const rarityConfig = project.rarityConfig
   const frameBase64 = project.frameImages[templateId]
   const phases = previewCard ? (project.phaseMap[previewCard.type] ?? []) : []
   const abbreviations = project.phaseAbbreviations
@@ -334,13 +427,6 @@ export function DesignerCanvas({ templateId }: Props) {
       onClick={() => setSelectedLayer(null)}
     >
       <Layer>
-        {snapGridEnabled && gridLines.map((gl, i) =>
-          gl.x !== undefined ? (
-            <Line key={`gx${i}`} points={[gl.x, 0, gl.x, height]} stroke="#ffffff" strokeWidth={0.3} opacity={0.15} />
-          ) : (
-            <Line key={`gy${i}`} points={[0, gl.y!, width, gl.y!]} stroke="#ffffff" strokeWidth={0.3} opacity={0.15} />
-          )
-        )}
         {visibleLayers.map((layer) => (
           <LayerNode
             key={layer.id}
@@ -348,6 +434,7 @@ export function DesignerCanvas({ templateId }: Props) {
             onSelect={() => setSelectedLayer(layer.id)}
             previewCard={previewCard}
             classColors={classColors}
+            rarityConfig={rarityConfig}
             frameBase64={frameBase64}
             phases={phases}
             abbreviations={abbreviations}
@@ -377,6 +464,17 @@ export function DesignerCanvas({ templateId }: Props) {
           />
         )}
       </Layer>
+      {snapGridEnabled && (
+        <Layer listening={false}>
+          {gridLines.map((gl, i) =>
+            gl.x !== undefined ? (
+              <Line key={`gx${i}`} points={[gl.x, 0, gl.x, height]} stroke="#ffffff" strokeWidth={0.5} opacity={0.25} />
+            ) : (
+              <Line key={`gy${i}`} points={[0, gl.y!, width, gl.y!]} stroke="#ffffff" strokeWidth={0.5} opacity={0.25} />
+            )
+          )}
+        </Layer>
+      )}
     </Stage>
   )
 }

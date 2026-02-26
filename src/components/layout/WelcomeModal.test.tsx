@@ -10,6 +10,11 @@ const SAMPLE_PROJECT: ProjectFile = {
   version: 1,
   set: { name: 'Existing', code: 'EX', type: 'Custom', releaseDate: '' },
   classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+  rarityConfig: {
+    common: { aliases: ['comune'], color: '#4ade80' },
+    rare:   { aliases: ['rara'],   color: '#f87171' },
+    epic:   { aliases: ['epica'],  color: '#60a5fa' },
+  },
   templates: [], cards: [], artFolderPath: '', frameImages: {},
 }
 

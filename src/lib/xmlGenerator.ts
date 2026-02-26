@@ -11,6 +11,7 @@ const MAINTYPE: Record<CardType, string> = {
   Relic:        'Artifact',
   Dungeon:      'Planeswalker',
   Phase:        'Land',
+  Status:       'Enchantment',
 }
 
 const TABLEROW: Record<CardType, number> = {
@@ -23,6 +24,7 @@ const TABLEROW: Record<CardType, number> = {
   Relic:        1,
   Dungeon:      1,
   Phase:        0,
+  Status:       1,
 }
 
 function appendText(doc: Document, parent: Element, tag: string, text: string): void {
@@ -76,7 +78,7 @@ export function generateXML(project: ProjectFile): string {
     appendText(doc, propEl, 'type', `${maintype} — ${card.class} ${card.type}`)
     appendText(doc, propEl, 'maintype', maintype)
 
-    if (card.type !== 'Dungeon' && card.type !== 'Phase') {
+    if (card.type !== 'Dungeon' && card.type !== 'Phase' && card.type !== 'Status') {
       const cost = card.cost !== undefined ? String(card.cost) : ''
       appendText(doc, propEl, 'manacost', cost)
       appendText(doc, propEl, 'cmc', cost)

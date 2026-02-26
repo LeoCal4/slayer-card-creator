@@ -1,5 +1,12 @@
 import { describe, it } from 'vitest'
-import type { ClassConfig, SetInfo, ProjectFile } from './project'
+import type { ClassConfig, SetInfo, ProjectFile, RarityConfig } from './project'
+
+describe('RarityConfig', () => {
+  it('has aliases array and color string', () => {
+    void ({ aliases: ['comune'], color: '#4ade80' } satisfies RarityConfig)
+    void ({ aliases: [], color: '#f87171' } satisfies RarityConfig)
+  })
+})
 
 describe('ClassConfig', () => {
   it('accepts free-text cockatriceColor (not restricted to MTG letters)', () => {
@@ -22,6 +29,11 @@ describe('ProjectFile', () => {
       classColors: {},
       phaseAbbreviations: { Encounter: 'E', Preparation: 'P', Combat: 'B', Camp: 'C' },
       phaseMap: {},
+      rarityConfig: {
+        common: { aliases: ['comune'], color: '#4ade80' },
+        rare:   { aliases: ['rara'],   color: '#f87171' },
+        epic:   { aliases: ['epica'],  color: '#60a5fa' },
+      },
       templates: [],
       cards: [],
       artFolderPath: '',
@@ -36,6 +48,11 @@ describe('ProjectFile', () => {
       classColors: {},
       phaseAbbreviations: {},
       phaseMap: {},
+      rarityConfig: {
+        common: { aliases: [], color: '#4ade80' },
+        rare:   { aliases: [], color: '#f87171' },
+        epic:   { aliases: [], color: '#60a5fa' },
+      },
       templates: [],
       cards: [],
       artFolderPath: '/art',

@@ -22,7 +22,8 @@ export function resolveFieldText(
   if (field === 'stats') return `${card.power ?? '-'}/${card.hp ?? '-'}`
   if (field === 'statsVP') return `${card.vp ?? '-'} VP`
   const val = card[field as keyof CardData]
-  return val !== undefined && val !== null ? String(val) : `[${field}]`
+  const str = val !== undefined && val !== null ? String(val) : `[${field}]`
+  return str.replace(/\\n/g, '\n')
 }
 
 export function resolveRectFill(

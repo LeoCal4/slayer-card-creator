@@ -35,10 +35,11 @@ describe('LayerPanel', () => {
     expect(rows).toHaveLength(3)
   })
 
-  it('shows layer type label for each layer', () => {
+  it('shows field name as label for text layers, type for others', () => {
     render(<LayerPanel templateId="tmpl-1" />)
     expect(screen.getAllByText(/rect/i)).toHaveLength(2)
-    expect(screen.getByText(/text/i)).toBeInTheDocument()
+    // text layer l2 has field='name' → label should be 'name', not 'text'
+    expect(screen.getByText('name')).toBeInTheDocument()
   })
 
   it('clicking a row selects that layer', async () => {

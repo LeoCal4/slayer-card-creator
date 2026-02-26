@@ -141,6 +141,11 @@ describe('dirty state tracking', () => {
       version: 1,
       set: { name: 'Loaded', code: 'LD', type: 'Custom', releaseDate: '' },
       classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+      rarityConfig: {
+        common: { aliases: ['comune'], color: '#4ade80' },
+        rare:   { aliases: ['rara'],   color: '#f87171' },
+        epic:   { aliases: ['epica'],  color: '#60a5fa' },
+      },
       templates: [], cards: [], artFolderPath: '', frameImages: {},
     }
     useProjectStore.getState().loadProject(data)
@@ -153,6 +158,11 @@ describe('saveProject', () => {
     version: 1,
     set: { name: 'Save Test', code: 'SV', type: 'Custom', releaseDate: '' },
     classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+    rarityConfig: {
+      common: { aliases: ['comune'], color: '#4ade80' },
+      rare:   { aliases: ['rara'],   color: '#f87171' },
+      epic:   { aliases: ['epica'],  color: '#60a5fa' },
+    },
     templates: [], cards: [], artFolderPath: '', frameImages: {},
   }
 
@@ -220,6 +230,11 @@ describe('openProject', () => {
     version: 1,
     set: { name: 'Opened Set', code: 'OP', type: 'Custom', releaseDate: '' },
     classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+    rarityConfig: {
+      common: { aliases: ['comune'], color: '#4ade80' },
+      rare:   { aliases: ['rara'],   color: '#f87171' },
+      epic:   { aliases: ['epica'],  color: '#60a5fa' },
+    },
     templates: [], cards: [], artFolderPath: '', frameImages: {},
   }
 

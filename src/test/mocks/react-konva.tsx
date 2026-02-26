@@ -58,5 +58,15 @@ const Group = ({ children, onClick, onMouseEnter, onMouseLeave, id, name }: any)
 )
 const Line = () => <div data-testid="konva-line" />
 const Transformer = () => <div data-testid="konva-transformer" />
+const RegularPolygon = ({ onClick, onMouseEnter, onMouseLeave, id, fill }: any) => (
+  <div
+    data-testid="konva-regular-polygon"
+    data-id={id}
+    data-fill={fill}
+    onClick={(e) => { e.stopPropagation(); onClick?.(e) }}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+  />
+)
 
-export { Stage, Layer, Rect, Text, Image, Circle, Group, Line, Transformer }
+export { Stage, Layer, Rect, Text, Image, Circle, Group, Line, Transformer, RegularPolygon }

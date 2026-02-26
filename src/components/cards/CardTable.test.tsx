@@ -13,7 +13,7 @@ function setupProject() {
     id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3 damage.',
   })
   useProjectStore.getState().addCard({
-    id: 'c2', name: 'Arrow Shot', class: 'Hunter', type: 'Ploy', rarity: 'uncommon', effect: 'Pierce armor.',
+    id: 'c2', name: 'Arrow Shot', class: 'Hunter', type: 'Ploy', rarity: 'rare', effect: 'Pierce armor.',
   })
 }
 
