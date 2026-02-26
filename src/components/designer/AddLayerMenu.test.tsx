@@ -89,19 +89,19 @@ describe('AddLayerMenu', () => {
     expect(screen.queryByRole('menuitem', { name: /rect/i })).not.toBeInTheDocument()
   })
 
-  it('text layer default label equals the field name', async () => {
+  it('text layer default has no label', async () => {
     render(<AddLayerMenu templateId="tmpl-1" />)
     await userEvent.click(screen.getByRole('button', { name: /add layer/i }))
     await userEvent.click(screen.getByRole('menuitem', { name: /text/i }))
     const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers[0]
-    expect(layer.label).toBe('name')
+    expect(layer.label).toBeUndefined()
   })
 
-  it('badge layer default label equals the field name', async () => {
+  it('badge layer default has no label', async () => {
     render(<AddLayerMenu templateId="tmpl-1" />)
     await userEvent.click(screen.getByRole('button', { name: /add layer/i }))
     await userEvent.click(screen.getByRole('menuitem', { name: /badge/i }))
     const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers[0]
-    expect(layer.label).toBe('cost')
+    expect(layer.label).toBeUndefined()
   })
 })

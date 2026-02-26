@@ -52,7 +52,7 @@ const baseBadge: BadgeLayer = {
 
 const basePhaseIcons: PhaseIconsLayer = {
   id: 'l-phases', type: 'phase-icons', x: 10, y: 490, width: 200, height: 20,
-  orientation: 'horizontal', iconSize: 20, gap: 4, align: 'left',
+  orientation: 'horizontal', iconSize: 20, gap: 4,
 }
 
 describe('renderRect', () => {

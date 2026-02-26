@@ -25,7 +25,7 @@ const TEMPLATE: Template = {
     {
       id: 'phase-1', type: 'phase-icons',
       x: 5, y: 5, width: 200, height: 30,
-      orientation: 'horizontal', iconSize: 24, gap: 4, align: 'left',
+      orientation: 'horizontal', iconSize: 24, gap: 4,
       fill: '#333333', textFill: '#ffffff', cornerRadius: 4,
     },
   ],
@@ -114,11 +114,6 @@ describe('PropertiesPanel — phase-icons layer', () => {
     expect(screen.getByRole('spinbutton', { name: /icon size/i })).toHaveValue(24)
     expect(screen.getByRole('spinbutton', { name: /^gap$/i })).toHaveValue(4)
     expect(screen.getByRole('spinbutton', { name: /corner radius/i })).toHaveValue(4)
-  })
-
-  it('renders align dropdown', () => {
-    render(<PropertiesPanel templateId="tmpl-1" />)
-    expect(screen.getByRole('combobox', { name: /^align$/i })).toHaveValue('left')
   })
 
   it('changing orientation updates the store', async () => {

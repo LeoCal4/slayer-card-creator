@@ -9,7 +9,7 @@
     { "id": "th-art", "type": "image", "x": 10, "y": 65, "width": 355, "height": 160, "imageSource": "art", "imageFit": "cover", "opacity": 0.9, "visible": true, "locked": false },
     { "id": "th-name", "type": "text", "x": 12, "y": 12, "width": 340, "height": 36, "field": "name", "fontSize": 22, "fill": "#ffffff", "fontStyle": "bold", "align": "left", "visible": true, "locked": false },
     { "id": "th-type", "type": "text", "x": 12, "y": 234, "width": 250, "height": 22, "field": "type", "fontSize": 12, "fill": "#aaaacc", "fontStyle": "italic", "align": "left", "visible": true, "locked": false },
-    { "id": "th-phases", "type": "phase-icons", "x": 270, "y": 232, "width": 95, "height": 26, "orientation": "horizontal", "iconSize": 22, "gap": 4, "align": "right", "fill": "#2c2c54", "textFill": "#ffffff", "cornerRadius": 4, "visible": true, "locked": false },
+    { "id": "th-phases", "type": "phase-icons", "x": 270, "y": 232, "width": 95, "height": 26, "orientation": "horizontal", "iconSize": 22, "gap": 4, "fill": "#2c2c54", "textFill": "#ffffff", "cornerRadius": 4, "visible": true, "locked": false },
     { "id": "th-divider", "type": "rect", "x": 12, "y": 264, "width": 351, "height": 2, "fill": "#2c2c54", "visible": true, "locked": false },
     { "id": "th-effect", "type": "text", "x": 12, "y": 274, "width": 351, "height": 210, "field": "effect", "fontSize": 13, "fill": "#e8e8f0", "align": "left", "lineHeight": 1.5, "visible": true, "locked": false },
     { "id": "th-rarity", "type": "rarity-diamond", "x": 169, "y": 488, "width": 36, "height": 36, "visible": true, "locked": false }

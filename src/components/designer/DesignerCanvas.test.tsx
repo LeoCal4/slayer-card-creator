@@ -19,7 +19,7 @@ const TEMPLATE: Template = {
     { id: 'l-hidden', type: 'rect', x: 0, y: 0, width: 100, height: 100, fill: '#ff0000', visible: false },
     { id: 'l-image', type: 'image', x: 0, y: 0, width: 375, height: 523, imageSource: 'frame', imageFit: 'cover', visible: true },
     { id: 'l-badge', type: 'badge', x: 10, y: 10, width: 50, height: 50, shape: 'circle', field: 'cost', fill: '#000', textFill: '#fff', visible: true },
-    { id: 'l-phase', type: 'phase-icons', x: 5, y: 5, width: 200, height: 30, orientation: 'horizontal', iconSize: 24, gap: 4, align: 'left', visible: true },
+    { id: 'l-phase', type: 'phase-icons', x: 5, y: 5, width: 200, height: 30, orientation: 'horizontal', iconSize: 24, gap: 4, visible: true },
     { id: 'l-showif', type: 'rect', x: 0, y: 0, width: 100, height: 50, fill: '#abcdef', visible: true, showIfField: 'cost' },
   ],
 }
@@ -94,6 +94,28 @@ describe('DesignerCanvas', () => {
     const texts = screen.getAllByTestId('konva-text')
     const nameText = texts.find((t) => t.getAttribute('data-id') === 'l-text')!
     expect(nameText).toHaveAttribute('data-text', '[name]')
+  })
+
+  it('badge text node has verticalAlign middle', () => {
+    render(<DesignerCanvas templateId="tmpl-1" />)
+    const badge = screen.getByTestId('konva-badge')
+    const textNode = badge.querySelector('[data-testid="konva-text"]')
+    expect(textNode).toHaveAttribute('data-vertical-align', 'middle')
+  })
+
+  it('phase-icons text nodes have verticalAlign middle', () => {
+    useProjectStore.getState().updatePhaseMap('Slayer', ['Encounter'])
+    useProjectStore.getState().addCard({
+      id: 'c-phase', name: 'Foo', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '',
+    })
+    useUiStore.getState().setPreviewCard('c-phase')
+    render(<DesignerCanvas templateId="tmpl-1" />)
+    const phaseGroup = screen.getByTestId('konva-phase-icons')
+    const textNodes = phaseGroup.querySelectorAll('[data-testid="konva-text"]')
+    expect(textNodes.length).toBeGreaterThan(0)
+    textNodes.forEach((node) => {
+      expect(node).toHaveAttribute('data-vertical-align', 'middle')
+    })
   })
 
   it('text layer shows card value when preview card is set', () => {

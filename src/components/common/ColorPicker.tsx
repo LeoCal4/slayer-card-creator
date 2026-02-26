@@ -5,9 +5,10 @@ const HEX_RE = /^#[0-9a-fA-F]{6}$/
 interface Props {
   value: string
   onChange: (hex: string) => void
+  label?: string
 }
 
-export function ColorPicker({ value, onChange }: Props) {
+export function ColorPicker({ value, onChange, label }: Props) {
   const colorInputRef = useRef<HTMLInputElement>(null)
   const [localHex, setLocalHex] = useState(value)
 
@@ -39,6 +40,7 @@ export function ColorPicker({ value, onChange }: Props) {
       />
       <input
         type="text"
+        aria-label={label}
         value={localHex}
         onChange={(e) => handleTextChange(e.target.value)}
         maxLength={7}

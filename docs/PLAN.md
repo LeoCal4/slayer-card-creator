@@ -1347,3 +1347,178 @@ Konva's `Text` node renders newline characters as line breaks when `wrap: 'word'
 | 62 | CSV delimiter selector + `\|\|` sentinel | CSVImportModal, csvParser |
 | 63 | Layer default name = field name | AddLayerMenu, layer factory helpers |
 | 64 | `\n` literal → newline in rendered text | layerHelpers, layerRenderers |
+
+---
+
+## 22. Designer Polish (Round F)
+
+Eleven usability issues found during manual testing.
+
+---
+
+### 22.1 No auto-label on new layers
+
+**Current behaviour:** `AddLayerMenu.defaultLayer()` hardcodes `label: 'name'` for `text` and `label: 'cost'` for `badge`, so newly added layers show a field name in the layer panel before the user has chosen anything.
+
+**Fix:** Remove the `label` property from `defaultLayer()` for all types. The layer panel already falls back to `field` then `type` when `label` is absent — this is the correct display-only logic and should not be altered.
+
+**File:** `src/components/designer/AddLayerMenu.tsx`
+
+---
+
+### 22.2 ColorPicker for all colour inputs
+
+**Current behaviour:** `Fill`, `Text Fill`, and `Stroke` fields in `PropertiesPanel` are plain hex `<TextInput>` controls.
+
+**Fix:** Replace every colour-valued `TextInput` with `<ColorPicker>` in:
+
+| Component | Fields |
+|-----------|--------|
+| `RectProps` | `fill`, `stroke` |
+| `TextProps` | `fill` |
+| `BadgeProps` | `fill`, `textFill` |
+| `PhaseIconsProps` | `fill`, `textFill` |
+| `RarityDiamondProps` (new, §22.5) | `stroke` |
+
+`ColorPicker` is already used in `ClassPaletteEditor` and `RarityConfigTable`; import it here from `@/components/common/ColorPicker`.
+
+**File:** `src/components/designer/PropertiesPanel.tsx`
+
+---
+
+### 22.3 Font Family fixed dropdown
+
+**Current behaviour:** Font Family in `TextProps` is a free-text input.
+
+**Fix:** Replace with a `<select>` dropdown listing the following fonts (all reliably available in Electron on Windows):
+
+```
+sans-serif, serif, monospace, Arial, Georgia, Impact, Verdana, Tahoma
+```
+
+**File:** `src/components/designer/PropertiesPanel.tsx`
+
+---
+
+### 22.4 Stroke ColorPicker on Rect layers
+
+Covered by §22.2 — `RectProps` `stroke` field changes from `TextInput` to `ColorPicker`.
+
+No additional note needed.
+
+---
+
+### 22.5 Properties panel for Rarity Diamond
+
+**Current behaviour:** Selecting a `rarity-diamond` layer shows only the `LayerLabelInput` and nothing else (`PropertiesPanel` has no `RarityDiamondProps`).
+
+**Fix:** Add `RarityDiamondProps` component and wire it to `PropertiesPanel`:
+
+Fields:
+- X, Y, Width, Height (NumInput)
+- Stroke (`ColorPicker`)
+- Stroke Width (NumInput, min 0)
+- Opacity (NumInput, min 0 max 1 step 0.1)
+- Show If Field (dropdown, same as Rect/Text)
+
+**File:** `src/components/designer/PropertiesPanel.tsx`
+
+Also import `RarityDiamondLayer` from `@/types/template`.
+
+---
+
+### 22.6 Vertically centre text in Cost badge
+
+**Current behaviour:** The `Text` node inside `BadgeNode` lacks `verticalAlign`, so the number sits near the top of the badge circle.
+
+**Fix:** Add `verticalAlign="middle"` to the `Text` node in `BadgeNode`.
+
+**File:** `src/components/designer/DesignerCanvas.tsx`
+
+---
+
+### 22.7 Selection border follows layer during drag
+
+**Current behaviour:** The dashed indigo selection border reads `selectedVisible.x / .y` from the Zustand store, which only updates on `onDragEnd`. While dragging, the layer shape moves but the overlay rectangle stays at the original position.
+
+**Fix:**
+
+1. Add `useState<{ id: string; x: number; y: number } | null>(null)` as `dragLayerPos` in `DesignerCanvas`.
+2. Add an `onDragMove: (x: number, y: number) => void` callback prop to every node component.
+3. Wire `onDragMove` via Konva's `onDragMove` event:
+   - Regular nodes (`RectNode`, `TextNode`, `ImageNode`, `BadgeNode`, `PhaseIconsNode`): `e.target.x(), e.target.y()`
+   - `RarityDiamondNode`: subtract the center offset, matching the existing `onDragEnd` pattern: `e.target.x() - layer.width/2, e.target.y() - layer.height/2`
+4. In `DesignerCanvas`, pass `onDragMove={(x, y) => setDragLayerPos({ id: layer.id, x, y })}` to each `LayerNode`.
+5. On `onDragEnd`, call `setDragLayerPos(null)` before or after updating the store.
+6. The selection overlay uses `dragLayerPos` position when `dragLayerPos?.id === selectedLayerId`, otherwise falls back to `selectedVisible.x / .y`.
+
+The hover overlay is not updated during drag (it disappears on mouse-down anyway), so no change needed there.
+
+**File:** `src/components/designer/DesignerCanvas.tsx`
+
+---
+
+### 22.8 More visible hover border
+
+**Current behaviour:** Hover outline is `stroke="#ffffff" strokeWidth={1} opacity={0.35}` — barely visible especially against light layers.
+
+**Fix:** Increase to `strokeWidth={2} opacity={0.6}`. Keep white stroke (works on both dark and light backgrounds).
+
+**File:** `src/components/designer/DesignerCanvas.tsx`
+
+---
+
+### 22.9 Remove non-functional `align` from Phase Icons
+
+**Current behaviour:** `PhaseIconsLayer` has `align: 'left' | 'right'` but the canvas never uses it — icons always start at `x=0` relative to the group. The PropertiesPanel exposes it, giving false impression of functionality.
+
+**Fix:**
+
+1. Remove `align` from `PhaseIconsLayer` in `src/types/template.ts`.
+2. Remove the Align `<select>` from `PhaseIconsProps` in `PropertiesPanel.tsx`.
+3. Remove `align: 'left'` from the default phase-icons layer in `AddLayerMenu.tsx`.
+4. Remove `"align"` key from all 4 starter template JSON files (backward-compat: the property will simply be ignored if present in loaded projects, but clean it up from bundled assets).
+
+**Files:** `src/types/template.ts`, `PropertiesPanel.tsx`, `AddLayerMenu.tsx`, all 4 `src/assets/templates/*.json`
+
+---
+
+### 22.10 Configurable font size for Phase Icons
+
+**Current behaviour:** The letter size inside each phase square is hardcoded to `Math.floor(iconSize * 0.6)` with no user control.
+
+**Fix:**
+
+1. Add `fontSize?: number` to `PhaseIconsLayer` in `src/types/template.ts`.
+2. Add `NumInput label="Font Size"` to `PhaseIconsProps` in `PropertiesPanel.tsx` (min 6).
+3. In `PhaseIconsNode`, use `layer.fontSize ?? Math.floor(iconSize * 0.6)` for the Text node's `fontSize`.
+
+**Files:** `src/types/template.ts`, `PropertiesPanel.tsx`, `DesignerCanvas.tsx`
+
+---
+
+### 22.11 Vertically centre text in Phase Icon squares
+
+**Current behaviour:** Letters inside phase-icon squares lack `verticalAlign`, so they sit at the top of each square.
+
+**Fix:** Add `verticalAlign="middle"` to the `Text` node inside `PhaseIconsNode`.
+
+**File:** `src/components/designer/DesignerCanvas.tsx`
+
+---
+
+### 22.12 Implementation order
+
+| # | Task | Files |
+|---|------|-------|
+| 65 | Remove auto-label from `defaultLayer()` | `AddLayerMenu.tsx` |
+| 66 | ColorPicker for all colour inputs in PropertiesPanel | `PropertiesPanel.tsx` |
+| 67 | Font Family fixed dropdown | `PropertiesPanel.tsx` |
+| 68 | `RarityDiamondProps` in PropertiesPanel | `PropertiesPanel.tsx`, `template.ts` (import) |
+| 69 | `verticalAlign="middle"` on Badge text | `DesignerCanvas.tsx` |
+| 70 | Selection border follows drag (`dragLayerPos`) | `DesignerCanvas.tsx` |
+| 71 | More visible hover border | `DesignerCanvas.tsx` |
+| 72 | Remove `align` from PhaseIconsLayer | `template.ts`, `PropertiesPanel.tsx`, `AddLayerMenu.tsx`, 4× JSON |
+| 73 | `fontSize` property on PhaseIconsLayer | `template.ts`, `PropertiesPanel.tsx`, `DesignerCanvas.tsx` |
+| 74 | `verticalAlign="middle"` on PhaseIcons text | `DesignerCanvas.tsx` |
+

@@ -55,10 +55,10 @@ export interface PhaseIconsLayer extends LayerBase {
   orientation: 'horizontal' | 'vertical'
   iconSize: number
   gap: number
-  align: 'left' | 'right'
   fill?: string
   textFill?: string
   cornerRadius?: number
+  fontSize?: number
 }
 
 export interface RarityDiamondLayer extends LayerBase {

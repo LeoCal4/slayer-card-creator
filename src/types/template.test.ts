@@ -65,13 +65,13 @@ describe('PhaseIconsLayer', () => {
     void ({
       id: 'phases-h', type: 'phase-icons', x: 220, y: 265,
       width: 150, height: 30,
-      orientation: 'horizontal', iconSize: 22, gap: 4, align: 'right',
+      orientation: 'horizontal', iconSize: 22, gap: 4,
     } satisfies PhaseIconsLayer)
 
     void ({
       id: 'phases-v', type: 'phase-icons', x: 220, y: 265,
       width: 30, height: 150,
-      orientation: 'vertical', iconSize: 22, gap: 4, align: 'left',
+      orientation: 'vertical', iconSize: 22, gap: 4,
     } satisfies PhaseIconsLayer)
   })
 })
@@ -95,7 +95,7 @@ describe('TemplateLayer union', () => {
       { id: 'i', type: 'image', x: 0, y: 0, width: 10, height: 10, imageSource: 'art', imageFit: 'cover' },
       { id: 't', type: 'text', x: 0, y: 0, width: 10, height: 10, field: 'name', fontSize: 14 },
       { id: 'b', type: 'badge', x: 0, y: 0, width: 10, height: 10, shape: 'circle', field: 'cost' },
-      { id: 'p', type: 'phase-icons', x: 0, y: 0, width: 10, height: 10, orientation: 'horizontal', iconSize: 20, gap: 4, align: 'left' },
+      { id: 'p', type: 'phase-icons', x: 0, y: 0, width: 10, height: 10, orientation: 'horizontal', iconSize: 20, gap: 4 },
       { id: 'd', type: 'rarity-diamond', x: 0, y: 0, width: 10, height: 10 },
     ] satisfies TemplateLayer[])
   })

@@ -424,3 +424,63 @@
 - [ ] Open Preview → scroll through, verify cards render with correct colors and text
 - [ ] Export ZIP → verify ZIP contains `<setcode>.xml` and one PNG per card
 - [ ] Load ZIP into Cockatrice → verify cards appear with correct names, types, and images
+
+---
+
+## Phase 22 — Designer Polish Round F
+
+### 65. No auto-label on new layers
+- [ ] In `AddLayerMenu.tsx` `defaultLayer()`, remove `label: 'name'` from the `text` case
+- [ ] In `AddLayerMenu.tsx` `defaultLayer()`, remove `label: 'cost'` from the `badge` case
+
+### 66. ColorPicker for all colour inputs in PropertiesPanel
+- [ ] Import `ColorPicker` from `@/components/common/ColorPicker` in `PropertiesPanel.tsx`
+- [ ] `RectProps`: replace `<TextInput label="Fill" ...>` with `<ColorPicker>`
+- [ ] `RectProps`: replace `<TextInput label="Stroke" ...>` with `<ColorPicker>` (covered by task 67 below — kept here for tracking)
+- [ ] `TextProps`: replace `<TextInput label="Fill" ...>` with `<ColorPicker>`
+- [ ] `BadgeProps`: replace `<TextInput label="Fill" ...>` with `<ColorPicker>`
+- [ ] `BadgeProps`: replace `<TextInput label="Text Fill" ...>` with `<ColorPicker>`
+- [ ] `PhaseIconsProps`: replace `<TextInput label="Fill" ...>` with `<ColorPicker>`
+- [ ] `PhaseIconsProps`: replace `<TextInput label="Text Fill" ...>` with `<ColorPicker>`
+
+### 67. Font Family fixed dropdown in TextProps
+- [ ] In `PropertiesPanel.tsx` `TextProps`, replace `<TextInput label="Font Family" ...>` with a `<select>` dropdown
+- [ ] Options: `sans-serif`, `serif`, `monospace`, `Arial`, `Georgia`, `Impact`, `Verdana`, `Tahoma`
+
+### 68. Properties panel for Rarity Diamond
+- [ ] Import `RarityDiamondLayer` type in `PropertiesPanel.tsx`
+- [ ] Add `RarityDiamondProps` component with fields: X, Y, Width, Height (NumInput); Stroke (`ColorPicker`); Stroke Width (NumInput, min 0); Opacity (NumInput, min 0 max 1 step 0.1); Show If Field (dropdown, same options as Rect/Text)
+- [ ] Wire `{layer.type === 'rarity-diamond' && <RarityDiamondProps layer={layer} templateId={templateId} />}` in `PropertiesPanel`
+
+### 69. Vertically centre text in Cost badge
+- [ ] In `DesignerCanvas.tsx` `BadgeNode`, add `verticalAlign="middle"` to the inner `<Text>` node
+
+### 70. Selection border follows layer during drag
+- [ ] In `DesignerCanvas.tsx`, add `useState<{ id: string; x: number; y: number } | null>(null)` as `dragLayerPos`
+- [ ] Add `onDragMove: (x: number, y: number) => void` prop to `RectNode`, `TextNode`, `ImageNode`, `BadgeNode`, `PhaseIconsNode`
+- [ ] Add `onDragMove: (x: number, y: number) => void` prop to `RarityDiamondNode` (applies center offset: `e.target.x() - layer.width/2`, `e.target.y() - layer.height/2`)
+- [ ] In each node, wire Konva's `onDragMove` to call the `onDragMove` prop
+- [ ] Add `onDragMove` to `LayerNode` props interface and pass through to each node
+- [ ] In `DesignerCanvas`, pass `onDragMove={(x, y) => setDragLayerPos({ id: layer.id, x, y })}` to each `LayerNode`
+- [ ] In `DesignerCanvas`, clear `dragLayerPos` on drag end: call `setDragLayerPos(null)` inside the `onDragEnd` handler (before or after store update)
+- [ ] The selection overlay `<Rect>` uses `dragLayerPos.x / .y` when `dragLayerPos?.id === selectedLayerId`; otherwise uses `selectedVisible.x / .y`
+
+### 71. More visible hover border
+- [ ] In `DesignerCanvas.tsx`, on the hover overlay `<Rect>`: change `strokeWidth={1}` → `strokeWidth={2}` and `opacity={0.35}` → `opacity={0.6}`
+
+### 72. Remove non-functional `align` from Phase Icons
+- [ ] In `src/types/template.ts`, remove `align: 'left' | 'right'` from `PhaseIconsLayer`
+- [ ] In `PropertiesPanel.tsx` `PhaseIconsProps`, remove the Align `<select>` block
+- [ ] In `AddLayerMenu.tsx` `defaultLayer()` `phase-icons` case, remove `align: 'left'`
+- [ ] In `src/assets/templates/action-ploy.json`, remove `"align"` from the `ap-phases` layer object
+- [ ] In `src/assets/templates/slayer-errant.json`, remove `"align"` from the `se-phases` layer object
+- [ ] In `src/assets/templates/chamber-relic.json`, remove `"align"` from the `cr-phases` layer object
+- [ ] In `src/assets/templates/text-heavy.json`, remove `"align"` from the `th-phases` layer object
+
+### 73. Configurable font size for Phase Icons
+- [ ] In `src/types/template.ts`, add `fontSize?: number` to `PhaseIconsLayer`
+- [ ] In `PropertiesPanel.tsx` `PhaseIconsProps`, add `<NumInput label="Font Size" ...>` (min 6) wired to `layer.fontSize`
+- [ ] In `DesignerCanvas.tsx` `PhaseIconsNode`, replace hardcoded `Math.floor(iconSize * 0.6)` with `layer.fontSize ?? Math.floor(iconSize * 0.6)`
+
+### 74. Vertically centre text in Phase Icon squares
+- [ ] In `DesignerCanvas.tsx` `PhaseIconsNode`, add `verticalAlign="middle"` to each inner `<Text>` node

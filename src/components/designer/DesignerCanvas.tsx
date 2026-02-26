@@ -59,11 +59,12 @@ function useDragBound() {
 }
 
 function RectNode({
-  layer, onSelect, fill, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, fill, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: RectLayer
   onSelect: () => void
   fill: string
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -82,6 +83,7 @@ function RectNode({
       draggable={!layer.locked}
       dragBoundFunc={bound}
       onDragStart={saveDragStart}
+      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -90,11 +92,12 @@ function RectNode({
 }
 
 function TextNode({
-  layer, onSelect, previewCard, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TextLayer
   onSelect: () => void
   previewCard: CardData | null
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -115,6 +118,7 @@ function TextNode({
       draggable={!layer.locked}
       dragBoundFunc={bound}
       onDragStart={saveDragStart}
+      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -123,11 +127,12 @@ function TextNode({
 }
 
 function ImageNode({
-  layer, onSelect, frameBase64, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, frameBase64, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: ImageLayer
   onSelect: () => void
   frameBase64?: string
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -151,6 +156,7 @@ function ImageNode({
       draggable={!layer.locked}
       dragBoundFunc={bound}
       onDragStart={saveDragStart}
+      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -159,11 +165,12 @@ function ImageNode({
 }
 
 function BadgeNode({
-  layer, onSelect, previewCard, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: BadgeLayer
   onSelect: () => void
   previewCard: CardData | null
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -180,6 +187,7 @@ function BadgeNode({
       draggable={!layer.locked}
       dragBoundFunc={bound}
       onDragStart={saveDragStart}
+      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -191,18 +199,20 @@ function BadgeNode({
         fontSize={layer.fontSize ?? 18}
         fill={layer.textFill ?? '#ffffff'}
         align="center"
+        verticalAlign="middle"
       />
     </Group>
   )
 }
 
 function PhaseIconsNode({
-  layer, onSelect, phases, abbreviations, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: PhaseIconsLayer
   onSelect: () => void
   phases: string[]
   abbreviations: Record<string, string>
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -219,6 +229,7 @@ function PhaseIconsNode({
       draggable={!layer.locked}
       dragBoundFunc={bound}
       onDragStart={saveDragStart}
+      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
@@ -237,9 +248,10 @@ function PhaseIconsNode({
             <Text
               width={iconSize} height={iconSize}
               text={abbreviations[phase] ?? phase[0]}
-              fontSize={Math.floor(iconSize * 0.6)}
+              fontSize={layer.fontSize ?? Math.floor(iconSize * 0.6)}
               fill={layer.textFill ?? '#ffffff'}
               align="center"
+              verticalAlign="middle"
             />
           </Group>
         )
@@ -249,12 +261,13 @@ function PhaseIconsNode({
 }
 
 function RarityDiamondNode({
-  layer, onSelect, rarityConfig, previewCard, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, rarityConfig, previewCard, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: RarityDiamondLayer
   onSelect: () => void
   rarityConfig: Record<string, RarityConfig>
   previewCard: CardData | null
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -276,6 +289,7 @@ function RarityDiamondNode({
       draggable={!layer.locked}
       dragBoundFunc={bound}
       onDragStart={saveDragStart}
+      onDragMove={(e: any) => onDragMove(e.target.x() - layer.width / 2, e.target.y() - layer.height / 2)}
       onDragEnd={(e: any) => onDragEnd(
         e.target.x() - layer.width / 2,
         e.target.y() - layer.height / 2,
@@ -287,7 +301,7 @@ function RarityDiamondNode({
 }
 
 function LayerNode({
-  layer, onSelect, previewCard, classColors, rarityConfig, frameBase64, phases, abbreviations, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, classColors, rarityConfig, frameBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TemplateLayer
   onSelect: () => void
@@ -297,6 +311,7 @@ function LayerNode({
   frameBase64?: string
   phases: string[]
   abbreviations: Record<string, string>
+  onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
@@ -308,6 +323,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         fill={resolveRectFill(layer, classColors, previewCard)}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
         onHoverEnd={onHoverEnd}
@@ -320,6 +336,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         previewCard={previewCard}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
         onHoverEnd={onHoverEnd}
@@ -332,6 +349,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         frameBase64={frameBase64}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
         onHoverEnd={onHoverEnd}
@@ -344,6 +362,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         previewCard={previewCard}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
         onHoverEnd={onHoverEnd}
@@ -357,6 +376,7 @@ function LayerNode({
         onSelect={onSelect}
         phases={phases}
         abbreviations={abbreviations}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
         onHoverEnd={onHoverEnd}
@@ -370,6 +390,7 @@ function LayerNode({
         onSelect={onSelect}
         rarityConfig={rarityConfig}
         previewCard={previewCard}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
         onHoverEnd={onHoverEnd}
@@ -389,6 +410,7 @@ export function DesignerCanvas({ templateId }: Props) {
   const snapGridSize = useUiStore((s) => s.snapGridSize)
   const stageRef = useRef<any>(null)
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null)
+  const [dragPos, setDragPos] = useState<{ layerId: string; x: number; y: number } | null>(null)
 
   if (!project) return null
   const template = project.templates.find((t) => t.id === templateId)
@@ -419,6 +441,10 @@ export function DesignerCanvas({ templateId }: Props) {
   const selectedLayer = selectedLayerId ? visibleLayers.find((l) => l.id === selectedLayerId) : null
   const selectedVisible = selectedLayer && shouldShowLayer(selectedLayer, previewCard) ? selectedLayer : null
 
+  // Use live drag position when dragging the selected layer
+  const overlayX = dragPos?.layerId === selectedLayerId ? dragPos.x : selectedVisible?.x
+  const overlayY = dragPos?.layerId === selectedLayerId ? dragPos.y : selectedVisible?.y
+
   return (
     <Stage
       ref={stageRef}
@@ -438,26 +464,27 @@ export function DesignerCanvas({ templateId }: Props) {
             frameBase64={frameBase64}
             phases={phases}
             abbreviations={abbreviations}
-            onDragEnd={(x, y) => updateLayer(templateId, layer.id, { x, y })}
+            onDragMove={(x, y) => setDragPos({ layerId: layer.id, x, y })}
+            onDragEnd={(x, y) => { updateLayer(templateId, layer.id, { x, y }); setDragPos(null) }}
             onHover={() => setHoveredLayerId(layer.id)}
             onHoverEnd={() => setHoveredLayerId(null)}
           />
         ))}
 
-        {/* Hover overlay — subtle white outline */}
+        {/* Hover overlay — white outline */}
         {hoveredVisible && (
           <Rect
             x={hoveredVisible.x} y={hoveredVisible.y}
             width={hoveredVisible.width} height={hoveredVisible.height}
-            stroke="#ffffff" strokeWidth={1} opacity={0.35}
+            stroke="#ffffff" strokeWidth={2} opacity={0.6}
             fill="transparent" listening={false}
           />
         )}
 
-        {/* Selection overlay — dashed indigo outline */}
-        {selectedVisible && (
+        {/* Selection overlay — dashed indigo outline, follows drag */}
+        {selectedVisible && overlayX !== undefined && overlayY !== undefined && (
           <Rect
-            x={selectedVisible.x} y={selectedVisible.y}
+            x={overlayX} y={overlayY}
             width={selectedVisible.width} height={selectedVisible.height}
             stroke="#6366f1" strokeWidth={2} dash={[4, 4]}
             fill="transparent" listening={false}

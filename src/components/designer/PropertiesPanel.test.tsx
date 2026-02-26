@@ -38,6 +38,29 @@ const TEMPLATE: Template = {
       visible: true,
       locked: false,
     },
+    {
+      id: 'phase-1',
+      type: 'phase-icons',
+      x: 5, y: 5, width: 200, height: 30,
+      orientation: 'horizontal',
+      iconSize: 24,
+      gap: 4,
+      fontSize: 12,
+      fill: '#333333',
+      textFill: '#ffffff',
+      visible: true,
+      locked: false,
+    },
+    {
+      id: 'rarity-1',
+      type: 'rarity-diamond',
+      x: 10, y: 10, width: 40, height: 40,
+      stroke: '#ffffff',
+      strokeWidth: 1,
+      opacity: 0.9,
+      visible: true,
+      locked: false,
+    },
   ],
 }
 
@@ -70,7 +93,7 @@ describe('PropertiesPanel — rect layer', () => {
 
   it('renders fill, cornerRadius, stroke, strokeWidth, opacity inputs', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
-    expect(screen.getByRole('textbox', { name: /fill/i })).toHaveValue('#ff0000')
+    expect(screen.getByRole('textbox', { name: /^fill$/i })).toHaveValue('#ff0000')
     expect(screen.getByRole('spinbutton', { name: /corner radius/i })).toHaveValue(4)
     expect(screen.getByRole('textbox', { name: /^stroke$/i })).toHaveValue('#000000')
     expect(screen.getByRole('spinbutton', { name: /stroke width/i })).toHaveValue(2)
@@ -88,7 +111,7 @@ describe('PropertiesPanel — rect layer', () => {
 
   it('editing fill updates the store', async () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
-    const input = screen.getByRole('textbox', { name: /fill/i })
+    const input = screen.getByRole('textbox', { name: /^fill$/i })
     await userEvent.clear(input)
     await userEvent.type(input, '#aabbcc')
     const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'rect-1')! as any
@@ -121,12 +144,12 @@ describe('PropertiesPanel — text layer', () => {
     expect(screen.getByRole('combobox', { name: /^field$/i })).toHaveValue('name')
   })
 
-  it('renders fontSize, fontFamily, fontStyle, fill, align, lineHeight inputs', () => {
+  it('renders fontSize, fontFamily dropdown, fontStyle, fill, align, lineHeight inputs', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
     expect(screen.getByRole('spinbutton', { name: /font size/i })).toHaveValue(18)
-    expect(screen.getByRole('textbox', { name: /font family/i })).toHaveValue('Arial')
+    expect(screen.getByRole('combobox', { name: /font family/i })).toHaveValue('Arial')
     expect(screen.getByRole('combobox', { name: /font style/i })).toHaveValue('bold')
-    expect(screen.getByRole('textbox', { name: /fill/i })).toHaveValue('#ffffff')
+    expect(screen.getByRole('textbox', { name: /^fill$/i })).toHaveValue('#ffffff')
     expect(screen.getByRole('combobox', { name: /^align$/i })).toHaveValue('center')
     expect(screen.getByRole('spinbutton', { name: /line height/i })).toHaveValue(1.2)
   })
@@ -143,5 +166,64 @@ describe('PropertiesPanel — text layer', () => {
   it('renders showIfField dropdown', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
     expect(screen.getByRole('combobox', { name: /show if field/i })).toBeInTheDocument()
+  })
+})
+
+describe('PropertiesPanel — phase-icons layer', () => {
+  beforeEach(() => setup('phase-1'))
+
+  it('renders orientation, iconSize, gap, fontSize inputs', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('combobox', { name: /orientation/i })).toHaveValue('horizontal')
+    expect(screen.getByRole('spinbutton', { name: /icon size/i })).toHaveValue(24)
+    expect(screen.getByRole('spinbutton', { name: /^gap$/i })).toHaveValue(4)
+    expect(screen.getByRole('spinbutton', { name: /font size/i })).toHaveValue(12)
+  })
+
+  it('does not render an Align dropdown', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.queryByRole('combobox', { name: /^align$/i })).not.toBeInTheDocument()
+  })
+
+  it('editing fontSize updates the store', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const input = screen.getByRole('spinbutton', { name: /font size/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '16')
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'phase-1')! as any
+    expect(layer.fontSize).toBe(16)
+  })
+})
+
+describe('PropertiesPanel — rarity-diamond layer', () => {
+  beforeEach(() => setup('rarity-1'))
+
+  it('renders x, y, width, height inputs', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('spinbutton', { name: /^x$/i })).toHaveValue(10)
+    expect(screen.getByRole('spinbutton', { name: /^y$/i })).toHaveValue(10)
+    expect(screen.getByRole('spinbutton', { name: /^width$/i })).toHaveValue(40)
+    expect(screen.getByRole('spinbutton', { name: /^height$/i })).toHaveValue(40)
+  })
+
+  it('renders stroke, strokeWidth, opacity inputs', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('textbox', { name: /^stroke$/i })).toHaveValue('#ffffff')
+    expect(screen.getByRole('spinbutton', { name: /stroke width/i })).toHaveValue(1)
+    expect(screen.getByRole('spinbutton', { name: /opacity/i })).toHaveValue(0.9)
+  })
+
+  it('renders showIfField dropdown', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('combobox', { name: /show if field/i })).toBeInTheDocument()
+  })
+
+  it('editing strokeWidth updates the store', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const input = screen.getByRole('spinbutton', { name: /stroke width/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '3')
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'rarity-1')! as any
+    expect(layer.strokeWidth).toBe(3)
   })
 })

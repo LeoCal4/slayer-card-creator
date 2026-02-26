@@ -1,7 +1,8 @@
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
+import { ColorPicker } from '@/components/common/ColorPicker'
 import type { CardData } from '@/types/card'
-import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, TemplateLayer } from '@/types/template'
+import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 
 const SHOW_IF_OPTIONS: (keyof CardData | '')[] = ['', 'cost', 'power', 'hp', 'vp', 'effect']
 
@@ -11,6 +12,9 @@ const TEXT_FIELDS: (keyof CardData | 'stats' | 'statsVP')[] = [
 
 const FONT_STYLES = ['normal', 'bold', 'italic', 'bold italic'] as const
 const ALIGN_OPTIONS = ['left', 'center', 'right'] as const
+const FONT_FAMILIES = [
+  'sans-serif', 'serif', 'monospace', 'Arial', 'Georgia', 'Impact', 'Verdana', 'Tahoma',
+] as const
 
 interface Props {
   templateId: string
@@ -43,17 +47,11 @@ function NumInput({
   )
 }
 
-function TextInput({ label, value, onChange }: { label: string; value: string | undefined; onChange: (v: string) => void }) {
+function ColorRow({ label, value, onChange }: { label: string; value: string | undefined; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center gap-2">
       <label className="text-xs text-neutral-500 w-24 shrink-0">{label}</label>
-      <input
-        type="text"
-        aria-label={label}
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-        className="bg-neutral-800 text-neutral-100 text-xs font-mono rounded px-2 py-1 w-28 outline-none focus:ring-1 focus:ring-indigo-500"
-      />
+      <ColorPicker label={label} value={value ?? '#000000'} onChange={onChange} />
     </div>
   )
 }
@@ -83,9 +81,9 @@ function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string
           <option value="class.gradient">class.gradient</option>
         </select>
       </div>
-      <TextInput label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
       <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} />
-      <TextInput label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} />
+      <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} />
       <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} />
       <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} />
       <div className="flex items-center gap-2">
@@ -130,7 +128,19 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
         </select>
       </div>
       <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} />
-      <TextInput label="Font Family" value={layer.fontFamily} onChange={(v) => up({ fontFamily: v })} />
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-neutral-500 w-24 shrink-0">Font Family</label>
+        <select
+          aria-label="Font Family"
+          value={layer.fontFamily ?? 'sans-serif'}
+          onChange={(e) => up({ fontFamily: e.target.value })}
+          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          {FONT_FAMILIES.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      </div>
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Font Style</label>
         <select
@@ -144,7 +154,7 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
           ))}
         </select>
       </div>
-      <TextInput label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Align</label>
         <select
@@ -265,8 +275,8 @@ function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: stri
           ))}
         </select>
       </div>
-      <TextInput label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
-      <TextInput label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
+      <ColorRow label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} />
       <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} />
     </div>
   )
@@ -297,21 +307,41 @@ function PhaseIconsProps({ layer, templateId }: { layer: PhaseIconsLayer; templa
       </div>
       <NumInput label="Icon Size" value={layer.iconSize} onChange={(v) => up({ iconSize: v })} min={8} />
       <NumInput label="Gap" value={layer.gap} onChange={(v) => up({ gap: v })} min={0} />
+      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
+      <ColorRow label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} />
+      <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} />
+    </div>
+  )
+}
+
+function RarityDiamondProps({ layer, templateId }: { layer: RarityDiamondLayer; templateId: string }) {
+  const updateLayer = useProjectStore((s) => s.updateLayer)
+  const up = (partial: Partial<RarityDiamondLayer>) => updateLayer(templateId, layer.id, partial)
+
+  return (
+    <div className="space-y-2 p-3">
+      <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Rarity Diamond</p>
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
+      <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} />
+      <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} />
+      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} />
       <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Align</label>
+        <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
         <select
-          aria-label="Align"
-          value={layer.align}
-          onChange={(e) => up({ align: e.target.value as PhaseIconsLayer['align'] })}
+          aria-label="Show If Field"
+          value={layer.showIfField ?? ''}
+          onChange={(e) => up({ showIfField: (e.target.value as keyof CardData) || undefined })}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
-          <option value="left">left</option>
-          <option value="right">right</option>
+          {SHOW_IF_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>{opt || '(always)'}</option>
+          ))}
         </select>
       </div>
-      <TextInput label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
-      <TextInput label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} />
-      <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} />
     </div>
   )
 }
@@ -356,6 +386,7 @@ export function PropertiesPanel({ templateId }: Props) {
       {layer.type === 'image' && <ImageProps layer={layer} templateId={templateId} />}
       {layer.type === 'badge' && <BadgeProps layer={layer} templateId={templateId} />}
       {layer.type === 'phase-icons' && <PhaseIconsProps layer={layer} templateId={templateId} />}
+      {layer.type === 'rarity-diamond' && <RarityDiamondProps layer={layer} templateId={templateId} />}
     </>
   )
 }

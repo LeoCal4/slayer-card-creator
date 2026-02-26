@@ -19,11 +19,12 @@ const Rect = ({ onClick, onMouseEnter, onMouseLeave, onDragEnd, id, ...rest }: a
     data-fill={rest.fill}
   />
 )
-const Text = ({ onClick, onMouseEnter, onMouseLeave, id, text }: any) => (
+const Text = ({ onClick, onMouseEnter, onMouseLeave, id, text, verticalAlign }: any) => (
   <div
     data-testid="konva-text"
     data-id={id}
     data-text={text}
+    data-vertical-align={verticalAlign}
     onClick={(e) => { e.stopPropagation(); onClick?.(e) }}
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
