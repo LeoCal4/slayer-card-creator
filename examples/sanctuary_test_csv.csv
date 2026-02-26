@@ -1,0 +1,8 @@
+name,class,type,rarity,cost,power,hp,vp,effect
+Slayer Test,Hunter,Slayer,rare,5,7,6,,"Deal 2 damage to all enemy units on summon."
+Errant Test,Hunter,Errant,mythic,6,0,10,3,"All allied units gain +1 HP each turn."
+Action Test,Hunter,Action,uncommon,3,,,,"Gain +2 Power when attacking alone."
+Ploy Test,Hunter,Ploy,rare,4,,,,"When played, draw 1 card."
+Intervention Test,Hunter,Intervention,common,4,,,,"Cannot be stunned."
+Dungeon Test,,Dungeon,,,,,,"Sacrifice a unit to draw 3 cards."
+Phase Test,,Phase,,,,,,"Flying. Cannot be blocked by ground units."

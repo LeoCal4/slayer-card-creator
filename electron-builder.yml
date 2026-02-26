@@ -1,0 +1,18 @@
+appId: com.slayer.card-creator
+productName: Slayer Card Creator
+
+directories:
+  output: dist-electron
+
+files:
+  - dist/**/*
+  - dist-electron/main.js
+  - dist-electron/preload.mjs
+
+win:
+  target: nsis
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

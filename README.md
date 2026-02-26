@@ -1,0 +1,202 @@
+# Slayer Card Creator
+
+A Windows desktop tool for designing custom card layouts and exporting them to
+[Cockatrice](https://cockatrice.github.io/) — the open-source card-game simulator.
+
+Built with Electron + React + Vite. No internet connection required at runtime.
+
+---
+
+## Features
+
+| Area | What you can do |
+|---|---|
+| **Card list** | Import cards from a CSV file or add/edit them manually; required fields are highlighted when blank |
+| **Set info** | Configure the set code, release date, class palette (primary / secondary colors), and phase abbreviations |
+| **Template designer** | Visual canvas editor — add rect, text, image, badge, and phase-icon layers; drag to move, handles to resize, snap-to-grid |
+| **Preview** | Lazy-loaded card grid that renders every card through its template |
+| **Export** | Generates a Cockatrice-compatible XML file and renders all card images into a ZIP archive |
+| **Project files** | Save / load the full project as a `.json` file; recent projects list in the welcome screen |
+
+---
+
+## Tech stack
+
+| Layer | Library |
+|---|---|
+| App shell | Electron 35 |
+| UI framework | React 19, TypeScript, Tailwind CSS v4 |
+| Canvas rendering | Konva / react-konva |
+| State management | Zustand + Immer |
+| Card table | TanStack Table v8 |
+| Drag-and-drop | dnd-kit |
+| CSV parsing | Papa Parse |
+| ZIP generation | JSZip |
+| Packaging | electron-builder (NSIS installer for Windows) |
+| Tests | Vitest + Testing Library (372 tests) |
+
+---
+
+## Getting started (development)
+
+**Prerequisites:** Node.js 20+ (tested on v24), npm.
+
+```bash
+git clone <repo-url>
+cd slayer-card-creator
+npm install
+npm run dev        # opens the Electron window in dev mode with HMR
+```
+
+Other scripts:
+
+```bash
+npm test           # run all 372 unit tests once
+npm run test:watch # run tests in watch mode
+npm run typecheck  # TypeScript check with no output files
+npm run build      # compile renderer + main process to dist/ and dist-electron/
+npm run package    # build + create platform installer via electron-builder
+```
+
+> **Note (WSL / Linux):** `npm run package` produces a Linux AppImage on Linux/WSL.
+> To build the Windows NSIS installer run the command on a Windows machine.
+
+---
+
+## Card types and CSV format
+
+The tool supports nine card types defined for the Slayer card game:
+
+| Type | Required fields |
+|---|---|
+| **Slayer** | name, class, type, rarity, cost, power, hp, effect |
+| **Errant** | name, class, type, rarity, cost, power, hp, vp, effect |
+| **Action / Ploy / Intervention / Chamber / Relic** | name, class, type, rarity, cost, effect |
+| **Dungeon / Phase** | name, type, effect |
+
+### CSV import
+
+Cards are imported from a CSV file. Column names are **case-insensitive**. Extra
+columns are ignored. Minimal valid header row:
+
+```
+name,type,class,rarity,cost,power,hp,vp,effect
+```
+
+| Column | Notes |
+|---|---|
+| `name` | Card display name |
+| `type` | One of: `Slayer`, `Errant`, `Action`, `Ploy`, `Intervention`, `Chamber`, `Relic`, `Dungeon`, `Phase` |
+| `class` | Class name(s) — multi-class cards separate names with `/` or a space |
+| `rarity` | `common`, `uncommon`, `rare`, or `mythic`. Blank defaults to `common` |
+| `cost` | Integer |
+| `power` / `hp` / `vp` | Integer, optional depending on type |
+| `effect` | Card text |
+
+A sample CSV is included at [`examples/sanctuary_test_csv.csv`](examples/sanctuary_test_csv.csv).
+
+---
+
+## Template designer
+
+Each template is bound to one or more card types. Layers (bottom to top):
+
+- **Rect** — solid fill or class-colour fill (primary, secondary, or gradient)
+- **Image** — card art (loaded from the art folder) or a frame image (uploaded per template)
+- **Text** — any card field, with font, size, alignment, and colour options
+- **Badge** — circular label for a numeric field (cost, power, hp, vp)
+- **Phase icons** — renders all phases assigned to a Dungeon or Phase card as icon chips
+
+New projects start with four pre-built starter templates: Slayer, Errant, Spell (Action / Ploy / Intervention / Chamber / Relic), and Dungeon.
+
+---
+
+## Project file
+
+Projects are saved as plain JSON (`.json`). The schema is defined in
+[`src/types/project.ts`](src/types/project.ts). Frame images are embedded as
+base64 data URIs; card art is stored as a folder path and loaded at runtime.
+
+---
+
+## Export output
+
+Clicking **Export ZIP** produces an archive containing:
+
+- `<set-code>.xml` — Cockatrice card database (version 4 format)
+- `<set-code>/<card-name>.png` — one rendered PNG per card at the template's canvas size
+
+Load the ZIP into Cockatrice via *Card Database → Import set from ZIP*.
+
+---
+
+## Building the Windows installer
+
+```bash
+# On a Windows machine:
+npm run package
+# Output: dist-electron/Slayer Card Creator Setup.exe
+```
+
+The installer is built with NSIS (`oneClick: false`,
+`allowToChangeInstallationDirectory: true`). The placeholder app icon is a
+solid-indigo square generated by [`scripts/create-icon.mjs`](scripts/create-icon.mjs).
+
+---
+
+## Project structure
+
+```
+slayer-card-creator/
+├── electron/
+│   ├── main.ts                   # App lifecycle, window creation
+│   ├── preload.ts                # contextBridge — safe IPC surface
+│   └── ipc/
+│       ├── fileHandlers.ts       # File dialogs, read/write, art folder, recent projects
+│       └── index.ts
+├── src/
+│   ├── types/                    # card.ts, template.ts, project.ts, electronApi.ts
+│   ├── store/                    # projectStore.ts, uiStore.ts (Zustand)
+│   ├── lib/
+│   │   ├── csvParser.ts          # Papa Parse wrapper
+│   │   ├── projectFile.ts        # serialize / deserialize
+│   │   ├── xmlGenerator.ts       # Cockatrice XML builder
+│   │   ├── zipBuilder.ts         # JSZip + progress callback
+│   │   ├── cardValidation.ts     # Required-field checks per card type
+│   │   ├── layerHelpers.ts       # Layer creation and mutation helpers
+│   │   └── renderer/
+│   │       ├── cardRenderer.ts   # Off-screen canvas render → PNG blob
+│   │       ├── imageLoader.ts    # Art / frame image cache
+│   │       └── layerRenderers.ts # Per-layer draw functions
+│   ├── views/                    # One file per top-level view
+│   ├── components/
+│   │   ├── layout/               # AppShell, Header, WelcomeModal
+│   │   ├── cards/                # CardTable, CardRow, CSVImportModal
+│   │   ├── designer/             # DesignerCanvas, LayerPanel, PropertiesPanel, …
+│   │   ├── preview/              # PreviewGrid, CardPreviewTile
+│   │   ├── set-info/             # ClassPaletteEditor, PhaseMapTable
+│   │   └── common/               # ColorPicker, Modal, FileDropZone, EmptyState
+│   └── test/                     # Shared test setup (vitest setup file)
+├── resources/
+│   └── icon.ico                  # Placeholder app icon (16/32/48/256 px)
+├── scripts/
+│   └── create-icon.mjs           # Generates resources/icon.ico
+├── examples/
+│   └── sanctuary_test_csv.csv    # Sample card list for import testing
+├── docs/
+│   ├── PLAN.md                   # Full implementation blueprint
+│   ├── RESEARCH.md               # Design decisions and prior art notes
+│   └── TODO.md                   # Phase-by-phase task checklist
+├── electron-builder.yml
+├── vite.config.ts
+└── vitest.config.ts
+```
+
+---
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+S` | Save project |
+| `Ctrl+Z` | *(Undo — post-MVP, shows placeholder toast)* |
