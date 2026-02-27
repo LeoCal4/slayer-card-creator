@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slayer Card Creator — Tutorial</title>
+
+    <!-- Fonts: Playfair Display (headings) + DM Sans (body) + DM Mono (code/labels) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* =============================================
+           THEME: NOTEBOOK TABS
+           Warm paper aesthetic with coloured section tabs.
+           Calm, editorial, easy to scan at a tutorial pace.
+           ============================================= */
+        :root {
+            /* Core palette */
+            --paper:        #fdf8f0;
+            --paper-alt:    #f5ede0;
+            --paper-border: rgba(0, 0, 0, 0.09);
+            --ink:          #1a1208;
+            --ink-muted:    #6b5440;
+            --ink-faint:    #b09e87;
+
+            /* Cover slide */
+            --cover-bg:     #1c1208;
+            --cover-text:   #f5ede0;
+            --cover-amber:  #e8a87c;
+
+            /* Section tab colours */
+            --tab-intro:     #5c4a35;
+            --tab-cards:     #2a8c6e;
+            --tab-setinfo:   #c07a18;
+            --tab-templates: #6d4db0;
+            --tab-preview:   #1d4a8a;
+            --tab-projects:  #5c4a35;
+
+            /* Typography — ALL clamp() for responsive scaling */
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body:    'DM Sans', system-ui, sans-serif;
+            --font-mono:    'DM Mono', 'Courier New', monospace;
+
+            --title-size:   clamp(2.2rem, 6.5vw, 5.5rem);
+            --h2-size:      clamp(1.5rem, 3.5vw, 2.6rem);
+            --body-size:    clamp(0.8rem, 1.4vw, 1.05rem);
+            --small-size:   clamp(0.67rem, 1.05vw, 0.875rem);
+            --mono-size:    clamp(0.65rem, 1.05vw, 0.85rem);
+
+            /* Spacing — ALL clamp() */
+            --slide-pad-x:  clamp(2.5rem, 6vw, 6rem);
+            --slide-pad-y:  clamp(1.5rem, 4vh, 4rem);
+            --gap:          clamp(0.8rem, 1.8vw, 1.6rem);
+            --gap-sm:       clamp(0.4rem, 0.9vw, 0.8rem);
+
+            /* Easing */
+            --ease-expo:    cubic-bezier(0.16, 1, 0.3, 1);
+            --dur:          0.5s;
+        }
+
+        /* =============================================
+           RESET
+           ============================================= */
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+
+        /* =============================================
+           VIEWPORT FITTING — MANDATORY
+           html/body locked; each .slide = exactly one viewport.
+           overflow: hidden on every slide prevents any scrolling.
+           ============================================= */
+        html {
+            height: 100%;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            height: 100%;
+            font-family: var(--font-body);
+            background: var(--paper);
+            color: var(--ink);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* The fundamental constraint: one slide = one viewport */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;   /* mobile browsers */
+            overflow: hidden; /* CRITICAL — no scrolling ever */
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--paper);
+        }
+
+        /* Content area: centered, overflow-safe */
+        .inner {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-pad-y) var(--slide-pad-x);
+        }
+
+        /* =============================================
+           INLINE CODE
+           ============================================= */
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.88em;
+            background: rgba(0, 0, 0, 0.07);
+            padding: 0.15em 0.45em;
+            border-radius: 4px;
+        }
+
+        /* =============================================
+           COVER SLIDE
+           Dark, warm, cinematic title page.
+           ============================================= */
+        .slide-cover {
+            background: var(--cover-bg);
+            color: var(--cover-text);
+        }
+
+        .slide-cover .inner {
+            justify-content: flex-end;
+            padding-bottom: clamp(3rem, 9vh, 9rem);
+        }
+
+        /* Vertical ruled lines — decorative only */
+        .cover-ruled {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .cover-ruled::before,
+        .cover-ruled::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.05) 60%, transparent 100%);
+        }
+        .cover-ruled::before { right: 28%; }
+        .cover-ruled::after  { right: 55%; }
+
+        .cover-eyebrow {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #7a6450;
+            opacity: 0;
+            animation: fadeUp 0.5s var(--ease-expo) 0.15s forwards;
+        }
+
+        .cover-title {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            font-weight: 700;
+            line-height: 1.05;
+            margin-top: clamp(0.5rem, 1.5vh, 1.5rem);
+            color: var(--cover-text);
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-expo) 0.3s forwards;
+        }
+        .cover-title em {
+            font-style: italic;
+            color: var(--cover-amber);
+        }
+
+        .cover-sub {
+            font-size: clamp(0.85rem, 1.8vw, 1.2rem);
+            color: #c4aa8a;
+            font-weight: 300;
+            line-height: 1.55;
+            margin-top: clamp(0.75rem, 2vh, 1.5rem);
+            opacity: 0;
+            animation: fadeUp 0.6s var(--ease-expo) 0.45s forwards;
+        }
+
+        .cover-rule {
+            width: clamp(36px, 5vw, 64px);
+            height: 2px;
+            background: var(--cover-amber);
+            margin-top: clamp(1.5rem, 3vh, 3rem);
+            opacity: 0;
+            animation: scaleIn 0.5s var(--ease-expo) 0.6s forwards;
+            transform-origin: left;
+        }
+
+        .cover-footer {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: #5a4a38;
+            margin-top: clamp(1rem, 2vh, 1.5rem);
+            letter-spacing: 0.05em;
+            opacity: 0;
+            animation: fadeUp 0.4s var(--ease-expo) 0.72s forwards;
+        }
+
+        /* =============================================
+           SECTION TAB STRIP
+           Sits above the content on every non-cover slide.
+           ============================================= */
+        .tab-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: clamp(0.55rem, 1.4vh, 0.9rem) var(--slide-pad-x);
+            border-bottom: 1px solid var(--paper-border);
+            flex-shrink: 0;
+            background: var(--paper);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.22em 0.8em;
+            border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            font-weight: 500;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: #fff;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .chip-intro     { background: var(--tab-intro); }
+        .chip-cards     { background: var(--tab-cards); }
+        .chip-setinfo   { background: var(--tab-setinfo); }
+        .chip-templates { background: var(--tab-templates); }
+        .chip-preview   { background: var(--tab-preview); }
+        .chip-projects  { background: var(--tab-projects); }
+
+        .tab-label {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--ink-faint);
+            letter-spacing: 0.04em;
+        }
+
+        /* =============================================
+           SLIDE HEADING
+           ============================================= */
+        .heading {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--ink);
+            margin-bottom: var(--gap);
+        }
+        .heading em {
+            font-style: italic;
+            color: var(--ink-muted);
+        }
+
+        /* =============================================
+           BULLET LIST  (max 5–6 items per slide)
+           ============================================= */
+        .bullets {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-sm);
+        }
+        .bullets li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7em;
+            font-size: var(--body-size);
+            line-height: 1.5;
+        }
+        .bullets li::before {
+            content: '—';
+            color: var(--ink-faint);
+            flex-shrink: 0;
+            margin-top: 0.05em;
+        }
+        .bullets strong { font-weight: 600; }
+
+        /* =============================================
+           NUMBERED STEP LIST
+           ============================================= */
+        .steps {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-sm);
+        }
+        .steps li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8em;
+            font-size: var(--body-size);
+            line-height: 1.5;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width:  clamp(1.45rem, 2.5vw, 1.85rem);
+            height: clamp(1.45rem, 2.5vw, 1.85rem);
+            background: var(--ink);
+            color: var(--paper);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            font-weight: 500;
+            margin-top: 0.1em;
+        }
+
+        /* =============================================
+           FEATURE GRID  (max 6 cards — slide 3)
+           ============================================= */
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.55rem, 1.2vw, 1rem);
+            max-height: min(64vh, 480px);
+        }
+        .feat-card {
+            background: var(--paper-alt);
+            border: 1px solid var(--paper-border);
+            border-radius: 8px;
+            padding: clamp(0.75rem, 1.5vw, 1.2rem);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35em;
+        }
+        .feat-icon {
+            font-size: clamp(1.1rem, 2vw, 1.6rem);
+            line-height: 1;
+        }
+        .feat-name {
+            font-family: var(--font-display);
+            font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .feat-desc {
+            font-size: var(--small-size);
+            color: var(--ink-muted);
+            line-height: 1.4;
+        }
+
+        /* =============================================
+           TWO-COLUMN LAYOUT
+           ============================================= */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1.5rem, 3.5vw, 3.5rem);
+            align-items: start;
+        }
+        .col-label {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: 0.6em;
+        }
+
+        /* =============================================
+           TABLE  (card types slide)
+           ============================================= */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--small-size);
+        }
+        .data-table th {
+            text-align: left;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            font-size: var(--small-size);
+            letter-spacing: 0.07em;
+            color: var(--ink-faint);
+            border-bottom: 1px solid rgba(0,0,0,0.13);
+            padding: 0.4em 0.6em;
+        }
+        .data-table td {
+            padding: 0.4em 0.6em;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            line-height: 1.45;
+            vertical-align: top;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table .t { font-family: var(--font-mono); font-weight: 500; }
+
+        /* =============================================
+           CODE BLOCK  (CSV header slide)
+           ============================================= */
+        .code-block {
+            background: #1c1208;
+            color: #e8d5b8;
+            border-radius: 8px;
+            padding: clamp(0.75rem, 1.5vw, 1.2rem) clamp(1rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--mono-size);
+            line-height: 1.7;
+            max-height: min(32vh, 220px);
+            overflow: hidden;
+        }
+        .cc { color: #6b5440; }  /* comment */
+        .ck { color: #e8a87c; }  /* key */
+        .cv { color: #8fc8a0; }  /* value */
+
+        /* =============================================
+           LAYER TYPE CARDS  (slide 11)
+           ============================================= */
+        .layer-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: clamp(0.5rem, 1vw, 0.85rem);
+        }
+        .layer-card {
+            background: var(--paper-alt);
+            border: 1px solid var(--paper-border);
+            border-radius: 8px;
+            padding: clamp(0.65rem, 1.2vw, 1rem);
+        }
+        .layer-name {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 0.45em;
+        }
+        .layer-desc {
+            font-size: var(--small-size);
+            color: var(--ink-muted);
+            line-height: 1.4;
+        }
+
+        /* =============================================
+           CALLOUT / TIP BOX
+           ============================================= */
+        .callout {
+            border-left: 3px solid;
+            border-radius: 0 6px 6px 0;
+            padding: clamp(0.55rem, 1.1vw, 0.9rem) clamp(0.75rem, 1.5vw, 1.1rem);
+            font-size: var(--body-size);
+            line-height: 1.5;
+        }
+        .callout-tip  { border-color: var(--tab-cards);   background: rgba(42,140,110,0.07); }
+        .callout-note { border-color: var(--tab-setinfo); background: rgba(192,122,24,0.07); }
+        .callout-lbl {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.25em;
+        }
+        .callout-tip  .callout-lbl { color: var(--tab-cards); }
+        .callout-note .callout-lbl { color: var(--tab-setinfo); }
+
+        /* =============================================
+           KEYBOARD KEY DISPLAY
+           ============================================= */
+        kbd {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            background: var(--ink);
+            color: var(--paper);
+            padding: 0.2em 0.55em;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.3);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.35);
+            flex-shrink: 0;
+        }
+
+        .shortcut-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75em;
+            font-size: var(--body-size);
+        }
+
+        /* =============================================
+           FINAL SLIDE — closing screen
+           ============================================= */
+        .slide-fin {
+            background: var(--cover-bg);
+            color: var(--cover-text);
+        }
+        .slide-fin .inner {
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .fin-tag {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7a6450;
+        }
+        .fin-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5.5vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-top: clamp(0.5rem, 1.5vh, 1.2rem);
+            color: var(--cover-text);
+        }
+        .fin-title em {
+            font-style: italic;
+            color: var(--cover-amber);
+        }
+        .fin-rule {
+            width: clamp(36px, 5vw, 60px);
+            height: 2px;
+            background: var(--cover-amber);
+            margin-top: clamp(1.2rem, 2.5vh, 2.5rem);
+        }
+        .fin-body {
+            font-size: var(--body-size);
+            color: #c4aa8a;
+            line-height: 1.6;
+            margin-top: clamp(1rem, 2vh, 1.8rem);
+            max-width: 520px;
+        }
+        .fin-keys {
+            margin-top: clamp(1.2rem, 2.5vh, 2.5rem);
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        /* =============================================
+           REVEAL ANIMATIONS
+           .visible class added by IntersectionObserver.
+           ============================================= */
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition:
+                opacity   var(--dur) var(--ease-expo),
+                transform var(--dur) var(--ease-expo);
+        }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+
+        /* Stagger: headings first, then content */
+        .slide.visible .heading.reveal                  { transition-delay: 0.05s; }
+        .slide.visible .inner > .reveal:nth-child(2)    { transition-delay: 0.12s; }
+        .slide.visible .inner > .reveal:nth-child(3)    { transition-delay: 0.18s; }
+        .slide.visible .bullets .reveal:nth-child(1)    { transition-delay: 0.14s; }
+        .slide.visible .bullets .reveal:nth-child(2)    { transition-delay: 0.21s; }
+        .slide.visible .bullets .reveal:nth-child(3)    { transition-delay: 0.28s; }
+        .slide.visible .bullets .reveal:nth-child(4)    { transition-delay: 0.35s; }
+        .slide.visible .bullets .reveal:nth-child(5)    { transition-delay: 0.42s; }
+        .slide.visible .bullets .reveal:nth-child(6)    { transition-delay: 0.49s; }
+        .slide.visible .steps  .reveal:nth-child(1)     { transition-delay: 0.14s; }
+        .slide.visible .steps  .reveal:nth-child(2)     { transition-delay: 0.22s; }
+        .slide.visible .steps  .reveal:nth-child(3)     { transition-delay: 0.30s; }
+        .slide.visible .steps  .reveal:nth-child(4)     { transition-delay: 0.38s; }
+        .slide.visible .callout.reveal                  { transition-delay: 0.46s; }
+
+        /* =============================================
+           NAVIGATION DOTS
+           Fixed right-side slide indicators.
+           ============================================= */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.75rem, 1.8vw, 1.4rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            z-index: 200;
+        }
+        .nav-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--ink-faint);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active { background: var(--ink); transform: scale(1.45); }
+        .nav-dot:hover  { background: var(--ink-muted); }
+        /* White dots on dark slides */
+        .slide-cover ~ * ~ .nav-dots .nav-dot,
+        body.on-dark .nav-dot { background: rgba(255,255,255,0.3); }
+
+        /* =============================================
+           PROGRESS BAR  (top of page)
+           ============================================= */
+        .progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            background: var(--ink);
+            z-index: 300;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* =============================================
+           PAGE COUNTER  (bottom-right)
+           ============================================= */
+        .page-num {
+            position: fixed;
+            bottom: clamp(0.75rem, 2vh, 1.25rem);
+            right: clamp(0.75rem, 2vw, 1.25rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--ink-faint);
+            z-index: 200;
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+        body.on-dark .page-num { color: rgba(255,255,255,0.25); }
+
+        /* =============================================
+           RESPONSIVE BREAKPOINTS
+           ============================================= */
+        @media (max-height: 700px) {
+            :root {
+                --slide-pad-y: clamp(1rem, 2.5vh, 2.5rem);
+                --gap:         clamp(0.6rem, 1.4vw, 1.2rem);
+                --h2-size:     clamp(1.2rem, 3vw, 2rem);
+            }
+        }
+
+        @media (max-height: 600px) {
+            :root {
+                --slide-pad-y: clamp(0.75rem, 2vh, 1.5rem);
+                --gap:         clamp(0.45rem, 1vw, 0.9rem);
+                --gap-sm:      clamp(0.25rem, 0.6vw, 0.5rem);
+                --h2-size:     clamp(1.05rem, 2.5vw, 1.6rem);
+                --body-size:   clamp(0.72rem, 1.2vw, 0.9rem);
+            }
+            .nav-dots, .tab-label { display: none; }
+        }
+
+        @media (max-height: 500px) {
+            :root {
+                --slide-pad-y: clamp(0.4rem, 1.2vh, 0.8rem);
+                --gap:         clamp(0.3rem, 0.7vw, 0.6rem);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .feat-grid  { grid-template-columns: repeat(2, 1fr); }
+            .layer-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 680px) {
+            .two-col    { grid-template-columns: 1fr; }
+            .feat-grid  { grid-template-columns: 1fr; }
+            .layer-grid { grid-template-columns: repeat(2, 1fr); }
+            :root { --title-size: clamp(1.8rem, 9vw, 3.5rem); }
+        }
+        @media (max-width: 480px) {
+            .layer-grid { grid-template-columns: 1fr; }
+        }
+
+        /* =============================================
+           COVER KEYFRAMES
+           ============================================= */
+        @keyframes fadeUp  {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0);    }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scaleX(0); }
+            to   { opacity: 1; transform: scaleX(1); }
+        }
+
+        /* =============================================
+           REDUCED MOTION
+           ============================================= */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration:  0.01ms !important;
+                transition-duration: 0.15s  !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed UI chrome -->
+    <div  class="progress"  id="progress"></div>
+    <div  class="page-num"  id="pageNum">1 / 16</div>
+    <nav  class="nav-dots"  id="navDots" aria-label="Slide navigation"></nav>
+
+    <!-- ================================================
+         SLIDE 1 · COVER
+         ================================================ -->
+    <section class="slide slide-cover" data-index="0" aria-label="Title">
+        <div class="cover-ruled" aria-hidden="true"></div>
+        <div class="inner">
+            <div class="cover-eyebrow">A step-by-step tutorial</div>
+            <h1 class="cover-title">Slayer<br><em>Card Creator</em></h1>
+            <p class="cover-sub">Design custom card layouts and export them<br>to Cockatrice — the open-source card simulator.</p>
+            <div class="cover-rule"></div>
+            <div class="cover-footer">For the Slayer card game · 2026</div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 2 · WHAT IS THIS APP?
+         ================================================ -->
+    <section class="slide" data-index="1" aria-label="What is this app">
+        <div class="tab-strip">
+            <span class="chip chip-intro">Intro</span>
+            <span class="tab-label">What does Slayer Card Creator do?</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">What is this app?</h2>
+            <ul class="bullets">
+                <li class="reveal"><strong>Design card layouts</strong> on a visual canvas — add layers (backgrounds, text, art, badges) and arrange them like a mini card-game Photoshop</li>
+                <li class="reveal"><strong>Manage your card list</strong> — import hundreds of cards from a CSV file, or add and edit them manually one by one</li>
+                <li class="reveal"><strong>Preview</strong> every card rendered through its template in a live, scrollable grid</li>
+                <li class="reveal"><strong>Export to Cockatrice</strong> — one click produces an XML card database + one PNG per card, all packed into a ZIP</li>
+                <li class="reveal">Works entirely <strong>offline</strong>. No accounts, no internet, no cloud.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 3 · APP AT A GLANCE
+         ================================================ -->
+    <section class="slide" data-index="2" aria-label="App overview">
+        <div class="tab-strip">
+            <span class="chip chip-intro">Intro</span>
+            <span class="tab-label">The six sections of the app</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">The App at a Glance</h2>
+            <div class="feat-grid reveal">
+                <div class="feat-card">
+                    <div class="feat-icon">🃏</div>
+                    <div class="feat-name">Card List</div>
+                    <div class="feat-desc">All your cards. Edit fields inline or bulk-import from CSV.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">🎨</div>
+                    <div class="feat-name">Set Info</div>
+                    <div class="feat-desc">Set code, class colors, and phase configuration.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">✏️</div>
+                    <div class="feat-name">Templates</div>
+                    <div class="feat-desc">Visual canvas editor. Design your card layouts with layers.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">👁️</div>
+                    <div class="feat-name">Preview</div>
+                    <div class="feat-desc">See every card rendered through its template in a grid.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">📦</div>
+                    <div class="feat-name">Export</div>
+                    <div class="feat-desc">Generate a Cockatrice-ready ZIP with XML + card images.</div>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">💾</div>
+                    <div class="feat-name">Projects</div>
+                    <div class="feat-desc">Save and load your full project as a plain <code>.json</code> file.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 4 · GETTING STARTED
+         ================================================ -->
+    <section class="slide" data-index="3" aria-label="Getting started">
+        <div class="tab-strip">
+            <span class="chip chip-intro">Getting Started</span>
+            <span class="tab-label">Creating your first project</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Your First Project</h2>
+            <ol class="steps">
+                <li class="reveal">
+                    <span class="step-num">1</span>
+                    <div>Launch the app — the <strong>Welcome screen</strong> appears with options to start fresh or reopen a recent project</div>
+                </li>
+                <li class="reveal">
+                    <span class="step-num">2</span>
+                    <div>Click <strong>New Project</strong> — four starter templates are pre-loaded automatically: Slayer/Errant, Action/Ploy, Chamber/Relic, and Dungeon</div>
+                </li>
+                <li class="reveal">
+                    <span class="step-num">3</span>
+                    <div>Or click <strong>Open Project</strong> to load an existing <code>.json</code> project file — up to 5 recent projects are listed for quick access</div>
+                </li>
+                <li class="reveal">
+                    <span class="step-num">4</span>
+                    <div>Press <kbd>Ctrl+S</kbd> at any time to save. A <strong>●</strong> next to the filename means unsaved changes</div>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 5 · CARD LIST — ADDING CARDS
+         ================================================ -->
+    <section class="slide" data-index="4" aria-label="Card List">
+        <div class="tab-strip">
+            <span class="chip chip-cards">Cards</span>
+            <span class="tab-label">Adding and editing cards</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Card List — Adding &amp; Editing</h2>
+            <ul class="bullets">
+                <li class="reveal">Click <strong>Add Card</strong> to create a new blank row — fill in fields directly in the table</li>
+                <li class="reveal">Set the <strong>Type</strong> first — it determines which fields are required and which are greyed out</li>
+                <li class="reveal">Required fields left blank get a <strong>red outline</strong> as a reminder</li>
+                <li class="reveal">Power, HP, and VP cells are disabled for types that don't use them</li>
+                <li class="reveal">Use the <strong>search box</strong> to filter by name or effect; click column headers to sort</li>
+                <li class="reveal">Click the <strong>delete</strong> icon on any row to remove a card (confirmation required)</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 6 · CSV IMPORT
+         ================================================ -->
+    <section class="slide" data-index="5" aria-label="CSV Import">
+        <div class="tab-strip">
+            <span class="chip chip-cards">Cards</span>
+            <span class="tab-label">Bulk importing from a CSV file</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">CSV Import</h2>
+            <div class="two-col">
+                <div>
+                    <ol class="steps">
+                        <li class="reveal">
+                            <span class="step-num">1</span>
+                            <div>Click <strong>Import CSV</strong> and select your file</div>
+                        </li>
+                        <li class="reveal">
+                            <span class="step-num">2</span>
+                            <div>Review any row errors — you can still import all valid rows and skip the bad ones</div>
+                        </li>
+                        <li class="reveal">
+                            <span class="step-num">3</span>
+                            <div>If cards already exist, choose <strong>Replace All</strong> or <strong>Merge by Name</strong></div>
+                        </li>
+                    </ol>
+                    <div class="callout callout-tip reveal" style="margin-top: var(--gap);">
+                        <div class="callout-lbl">Tip</div>
+                        Merge by Name preserves existing card IDs and any manual edits you've made — use it when updating an existing set.
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="col-label">Minimum CSV header row</div>
+                    <div class="code-block">
+                        <span class="cc"># Column names are case-insensitive</span><br>
+                        <span class="cc"># Extra columns are silently ignored</span><br>
+                        <br>
+                        <span class="ck">name</span>,<span class="ck">type</span>,<span class="ck">class</span>,<span class="ck">rarity</span>,<br>
+                        <span class="ck">cost</span>,<span class="ck">power</span>,<span class="ck">hp</span>,<span class="ck">vp</span>,<span class="ck">effect</span>
+                    </div>
+                    <div class="callout callout-note" style="margin-top: 0.7rem;">
+                        <div class="callout-lbl">Sample file</div>
+                        A ready-to-import example is included at <code>examples/sanctuary_test_csv.csv</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 7 · CARD TYPES
+         ================================================ -->
+    <section class="slide" data-index="6" aria-label="Card types">
+        <div class="tab-strip">
+            <span class="chip chip-cards">Cards</span>
+            <span class="tab-label">The nine card types and their required fields</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Card Types &amp; Required Fields</h2>
+            <table class="data-table reveal">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Required fields</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="t">Slayer</td>
+                        <td>name, class, type, rarity, cost, <strong>power, hp</strong>, effect</td>
+                    </tr>
+                    <tr>
+                        <td class="t">Errant</td>
+                        <td>name, class, type, rarity, cost, power, hp, <strong>vp</strong>, effect</td>
+                    </tr>
+                    <tr>
+                        <td class="t">Action / Ploy / Intervention</td>
+                        <td>name, class, type, rarity, cost, effect</td>
+                    </tr>
+                    <tr>
+                        <td class="t">Chamber / Relic</td>
+                        <td>name, class, type, rarity, cost, effect</td>
+                    </tr>
+                    <tr>
+                        <td class="t">Dungeon / Phase</td>
+                        <td>name, type, effect <em style="color: var(--ink-faint);">(no class, rarity, or cost)</em></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="callout callout-note reveal" style="margin-top: var(--gap);">
+                <div class="callout-lbl">Rarity values</div>
+                Valid: <code>common</code>, <code>rare</code>, <code>epic</code>. A blank rarity defaults to <code>common</code>. Multi-class cards: separate class names with a <code>/</code>.
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 8 · SET INFO — IDENTITY
+         ================================================ -->
+    <section class="slide" data-index="7" aria-label="Set Info">
+        <div class="tab-strip">
+            <span class="chip chip-setinfo">Set Info</span>
+            <span class="tab-label">Your set's identity</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Set Info — Your Set's Identity</h2>
+            <ul class="bullets">
+                <li class="reveal"><strong>Set Name</strong> — the display name shown in Cockatrice</li>
+                <li class="reveal"><strong>Set Code</strong> — up to 8 characters, auto-uppercased; used as the filename inside the exported ZIP (e.g. <code>SLYR</code> → <code>SLYR.xml</code>)</li>
+                <li class="reveal"><strong>Release Date</strong> — recorded in the Cockatrice XML database</li>
+                <li class="reveal"><strong>Art Folder</strong> — click <em>Select Art Folder</em> to point at the folder holding your card art images; files should be named to match card names</li>
+            </ul>
+            <div class="callout callout-tip reveal" style="margin-top: var(--gap);">
+                <div class="callout-lbl">Art file naming</div>
+                If an art file isn't found for a card, the export uses a grey placeholder with the card name. Missing art is reported as a warning in the Export view — not an error.
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 9 · SET INFO — CLASS COLORS & PHASES
+         ================================================ -->
+    <section class="slide" data-index="8" aria-label="Class Colors and Phases">
+        <div class="tab-strip">
+            <span class="chip chip-setinfo">Set Info</span>
+            <span class="tab-label">Class colors &amp; phase configuration</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Class Colors &amp; Phases</h2>
+            <div class="two-col">
+                <div>
+                    <div class="col-label reveal">Class Palette</div>
+                    <ul class="bullets">
+                        <li class="reveal">One row per class — set the <strong>name</strong>, <strong>primary</strong>, and <strong>secondary</strong> color via the color picker or hex input</li>
+                        <li class="reveal">These colors are referenced by Rect layers in the Template Designer using <em>class.primary</em> or <em>class.secondary</em> fill sources</li>
+                        <li class="reveal">Click <strong>Add Class</strong> to add a new class; use the delete icon to remove one</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="col-label reveal">Phase Configuration</div>
+                    <ul class="bullets">
+                        <li class="reveal">Four phases: <strong>Encounter, Preparation, Combat, Camp</strong></li>
+                        <li class="reveal">Set a single-letter <strong>abbreviation</strong> for each (shown on Phase Icon layers)</li>
+                        <li class="reveal">The checkbox grid assigns <strong>which card types</strong> play in which phases — drives the Phase Icons layer in the Template Designer</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 10 · TEMPLATE DESIGNER — OVERVIEW
+         ================================================ -->
+    <section class="slide" data-index="9" aria-label="Template Designer overview">
+        <div class="tab-strip">
+            <span class="chip chip-templates">Templates</span>
+            <span class="tab-label">The visual canvas editor</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Template Designer — Overview</h2>
+            <ul class="bullets">
+                <li class="reveal">Each template is <strong>bound to one or more card types</strong> — Slayer and Errant can share one template if they look the same</li>
+                <li class="reveal">A template is a stack of <strong>layers</strong> rendered bottom-to-top — exactly like any design tool</li>
+                <li class="reveal">The <strong>Layer Panel</strong> (left side) lists all layers; click one to select it, or use the visibility and lock icons</li>
+                <li class="reveal">The <strong>Properties Panel</strong> (right side) shows all editable settings for the selected layer</li>
+                <li class="reveal">The <strong>Preview Card Selector</strong> above the canvas lets you see a real card from your list rendered live as you edit</li>
+            </ul>
+            <div class="callout callout-tip reveal" style="margin-top: var(--gap);">
+                <div class="callout-lbl">Starter templates</div>
+                New projects include four ready-made templates. Feel free to edit, rename, or delete them.
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 11 · LAYER TYPES
+         ================================================ -->
+    <section class="slide" data-index="10" aria-label="Layer types">
+        <div class="tab-strip">
+            <span class="chip chip-templates">Templates</span>
+            <span class="tab-label">The five layer types</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Layer Types</h2>
+            <div class="layer-grid reveal">
+                <div class="layer-card">
+                    <div class="layer-name">Rect</div>
+                    <div class="layer-desc">Solid fill or class-colour fill (primary / secondary / gradient). The building block for card frames and colour zones.</div>
+                </div>
+                <div class="layer-card">
+                    <div class="layer-name">Text</div>
+                    <div class="layer-desc">Displays any card field — name, effect, class, rarity, and more. Set font, size, alignment, and colour.</div>
+                </div>
+                <div class="layer-card">
+                    <div class="layer-name">Image</div>
+                    <div class="layer-desc">Card art loaded from the art folder, or a frame image you upload directly into the template (stored as base64).</div>
+                </div>
+                <div class="layer-card">
+                    <div class="layer-name">Badge</div>
+                    <div class="layer-desc">Circular label for a numeric field — cost, power, HP, or VP. Fully customisable fill and text colour.</div>
+                </div>
+                <div class="layer-card">
+                    <div class="layer-name">Phase Icons</div>
+                    <div class="layer-desc">Renders all phases assigned to a card's type as small icon chips using the abbreviations set in Set Info.</div>
+                </div>
+            </div>
+            <div class="callout callout-note reveal" style="margin-top: var(--gap);">
+                <div class="callout-lbl">Show If Field</div>
+                Every layer supports a <em>Show If Field</em> condition — the layer is only rendered when the chosen card field has a value. Great for optional fields like VP.
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 12 · TEMPLATE DESIGNER — TIPS
+         ================================================ -->
+    <section class="slide" data-index="11" aria-label="Template designer tips">
+        <div class="tab-strip">
+            <span class="chip chip-templates">Templates</span>
+            <span class="tab-label">Tips &amp; useful features</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Designer Tips</h2>
+            <ul class="bullets">
+                <li class="reveal"><strong>Drag</strong> any layer on the canvas to move it; grab the <strong>corner handles</strong> to resize it</li>
+                <li class="reveal">Enable <strong>Snap-to-Grid</strong> (toggle above the canvas) for pixel-perfect placement — choose a 1, 5, or 10 px grid size</li>
+                <li class="reveal">Use the canvas <strong>width × height</strong> inputs to set a custom card size — the default is 375 × 523 px</li>
+                <li class="reveal">Use <strong>Export Template</strong> to save a template as its own JSON file, and <strong>Import Template</strong> to bring it into another project</li>
+                <li class="reveal">Lock a layer in the Layer Panel to prevent accidental moves while you work on other layers</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 13 · PREVIEW GRID
+         ================================================ -->
+    <section class="slide" data-index="12" aria-label="Preview Grid">
+        <div class="tab-strip">
+            <span class="chip chip-preview">Preview</span>
+            <span class="tab-label">Seeing all your cards at once</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Preview Grid</h2>
+            <ul class="bullets">
+                <li class="reveal">The Preview view renders <strong>every card</strong> through its matched template in a responsive grid</li>
+                <li class="reveal">Cards are <strong>lazy-loaded</strong> — rendering starts as each tile scrolls into view, so large sets don't freeze the app</li>
+                <li class="reveal">Use the <strong>type filter dropdown</strong> to narrow the view to one card type at a time</li>
+                <li class="reveal">Click <strong>Render All</strong> to batch-render every card in sequence — a counter shows progress</li>
+                <li class="reveal">If a card has no matching template it won't appear — a warning will show in the Export view</li>
+            </ul>
+            <div class="callout callout-tip reveal" style="margin-top: var(--gap);">
+                <div class="callout-lbl">Tip</div>
+                Use Preview to catch layout issues before exporting. Changes made in the Template Designer take effect immediately when you re-render.
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 14 · EXPORT TO COCKATRICE
+         ================================================ -->
+    <section class="slide" data-index="13" aria-label="Export to Cockatrice">
+        <div class="tab-strip">
+            <span class="chip chip-preview">Export</span>
+            <span class="tab-label">Generating your Cockatrice package</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Exporting to Cockatrice</h2>
+            <ol class="steps">
+                <li class="reveal">
+                    <span class="step-num">1</span>
+                    <div>Open the <strong>Export</strong> view — check the summary for missing templates or art files before continuing</div>
+                </li>
+                <li class="reveal">
+                    <span class="step-num">2</span>
+                    <div>Click <strong>Export ZIP</strong> — the app renders every card and reports progress as it goes</div>
+                </li>
+                <li class="reveal">
+                    <span class="step-num">3</span>
+                    <div>A save dialog appears — pick a location. The ZIP contains <code>&lt;code&gt;.xml</code> and <code>pics/CUSTOM/&lt;name&gt;.png</code> for every card</div>
+                </li>
+                <li class="reveal">
+                    <span class="step-num">4</span>
+                    <div>In Cockatrice: <em>Card Database → Import set from ZIP</em> — your cards appear immediately</div>
+                </li>
+            </ol>
+            <div class="callout callout-note reveal" style="margin-top: var(--gap);">
+                <div class="callout-lbl">What's in the ZIP</div>
+                The XML uses Cockatrice format version 4. Card images are PNGs at whatever canvas size your template uses (default 375 × 523 px).
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 15 · SAVING & PROJECTS
+         ================================================ -->
+    <section class="slide" data-index="14" aria-label="Saving and projects">
+        <div class="tab-strip">
+            <span class="chip chip-projects">Projects</span>
+            <span class="tab-label">Saving and loading your work</span>
+        </div>
+        <div class="inner">
+            <h2 class="heading reveal">Saving &amp; Project Files</h2>
+            <ul class="bullets">
+                <li class="reveal">Press <kbd>Ctrl+S</kbd> to save — a dialog appears on first save to pick a filename and location</li>
+                <li class="reveal">A <strong>●</strong> next to the project name in the header means there are unsaved changes</li>
+                <li class="reveal">Projects are plain <code>.json</code> files — all cards, templates, set info, and class colors are stored inside</li>
+                <li class="reveal"><strong>Frame images</strong> uploaded to templates are embedded as base64 — no external files needed</li>
+                <li class="reveal"><strong>Card art</strong> is stored as a folder path and loaded at runtime — keep the folder in the same location on disk</li>
+                <li class="reveal">Closing the window with unsaved changes shows a <strong>confirmation dialog</strong> — you won't lose work by accident</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================
+         SLIDE 16 · FIN / QUICK REFERENCE
+         ================================================ -->
+    <section class="slide slide-fin" data-index="15" aria-label="You're ready">
+        <div class="inner">
+            <div class="fin-tag">You're all set</div>
+            <h2 class="fin-title">Ready to<br><em>build your set</em></h2>
+            <div class="fin-rule"></div>
+            <p class="fin-body">
+                Import your CSV, configure your class colors, tweak the starter templates,
+                hit Preview, and export. The whole workflow takes a few minutes once you know the app.
+            </p>
+            <div class="fin-keys">
+                <div class="shortcut-row"><kbd>Ctrl+S</kbd> <span style="color:#c4aa8a; font-size: var(--body-size);">Save project</span></div>
+                <div class="shortcut-row"><kbd>Ctrl+Z</kbd> <span style="color:#c4aa8a; font-size: var(--body-size);">Undo (coming soon)</span></div>
+                <div class="shortcut-row"><kbd>↑ ↓</kbd>   <span style="color:#c4aa8a; font-size: var(--body-size);">Navigate this tutorial</span></div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /* =============================================
+           SLIDE PRESENTATION CONTROLLER
+           Manages:
+             - Keyboard navigation (arrows, space, home/end)
+             - Touch/swipe support for mobile
+             - Debounced mouse-wheel navigation
+             - Progress bar & page counter updates
+             - Navigation dot building & active state
+             - IntersectionObserver for reveal animations
+             - Dark/light class on body for UI chrome colour
+           ============================================= */
+        class SlidePresentation {
+            constructor() {
+                this.slides     = Array.from(document.querySelectorAll('.slide'));
+                this.total      = this.slides.length;
+                this.current    = 0;
+                this.progressEl = document.getElementById('progress');
+                this.pageNumEl  = document.getElementById('pageNum');
+                this.navEl      = document.getElementById('navDots');
+
+                this._buildDots();
+                this._observeSlides();
+                this._bindKeys();
+                this._bindTouch();
+                this._bindWheel();
+                this._updateUI(0);
+            }
+
+            /* Build one nav-dot button per slide */
+            _buildDots() {
+                this.slides.forEach((_, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'nav-dot';
+                    btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
+                    btn.addEventListener('click', () => this.goTo(i));
+                    this.navEl.appendChild(btn);
+                });
+            }
+
+            /* IntersectionObserver — adds .visible for CSS animations
+               and tracks which slide is currently in view           */
+            _observeSlides() {
+                const io = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = this.slides.indexOf(entry.target);
+                            if (idx !== -1) this._updateUI(idx);
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(s => io.observe(s));
+            }
+
+            /* Arrow keys, space, home/end */
+            _bindKeys() {
+                document.addEventListener('keydown', e => {
+                    const fwd = ['ArrowDown', 'ArrowRight', ' '];
+                    const bwd = ['ArrowUp', 'ArrowLeft'];
+                    if (fwd.includes(e.key)) {
+                        e.preventDefault();
+                        this.goTo(Math.min(this.current + 1, this.total - 1));
+                    } else if (bwd.includes(e.key)) {
+                        e.preventDefault();
+                        this.goTo(Math.max(this.current - 1, 0));
+                    } else if (e.key === 'Home') {
+                        e.preventDefault(); this.goTo(0);
+                    } else if (e.key === 'End') {
+                        e.preventDefault(); this.goTo(this.total - 1);
+                    }
+                });
+            }
+
+            /* Swipe up/down on touch devices */
+            _bindTouch() {
+                let startY = 0;
+                document.addEventListener('touchstart', e => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+                document.addEventListener('touchend', e => {
+                    const dy = startY - e.changedTouches[0].clientY;
+                    if (Math.abs(dy) > 50) {
+                        this.goTo(dy > 0
+                            ? Math.min(this.current + 1, this.total - 1)
+                            : Math.max(this.current - 1, 0));
+                    }
+                }, { passive: true });
+            }
+
+            /* Debounced wheel — 600ms cooldown prevents rapid slide-skipping */
+            _bindWheel() {
+                let last = 0;
+                document.addEventListener('wheel', e => {
+                    e.preventDefault();
+                    const now = Date.now();
+                    if (now - last < 600) return;
+                    last = now;
+                    this.goTo(e.deltaY > 0
+                        ? Math.min(this.current + 1, this.total - 1)
+                        : Math.max(this.current - 1, 0));
+                }, { passive: false });
+            }
+
+            /* Scroll to a slide by index */
+            goTo(idx) {
+                if (idx === this.current) return;
+                this.slides[idx].scrollIntoView({ behavior: 'smooth' });
+                this._updateUI(idx);
+            }
+
+            /* Sync progress bar, page counter, nav dots, body class */
+            _updateUI(idx) {
+                this.current = idx;
+
+                // Progress bar: 0% on slide 1, 100% on last slide
+                const pct = this.total > 1
+                    ? (idx / (this.total - 1)) * 100
+                    : 100;
+                this.progressEl.style.width = pct + '%';
+
+                // Page counter
+                this.pageNumEl.textContent = `${idx + 1} / ${this.total}`;
+
+                // Nav dots
+                this.navEl.querySelectorAll('.nav-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === idx);
+                });
+
+                // Body class for dark/light UI chrome
+                const isDark = this.slides[idx].classList.contains('slide-cover')
+                            || this.slides[idx].classList.contains('slide-fin');
+                document.body.classList.toggle('on-dark', isDark);
+
+                // Progress bar colour on dark slides
+                this.progressEl.style.background = isDark ? '#e8a87c' : 'var(--ink)';
+            }
+        }
+
+        new SlidePresentation();
+    </script>
+</body>
+</html>
