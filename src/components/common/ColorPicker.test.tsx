@@ -47,3 +47,13 @@ describe('ColorPicker', () => {
     expect(screen.getByRole('textbox')).toHaveValue('#0000ff')
   })
 })
+
+describe('ColorPicker onPickerOpen', () => {
+  it('calls onPickerOpen when the swatch button is clicked', async () => {
+    const onPickerOpen = vi.fn()
+    render(<ColorPicker value="#ff0000" onChange={() => {}} onPickerOpen={onPickerOpen} />)
+    const swatch = screen.getByRole('button', { name: /color/i })
+    await userEvent.click(swatch)
+    expect(onPickerOpen).toHaveBeenCalledTimes(1)
+  })
+})

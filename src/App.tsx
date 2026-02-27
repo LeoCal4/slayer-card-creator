@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useUiStore } from '@/store/uiStore'
 import { useProjectStore } from '@/store/projectStore'
+import { performUndo, performRedo, pushSnapshot } from '@/lib/undoRedo'
 
 export function App() {
   const saveProject = useProjectStore((s) => s.saveProject)
-  const [showUndoToast, setShowUndoToast] = useState(false)
 
   useEffect(() => {
     function onBeforeUnload(e: BeforeUnloadEvent) {
@@ -24,24 +24,33 @@ export function App() {
         e.preventDefault()
         void saveProject()
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault()
-        setShowUndoToast(true)
-        setTimeout(() => setShowUndoToast(false), 2500)
+
+      const { activeView, activeTemplateId, selectedLayerId } = useUiStore.getState()
+      if (activeView === 'designer' && activeTemplateId !== null) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+          e.preventDefault()
+          performRedo(activeTemplateId)
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault()
+          performUndo(activeTemplateId)
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+          e.preventDefault()
+          performRedo(activeTemplateId)
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLayerId !== null) {
+          const target = e.target as HTMLElement
+          if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && target.tagName !== 'SELECT') {
+            e.preventDefault()
+            const layers = useProjectStore.getState().project?.templates.find((t) => t.id === activeTemplateId)?.layers ?? []
+            pushSnapshot(layers)
+            useProjectStore.getState().deleteLayer(activeTemplateId, selectedLayerId)
+            useUiStore.getState().setSelectedLayer(null)
+          }
+        }
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [saveProject])
 
-  return (
-    <>
-      <AppShell />
-      {showUndoToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-800 text-neutral-100 text-sm px-4 py-2 rounded shadow-lg">
-          Undo not yet available
-        </div>
-      )}
-    </>
-  )
+  return <AppShell />
 }

@@ -129,3 +129,23 @@ describe('DesignerCanvas', () => {
     expect(nameText).toHaveAttribute('data-text', 'Ace')
   })
 })
+
+describe('DesignerCanvas drag snapshot (task 79)', () => {
+  beforeEach(setup)
+
+  it('pushes a snapshot before updating layer on drag end', async () => {
+    const { pushSnapshot } = await import('@/lib/undoRedo')
+    const { vi } = await import('vitest')
+    const spy = vi.spyOn({ pushSnapshot }, 'pushSnapshot')
+    // Set up fresh stacks
+    useUiStore.setState({ undoStack: [], redoStack: [] })
+    render(<DesignerCanvas templateId="tmpl-1" />)
+    const rects = screen.getAllByTestId('konva-rect')
+    const lRect = rects.find((r) => r.getAttribute('data-id') === 'l-rect')!
+    const { fireEvent } = await import('@testing-library/react')
+    fireEvent.dragEnd(lRect)
+    // undoStack should have grown (snapshot pushed before updateLayer)
+    expect(useUiStore.getState().undoStack).toHaveLength(1)
+    spy.mockRestore()
+  })
+})

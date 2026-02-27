@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useUiStore } from './uiStore'
+import type { TemplateLayer } from '@/types/template'
 
 function freshStore() {
   useUiStore.setState({
@@ -13,6 +14,8 @@ function freshStore() {
     isDirty: false,
     snapGridEnabled: false,
     snapGridSize: 5,
+    undoStack: [],
+    redoStack: [],
   })
 }
 
@@ -69,5 +72,27 @@ describe('setSnapGrid', () => {
   it('changes snap grid size', () => {
     useUiStore.getState().setSnapGridSize(10)
     expect(useUiStore.getState().snapGridSize).toBe(10)
+  })
+})
+
+describe('undoStack / redoStack / clearUndoHistory', () => {
+  beforeEach(freshStore)
+
+  it('starts with empty undoStack', () => {
+    expect(useUiStore.getState().undoStack).toEqual([])
+  })
+
+  it('starts with empty redoStack', () => {
+    expect(useUiStore.getState().redoStack).toEqual([])
+  })
+
+  it('clearUndoHistory empties both stacks when they contain entries', () => {
+    const layer: TemplateLayer = {
+      id: 'l1', type: 'rect', x: 0, y: 0, width: 10, height: 10,
+    }
+    useUiStore.setState({ undoStack: [[layer]], redoStack: [[layer]] })
+    useUiStore.getState().clearUndoHistory()
+    expect(useUiStore.getState().undoStack).toEqual([])
+    expect(useUiStore.getState().redoStack).toEqual([])
   })
 })

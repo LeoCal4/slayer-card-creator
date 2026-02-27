@@ -100,6 +100,7 @@ interface ProjectState {
   updateLayer: (templateId: string, layerId: string, partial: Partial<TemplateLayer>) => void
   deleteLayer: (templateId: string, layerId: string) => void
   reorderLayers: (templateId: string, orderedIds: string[]) => void
+  setTemplateLayers: (templateId: string, layers: TemplateLayer[]) => void
   setFrameImage: (templateId: string, base64: string) => void
 
   setCards: (cards: CardData[]) => void
@@ -117,11 +118,13 @@ export const useProjectStore = create<ProjectState>()(
     newProject: () => {
       set((state) => { state.project = createDefaultProject() })
       markDirty()
+      useUiStore.getState().clearUndoHistory()
     },
 
-    loadProject: (data) => set((state) => {
-      state.project = data
-    }),
+    loadProject: (data) => {
+      set((state) => { state.project = data })
+      useUiStore.getState().clearUndoHistory()
+    },
 
     saveProject: async () => {
       const { project } = get()
@@ -268,6 +271,16 @@ export const useProjectStore = create<ProjectState>()(
         tmpl.layers = orderedIds
           .map((id) => tmpl.layers.find((l) => l.id === id))
           .filter((l): l is TemplateLayer => l !== undefined)
+      })
+      markDirty()
+    },
+
+    setTemplateLayers: (templateId, layers) => {
+      set((state) => {
+        if (!state.project) return
+        const tmpl = state.project.templates.find((t) => t.id === templateId)
+        if (!tmpl) return
+        tmpl.layers = layers
       })
       markDirty()
     },

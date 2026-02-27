@@ -170,6 +170,31 @@ describe('renderPhaseIcons', () => {
     const node = renderPhaseIcons(basePhaseIcons, ctx)
     expect(node).toBeInstanceOf(Konva.Group)
   })
+
+  it('phase icon text uses emoji-compatible fontFamily', () => {
+    const node = renderPhaseIcons(basePhaseIcons, baseCtx)!
+    const subGroup = (node as Konva.Group).getChildren()[0] as Konva.Group
+    const textNode = subGroup.getChildren()[1] as Konva.Text
+    expect(textNode.attrs.fontFamily).toMatch(/emoji/i)
+  })
+
+  it('phase icon text is vertically centred', () => {
+    const node = renderPhaseIcons(basePhaseIcons, baseCtx)!
+    const subGroup = (node as Konva.Group).getChildren()[0] as Konva.Group
+    const textNode = subGroup.getChildren()[1] as Konva.Text
+    expect(textNode.attrs.verticalAlign).toBe('middle')
+  })
+
+  it('renders an emoji abbreviation as the icon text', () => {
+    const ctx: RenderContext = {
+      ...baseCtx,
+      project: { ...baseCtx.project, phaseAbbreviations: { Encounter: '⚔️', Preparation: '🏕️' } },
+    }
+    const node = renderPhaseIcons(basePhaseIcons, ctx)!
+    const subGroup = (node as Konva.Group).getChildren()[0] as Konva.Group
+    const textNode = subGroup.getChildren()[1] as Konva.Text
+    expect(textNode.attrs.text).toBe('⚔️')
+  })
 })
 
 const baseDiamond: RarityDiamondLayer = {

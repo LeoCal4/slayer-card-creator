@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { TemplateLayer } from '@/types/template'
 
 export type ViewId = 'set-info' | 'templates' | 'designer' | 'cards' | 'preview' | 'export'
 
@@ -13,6 +14,8 @@ interface UiState {
   isDirty: boolean
   snapGridEnabled: boolean
   snapGridSize: number
+  undoStack: TemplateLayer[][]
+  redoStack: TemplateLayer[][]
 
   setActiveView: (view: ViewId) => void
   setActiveTemplate: (id: string | null) => void
@@ -24,6 +27,7 @@ interface UiState {
   setDirty: (dirty: boolean) => void
   setSnapGridEnabled: (enabled: boolean) => void
   setSnapGridSize: (size: number) => void
+  clearUndoHistory: () => void
 }
 
 export const useUiStore = create<UiState>()((set) => ({
@@ -37,6 +41,8 @@ export const useUiStore = create<UiState>()((set) => ({
   isDirty: false,
   snapGridEnabled: false,
   snapGridSize: 5,
+  undoStack: [],
+  redoStack: [],
 
   setActiveView: (view) => set({ activeView: view }),
   setActiveTemplate: (id) => set({ activeTemplateId: id }),
@@ -48,4 +54,5 @@ export const useUiStore = create<UiState>()((set) => ({
   setDirty: (dirty) => set({ isDirty: dirty }),
   setSnapGridEnabled: (enabled) => set({ snapGridEnabled: enabled }),
   setSnapGridSize: (size) => set({ snapGridSize: size }),
+  clearUndoHistory: () => set({ undoStack: [], redoStack: [] }),
 }))

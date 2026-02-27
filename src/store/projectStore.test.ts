@@ -285,3 +285,69 @@ describe('openProject', () => {
     )
   })
 })
+
+describe('undo history cleared on project lifecycle (task 83)', () => {
+  const validProject: ProjectFile = {
+    version: 1,
+    set: { name: 'Loaded', code: 'LD', type: 'Custom', releaseDate: '' },
+    classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+    rarityConfig: {
+      common: { aliases: ['comune'], color: '#4ade80' },
+      rare:   { aliases: ['rara'],   color: '#f87171' },
+      epic:   { aliases: ['epica'],  color: '#60a5fa' },
+    },
+    templates: [], cards: [], artFolderPath: '', frameImages: {},
+  }
+
+  beforeEach(() => {
+    freshStore()
+    freshUiStore()
+  })
+
+  it('newProject clears undoStack and redoStack', () => {
+    useUiStore.setState({ undoStack: [[]], redoStack: [[]] })
+    useProjectStore.getState().newProject()
+    expect(useUiStore.getState().undoStack).toEqual([])
+    expect(useUiStore.getState().redoStack).toEqual([])
+  })
+
+  it('loadProject clears undoStack and redoStack', () => {
+    useUiStore.setState({ undoStack: [[]], redoStack: [[]] })
+    useProjectStore.getState().loadProject(validProject)
+    expect(useUiStore.getState().undoStack).toEqual([])
+    expect(useUiStore.getState().redoStack).toEqual([])
+  })
+})
+
+describe('setTemplateLayers', () => {
+  beforeEach(() => {
+    freshStore()
+    freshUiStore()
+    useProjectStore.getState().newProject()
+  })
+
+  it('replaces the layers on the correct template', () => {
+    const templates = useProjectStore.getState().project?.templates ?? []
+    const firstId = templates[0].id
+    const newLayers = [
+      { id: 'l-new', type: 'rect' as const, x: 5, y: 5, width: 100, height: 50 },
+    ]
+    useProjectStore.getState().setTemplateLayers(firstId, newLayers)
+    expect(useProjectStore.getState().project?.templates[0].layers).toEqual(newLayers)
+  })
+
+  it('does not affect other templates', () => {
+    const templates = useProjectStore.getState().project?.templates ?? []
+    const firstId = templates[0].id
+    const secondLayersBefore = [...(templates[1]?.layers ?? [])]
+    useProjectStore.getState().setTemplateLayers(firstId, [])
+    expect(useProjectStore.getState().project?.templates[1].layers).toEqual(secondLayersBefore)
+  })
+
+  it('sets isDirty after setTemplateLayers', () => {
+    freshUiStore()
+    const firstId = useProjectStore.getState().project?.templates[0].id ?? ''
+    useProjectStore.getState().setTemplateLayers(firstId, [])
+    expect(useUiStore.getState().isDirty).toBe(true)
+  })
+})

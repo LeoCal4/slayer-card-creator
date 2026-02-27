@@ -117,8 +117,10 @@ export function renderPhaseIcons(layer: PhaseIconsLayer, ctx: RenderContext): Ko
       height: iconSize,
       text: ctx.project.phaseAbbreviations[phase] ?? phase[0],
       fontSize: Math.floor(iconSize * 0.6),
+      fontFamily: '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif',
       fill: layer.textFill ?? '#ffffff',
       align: 'center',
+      verticalAlign: 'middle',
     }))
     group.add(subGroup)
   })

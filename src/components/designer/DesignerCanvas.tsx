@@ -3,6 +3,7 @@ import { Stage, Layer, Rect, Text, Image, Circle, Group, Line, RegularPolygon } 
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { shouldShowLayer, resolveRectFill, resolveFieldText } from '@/lib/layerHelpers'
+import { pushSnapshot } from '@/lib/undoRedo'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 import type { CardData } from '@/types/card'
 import type { ClassConfig, RarityConfig } from '@/types/project'
@@ -82,7 +83,7 @@ function RectNode({
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
       dragBoundFunc={bound}
-      onDragStart={saveDragStart}
+      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
       onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
@@ -117,7 +118,7 @@ function TextNode({
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
       dragBoundFunc={bound}
-      onDragStart={saveDragStart}
+      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
       onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
@@ -155,7 +156,7 @@ function ImageNode({
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
       dragBoundFunc={bound}
-      onDragStart={saveDragStart}
+      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
       onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
@@ -186,13 +187,13 @@ function BadgeNode({
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
       dragBoundFunc={bound}
-      onDragStart={saveDragStart}
+      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
       onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
     >
-      <Circle x={layer.width / 2} y={layer.height / 2} radius={r} fill={layer.fill ?? '#000000'} />
+      <Circle x={layer.width / 2} y={layer.height / 2} radius={r} fill={layer.fill ?? '#000000'} stroke={layer.stroke} strokeWidth={layer.strokeWidth} />
       <Text
         x={0} y={0} width={layer.width} height={layer.height}
         text={resolveFieldText(layer.field, previewCard)}
@@ -228,7 +229,7 @@ function PhaseIconsNode({
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
       dragBoundFunc={bound}
-      onDragStart={saveDragStart}
+      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
       onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
       onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
       onMouseEnter={onHover}
@@ -249,6 +250,7 @@ function PhaseIconsNode({
               width={iconSize} height={iconSize}
               text={abbreviations[phase] ?? phase[0]}
               fontSize={layer.fontSize ?? Math.floor(iconSize * 0.6)}
+              fontFamily="'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif"
               fill={layer.textFill ?? '#ffffff'}
               align="center"
               verticalAlign="middle"
@@ -288,7 +290,7 @@ function RarityDiamondNode({
       onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
       draggable={!layer.locked}
       dragBoundFunc={bound}
-      onDragStart={saveDragStart}
+      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
       onDragMove={(e: any) => onDragMove(e.target.x() - layer.width / 2, e.target.y() - layer.height / 2)}
       onDragEnd={(e: any) => onDragEnd(
         e.target.x() - layer.width / 2,
@@ -431,6 +433,19 @@ export function DesignerCanvas({ templateId }: Props) {
     for (let y = 0; y <= height; y += snapGridSize) gridLines.push({ y })
   }
 
+  // For phase-icons, the rendered bounding box depends on orientation × phase count,
+  // not the stored layer.width/height. Compute actual overlay dimensions here.
+  function getOverlayDims(layer: TemplateLayer): { width: number; height: number } {
+    if (layer.type === 'phase-icons' && phases.length > 0) {
+      const { iconSize, gap, orientation } = layer
+      const total = phases.length * iconSize + (phases.length - 1) * gap
+      return orientation === 'horizontal'
+        ? { width: total, height: iconSize }
+        : { width: iconSize, height: total }
+    }
+    return { width: layer.width, height: layer.height }
+  }
+
   // Overlay layers — only shown if the layer passes shouldShowLayer
   const hoveredLayer =
     hoveredLayerId && hoveredLayerId !== selectedLayerId
@@ -440,6 +455,9 @@ export function DesignerCanvas({ templateId }: Props) {
 
   const selectedLayer = selectedLayerId ? visibleLayers.find((l) => l.id === selectedLayerId) : null
   const selectedVisible = selectedLayer && shouldShowLayer(selectedLayer, previewCard) ? selectedLayer : null
+
+  const hoveredDims = hoveredVisible ? getOverlayDims(hoveredVisible) : null
+  const selectedDims = selectedVisible ? getOverlayDims(selectedVisible) : null
 
   // Use live drag position when dragging the selected layer
   const overlayX = dragPos?.layerId === selectedLayerId ? dragPos.x : selectedVisible?.x
@@ -465,27 +483,27 @@ export function DesignerCanvas({ templateId }: Props) {
             phases={phases}
             abbreviations={abbreviations}
             onDragMove={(x, y) => setDragPos({ layerId: layer.id, x, y })}
-            onDragEnd={(x, y) => { updateLayer(templateId, layer.id, { x, y }); setDragPos(null) }}
+            onDragEnd={(x, y) => { pushSnapshot(template.layers); updateLayer(templateId, layer.id, { x, y }); setDragPos(null) }}
             onHover={() => setHoveredLayerId(layer.id)}
             onHoverEnd={() => setHoveredLayerId(null)}
           />
         ))}
 
         {/* Hover overlay — white outline */}
-        {hoveredVisible && (
+        {hoveredVisible && hoveredDims && (
           <Rect
             x={hoveredVisible.x} y={hoveredVisible.y}
-            width={hoveredVisible.width} height={hoveredVisible.height}
+            width={hoveredDims.width} height={hoveredDims.height}
             stroke="#ffffff" strokeWidth={2} opacity={0.6}
             fill="transparent" listening={false}
           />
         )}
 
         {/* Selection overlay — dashed indigo outline, follows drag */}
-        {selectedVisible && overlayX !== undefined && overlayY !== undefined && (
+        {selectedVisible && selectedDims && overlayX !== undefined && overlayY !== undefined && (
           <Rect
             x={overlayX} y={overlayY}
-            width={selectedVisible.width} height={selectedVisible.height}
+            width={selectedDims.width} height={selectedDims.height}
             stroke="#6366f1" strokeWidth={2} dash={[4, 4]}
             fill="transparent" listening={false}
           />

@@ -68,4 +68,18 @@ describe('PhaseMapTable', () => {
     await userEvent.click(checkbox)
     expect(useProjectStore.getState().project?.phaseMap['Slayer']).not.toContain('Encounter')
   })
+
+  it('abbreviation input stores an emoji symbol', async () => {
+    render(<PhaseMapTable />)
+    const input = screen.getByRole('textbox', { name: /^encounter$/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '⚔️')
+    expect(useProjectStore.getState().project?.phaseAbbreviations['Encounter']).toBe('⚔️')
+  })
+
+  it('abbreviation input does not apply font-mono (emoji-friendly rendering)', () => {
+    render(<PhaseMapTable />)
+    const input = screen.getByRole('textbox', { name: /^encounter$/i })
+    expect(input.className).not.toContain('font-mono')
+  })
 })

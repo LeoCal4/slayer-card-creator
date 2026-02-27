@@ -1,5 +1,8 @@
+import { useEffect, useRef } from 'react'
+import { Undo2, Redo2 } from 'lucide-react'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
+import { performUndo, performRedo } from '@/lib/undoRedo'
 import type { CardType } from '@/types/card'
 import { DesignerCanvas } from '@/components/designer/DesignerCanvas'
 import { CanvasErrorBoundary } from '@/components/designer/CanvasErrorBoundary'
@@ -16,12 +19,21 @@ const SNAP_SIZES = [1, 5, 10, 20] as const
 
 export function TemplateDesignerView() {
   const activeTemplateId = useUiStore((s) => s.activeTemplateId)
+  const clearUndoHistory = useUiStore((s) => s.clearUndoHistory)
+  const undoCount = useUiStore((s) => s.undoStack.length)
+  const redoCount = useUiStore((s) => s.redoStack.length)
   const templates = useProjectStore((s) => s.project?.templates)
   const updateTemplate = useProjectStore((s) => s.updateTemplate)
   const snapGridEnabled = useUiStore((s) => s.snapGridEnabled)
   const snapGridSize = useUiStore((s) => s.snapGridSize)
   const setSnapGridEnabled = useUiStore((s) => s.setSnapGridEnabled)
   const setSnapGridSize = useUiStore((s) => s.setSnapGridSize)
+
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    clearUndoHistory()
+  }, [activeTemplateId])
 
   if (!activeTemplateId || !templates) {
     return (
@@ -48,6 +60,29 @@ export function TemplateDesignerView() {
     <div className="flex flex-col h-full">
       {/* Top toolbar */}
       <div className="flex items-center gap-4 px-4 py-2 border-b border-neutral-800 shrink-0">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            aria-label="Undo"
+            title="Undo (Ctrl+Z)"
+            disabled={undoCount === 0}
+            onClick={() => performUndo(activeTemplateId!)}
+            className="p-1 rounded text-neutral-400 hover:text-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Undo2 size={14} />
+          </button>
+          <button
+            type="button"
+            aria-label="Redo"
+            title="Redo (Ctrl+Y)"
+            disabled={redoCount === 0}
+            onClick={() => performRedo(activeTemplateId!)}
+            className="p-1 rounded text-neutral-400 hover:text-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Redo2 size={14} />
+          </button>
+        </div>
+
         <div className="flex items-center gap-2">
           <label htmlFor="tmpl-name" className="text-xs text-neutral-500 whitespace-nowrap">
             Template Name

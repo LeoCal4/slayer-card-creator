@@ -1522,3 +1522,148 @@ The hover overlay is not updated during drag (it disappears on mouse-down anyway
 | 73 | `fontSize` property on PhaseIconsLayer | `template.ts`, `PropertiesPanel.tsx`, `DesignerCanvas.tsx` |
 | 74 | `verticalAlign="middle"` on PhaseIcons text | `DesignerCanvas.tsx` |
 
+---
+
+## 23. Designer Undo / Redo
+
+### 23.1 Scope
+
+Undo/redo covers **template layer mutations** only. All other editing (card list, set info, template metadata) is out of scope for this pass.
+
+| Undoable | Not undoable |
+|----------|-------------|
+| Move layer (drag end) | Card list edits |
+| Property change in PropertiesPanel | Set info edits |
+| Add layer | Template name / canvas size / cardTypes |
+| Delete layer | Template create / delete |
+| Reorder layers | Project open / save |
+
+**Max depth:** 50 snapshots per stack. History is **ephemeral** (not saved to `.slayer`). History clears whenever the user switches templates or opens/creates a new project.
+
+---
+
+### 23.2 Data model additions
+
+#### `uiStore.ts`
+
+```typescript
+undoStack: TemplateLayer[][]  // index 0 = oldest; index n-1 = most recent
+redoStack: TemplateLayer[][]
+
+clearUndoHistory(): void  // sets both stacks to []
+```
+
+The stacks hold deep copies of `template.layers` (the full layers array before a mutating action). No `templateId` is stored inside the snapshot — the active template is always `uiStore.activeTemplateId`.
+
+#### `projectStore.ts`
+
+New action used exclusively by the undo/redo system:
+
+```typescript
+setTemplateLayers(templateId: string, layers: TemplateLayer[]): void
+// Wholesale-replaces template.layers; marks isDirty = true
+```
+
+---
+
+### 23.3 `src/lib/undoRedo.ts` (new file)
+
+Pure orchestration module — no React; imports both stores directly.
+
+```typescript
+const MAX_UNDO = 50
+
+/**
+ * Call immediately before any undoable mutation.
+ * Appends a deep copy of the current layers to undoStack (capped at MAX_UNDO).
+ * Clears redoStack — a new action always invalidates redo.
+ */
+export function pushSnapshot(layers: TemplateLayer[]): void
+
+/**
+ * Undoes the last action.
+ * 1. Captures current template layers → pushes deep copy to redoStack
+ * 2. Pops snapshot from undoStack
+ * 3. Calls projectStore.setTemplateLayers(templateId, snapshot)
+ * No-op when undoStack is empty or templateId is null.
+ */
+export function performUndo(templateId: string): void
+
+/**
+ * Redoes the last undone action.
+ * Symmetric inverse of performUndo.
+ * No-op when redoStack is empty or templateId is null.
+ */
+export function performRedo(templateId: string): void
+```
+
+---
+
+### 23.4 Snapshot call sites
+
+A snapshot must be pushed **immediately before** each mutating store action, not after.
+
+| Component | When to push snapshot |
+|-----------|----------------------|
+| `DesignerCanvas.tsx` | `onDragEnd` — before calling `updateLayer` |
+| `PropertiesPanel.tsx` | `onFocus` of every `<input>` / `<select>` change / ColorPicker first-change |
+| `AddLayerMenu.tsx` | Before calling `addLayer` |
+| `LayerPanel.tsx` | Before calling `deleteLayer`; before calling `reorderLayers` |
+
+#### Avoiding keystroke-level snapshots in PropertiesPanel
+
+Number and text inputs fire `onChange` on every keystroke. Snapshotting on every change would create tens of snapshots per edit, making Ctrl+Z feel broken.
+
+**Solution — snapshot on `onFocus`:** each `<input>` element registers an `onFocus` handler that calls `pushSnapshot(currentLayers)`. One snapshot per "editing session" (user clicks into a field → makes changes → leaves). If the user focuses the same field again, a new snapshot is taken — this is acceptable and gives fine-grained undo.
+
+For `<select>` dropdowns: snapshot at the top of the `onChange` handler (before the `updateLayer` call), since selects don't have meaningful "focus then multi-step change" behaviour.
+
+For `ColorPicker`: add an optional `onPickerOpen?: () => void` prop (called when the swatch button is clicked, i.e. before the native `<input type="color">` opens). Wire this to `pushSnapshot` at the call site. The hex text input uses the same `onFocus` pattern as other inputs.
+
+---
+
+### 23.5 Keyboard shortcuts
+
+In `App.tsx` (replacing the existing Ctrl+Z placeholder toast):
+
+```typescript
+// Only fire when activeView === 'designer' and activeTemplateId !== null
+Ctrl+Z              → performUndo(activeTemplateId)
+Ctrl+Y              → performRedo(activeTemplateId)
+Ctrl+Shift+Z        → performRedo(activeTemplateId)   // common alternative
+```
+
+---
+
+### 23.6 Toolbar buttons
+
+In `TemplateDesignerView.tsx`, add two icon buttons to the toolbar row above the canvas:
+
+- **Undo** (`Undo2` icon from lucide-react) — disabled when `undoStack.length === 0`
+- **Redo** (`Redo2` icon) — disabled when `redoStack.length === 0`
+
+Clicking either calls `performUndo` / `performRedo` with the active template id.
+
+---
+
+### 23.7 Clear history on template switch
+
+In `TemplateDesignerView.tsx`, add a `useEffect` that watches `activeTemplateId`. When it changes (template switch), call `uiStore.getState().clearUndoHistory()`. Also call `clearUndoHistory()` inside `projectStore.newProject()` and `projectStore.loadProject()`.
+
+---
+
+### 23.8 Implementation order
+
+| # | Task | Files |
+|---|------|-------|
+| 75 | `undoStack`, `redoStack`, `clearUndoHistory` in `uiStore` | `uiStore.ts` |
+| 76 | `setTemplateLayers` in `projectStore` | `projectStore.ts` |
+| 77 | `undoRedo.ts` — `pushSnapshot`, `performUndo`, `performRedo` | `src/lib/undoRedo.ts` |
+| 78 | Wire Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z in `App.tsx` | `App.tsx` |
+| 79 | Snapshot before `onDragEnd` in `DesignerCanvas.tsx` | `DesignerCanvas.tsx` |
+| 80 | Snapshot on `onFocus` / select change in `PropertiesPanel.tsx` | `PropertiesPanel.tsx`, `ColorPicker.tsx` |
+| 81 | Snapshot before `addLayer` in `AddLayerMenu.tsx` | `AddLayerMenu.tsx` |
+| 82 | Snapshot before `deleteLayer` / `reorderLayers` in `LayerPanel.tsx` | `LayerPanel.tsx` |
+| 83 | Clear history on template switch / new project / load project | `TemplateDesignerView.tsx`, `projectStore.ts` |
+| 84 | Undo/Redo toolbar buttons in `TemplateDesignerView.tsx` | `TemplateDesignerView.tsx` |
+

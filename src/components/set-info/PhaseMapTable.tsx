@@ -41,10 +41,9 @@ export function PhaseMapTable() {
               <input
                 id={`abbrev-${phase}`}
                 type="text"
-                maxLength={3}
                 value={project.phaseAbbreviations[phase]}
                 onChange={(e) => updatePhaseAbbreviation(phase, e.target.value)}
-                className="bg-neutral-800 text-neutral-100 text-sm font-mono rounded px-2 py-1 w-12 outline-none text-center focus:ring-1 focus:ring-indigo-500"
+                className="bg-neutral-800 text-neutral-100 text-sm rounded px-2 py-1 w-16 outline-none text-center focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           ))}

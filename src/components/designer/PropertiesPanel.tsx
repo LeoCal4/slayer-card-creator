@@ -1,27 +1,30 @@
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { ColorPicker } from '@/components/common/ColorPicker'
+import { pushSnapshot } from '@/lib/undoRedo'
 import type { CardData } from '@/types/card'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 
+function snapshotLayers(templateId: string) {
+  const layers = useProjectStore.getState().project?.templates.find((t) => t.id === templateId)?.layers ?? []
+  pushSnapshot(layers)
+}
+
 const SHOW_IF_OPTIONS: (keyof CardData | '')[] = ['', 'cost', 'power', 'hp', 'vp', 'effect']
 
-const TEXT_FIELDS: (keyof CardData | 'stats' | 'statsVP')[] = [
-  'name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'effect', 'stats', 'statsVP',
+const TEXT_FIELDS: (keyof CardData | 'stats' | 'statsVP' | '')[] = [
+  '', 'name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'effect', 'stats', 'statsVP',
 ]
 
 const FONT_STYLES = ['normal', 'bold', 'italic', 'bold italic'] as const
 const ALIGN_OPTIONS = ['left', 'center', 'right'] as const
-const FONT_FAMILIES = [
-  'sans-serif', 'serif', 'monospace', 'Arial', 'Georgia', 'Impact', 'Verdana', 'Tahoma',
-] as const
 
 interface Props {
   templateId: string
 }
 
 function NumInput({
-  label, value, onChange, min, max, step,
+  label, value, onChange, min, max, step, onFocus,
 }: {
   label: string
   value: number | undefined
@@ -29,6 +32,7 @@ function NumInput({
   min?: number
   max?: number
   step?: number
+  onFocus?: () => void
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -41,17 +45,18 @@ function NumInput({
         max={max}
         step={step}
         onChange={(e) => onChange(parseFloat(e.target.value))}
+        onFocus={onFocus}
         className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 w-20 outline-none focus:ring-1 focus:ring-indigo-500"
       />
     </div>
   )
 }
 
-function ColorRow({ label, value, onChange }: { label: string; value: string | undefined; onChange: (v: string) => void }) {
+function ColorRow({ label, value, onChange, onPickerOpen }: { label: string; value: string | undefined; onChange: (v: string) => void; onPickerOpen?: () => void }) {
   return (
     <div className="flex items-center gap-2">
       <label className="text-xs text-neutral-500 w-24 shrink-0">{label}</label>
-      <ColorPicker label={label} value={value ?? '#000000'} onChange={onChange} />
+      <ColorPicker label={label} value={value ?? '#000000'} onChange={onChange} onPickerOpen={onPickerOpen} />
     </div>
   )
 }
@@ -59,20 +64,21 @@ function ColorRow({ label, value, onChange }: { label: string; value: string | u
 function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<RectLayer>) => updateLayer(templateId, layer.id, partial)
+  const snap = () => snapshotLayers(templateId)
 
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Rect</p>
-      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
-      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
-      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
-      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} onFocus={snap} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Fill Source</label>
         <select
           aria-label="Fill Source"
           value={layer.fillSource ?? ''}
-          onChange={(e) => up({ fillSource: (e.target.value as RectLayer['fillSource']) || undefined })}
+          onChange={(e) => { snap(); up({ fillSource: (e.target.value as RectLayer['fillSource']) || undefined }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">(manual)</option>
@@ -81,17 +87,17 @@ function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string
           <option value="class.gradient">class.gradient</option>
         </select>
       </div>
-      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
-      <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} />
-      <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} />
-      <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} />
-      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} onPickerOpen={snap} />
+      <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} onFocus={snap} />
+      <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} onPickerOpen={snap} />
+      <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} onFocus={snap} />
+      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
         <select
           aria-label="Show If Field"
           value={layer.showIfField ?? ''}
-          onChange={(e) => up({ showIfField: (e.target.value as keyof CardData) || undefined })}
+          onChange={(e) => { snap(); up({ showIfField: (e.target.value as keyof CardData) || undefined }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {SHOW_IF_OPTIONS.map((opt) => (
@@ -106,47 +112,35 @@ function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string
 function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<TextLayer>) => updateLayer(templateId, layer.id, partial)
+  const snap = () => snapshotLayers(templateId)
 
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Text</p>
-      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
-      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
-      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
-      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} onFocus={snap} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
         <select
           aria-label="Field"
-          value={layer.field}
-          onChange={(e) => up({ field: e.target.value as TextLayer['field'] })}
+          value={layer.field ?? ''}
+          onChange={(e) => { snap(); up({ field: (e.target.value as TextLayer['field']) || undefined }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {TEXT_FIELDS.map((f) => (
-            <option key={f} value={f}>{f}</option>
+            <option key={f} value={f}>{f || '(none)'}</option>
           ))}
         </select>
       </div>
-      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} />
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Font Family</label>
-        <select
-          aria-label="Font Family"
-          value={layer.fontFamily ?? 'sans-serif'}
-          onChange={(e) => up({ fontFamily: e.target.value })}
-          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {FONT_FAMILIES.map((f) => (
-            <option key={f} value={f}>{f}</option>
-          ))}
-        </select>
-      </div>
+      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Font Style</label>
         <select
           aria-label="Font Style"
           value={layer.fontStyle ?? 'normal'}
-          onChange={(e) => up({ fontStyle: e.target.value as TextLayer['fontStyle'] })}
+          onChange={(e) => { snap(); up({ fontStyle: e.target.value as TextLayer['fontStyle'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {FONT_STYLES.map((s) => (
@@ -154,13 +148,13 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
           ))}
         </select>
       </div>
-      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} onPickerOpen={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Align</label>
         <select
           aria-label="Align"
           value={layer.align ?? 'left'}
-          onChange={(e) => up({ align: e.target.value as TextLayer['align'] })}
+          onChange={(e) => { snap(); up({ align: e.target.value as TextLayer['align'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {ALIGN_OPTIONS.map((a) => (
@@ -168,13 +162,13 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
           ))}
         </select>
       </div>
-      <NumInput label="Line Height" value={layer.lineHeight} onChange={(v) => up({ lineHeight: v })} min={0.5} max={5} step={0.1} />
+      <NumInput label="Line Height" value={layer.lineHeight} onChange={(v) => up({ lineHeight: v })} min={0.5} max={5} step={0.1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
         <select
           aria-label="Show If Field"
           value={layer.showIfField ?? ''}
-          onChange={(e) => up({ showIfField: (e.target.value as keyof CardData) || undefined })}
+          onChange={(e) => { snap(); up({ showIfField: (e.target.value as keyof CardData) || undefined }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {SHOW_IF_OPTIONS.map((opt) => (
@@ -192,6 +186,7 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const setFrameImage = useProjectStore((s) => s.setFrameImage)
   const up = (partial: Partial<ImageLayer>) => updateLayer(templateId, layer.id, partial)
+  const snap = () => snapshotLayers(templateId)
 
   async function handleUpload() {
     const path = await window.electronAPI.showOpenDialog({
@@ -207,16 +202,16 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Image</p>
-      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
-      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
-      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
-      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} onFocus={snap} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Image Source</label>
         <select
           aria-label="Image Source"
           value={layer.imageSource}
-          onChange={(e) => up({ imageSource: e.target.value as ImageLayer['imageSource'] })}
+          onChange={(e) => { snap(); up({ imageSource: e.target.value as ImageLayer['imageSource'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="frame">frame</option>
@@ -228,7 +223,7 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
         <select
           aria-label="Image Fit"
           value={layer.imageFit}
-          onChange={(e) => up({ imageFit: e.target.value as ImageLayer['imageFit'] })}
+          onChange={(e) => { snap(); up({ imageFit: e.target.value as ImageLayer['imageFit'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {(['cover', 'contain', 'fill', 'stretch'] as const).map((f) => (
@@ -236,7 +231,7 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
           ))}
         </select>
       </div>
-      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} />
+      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} onFocus={snap} />
       {layer.imageSource === 'frame' && (
         <button
           type="button"
@@ -254,20 +249,21 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
 function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<BadgeLayer>) => updateLayer(templateId, layer.id, partial)
+  const snap = () => snapshotLayers(templateId)
 
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Badge</p>
-      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
-      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
-      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
-      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} onFocus={snap} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
         <select
           aria-label="Field"
           value={layer.field}
-          onChange={(e) => up({ field: e.target.value as BadgeLayer['field'] })}
+          onChange={(e) => { snap(); up({ field: e.target.value as BadgeLayer['field'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {BADGE_FIELDS.map((f) => (
@@ -275,9 +271,11 @@ function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: stri
           ))}
         </select>
       </div>
-      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
-      <ColorRow label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} />
-      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} onPickerOpen={snap} />
+      <ColorRow label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} onPickerOpen={snap} />
+      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} onFocus={snap} />
+      <ColorRow label="Stroke" value={layer.stroke ?? '#000000'} onChange={(v) => up({ stroke: v })} onPickerOpen={snap} />
+      <NumInput label="Stroke Width" value={layer.strokeWidth ?? 0} onChange={(v) => up({ strokeWidth: v })} min={0} onFocus={snap} />
     </div>
   )
 }
@@ -285,32 +283,33 @@ function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: stri
 function PhaseIconsProps({ layer, templateId }: { layer: PhaseIconsLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<PhaseIconsLayer>) => updateLayer(templateId, layer.id, partial)
+  const snap = () => snapshotLayers(templateId)
 
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Phase Icons</p>
-      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
-      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
-      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
-      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} onFocus={snap} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Orientation</label>
         <select
           aria-label="Orientation"
           value={layer.orientation}
-          onChange={(e) => up({ orientation: e.target.value as PhaseIconsLayer['orientation'] })}
+          onChange={(e) => { snap(); up({ orientation: e.target.value as PhaseIconsLayer['orientation'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="horizontal">horizontal</option>
           <option value="vertical">vertical</option>
         </select>
       </div>
-      <NumInput label="Icon Size" value={layer.iconSize} onChange={(v) => up({ iconSize: v })} min={8} />
-      <NumInput label="Gap" value={layer.gap} onChange={(v) => up({ gap: v })} min={0} />
-      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} />
-      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} />
-      <ColorRow label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} />
-      <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} />
+      <NumInput label="Icon Size" value={layer.iconSize} onChange={(v) => up({ iconSize: v })} min={8} onFocus={snap} />
+      <NumInput label="Gap" value={layer.gap} onChange={(v) => up({ gap: v })} min={0} onFocus={snap} />
+      <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} onFocus={snap} />
+      <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} onPickerOpen={snap} />
+      <ColorRow label="Text Fill" value={layer.textFill} onChange={(v) => up({ textFill: v })} onPickerOpen={snap} />
+      <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} onFocus={snap} />
     </div>
   )
 }
@@ -318,23 +317,24 @@ function PhaseIconsProps({ layer, templateId }: { layer: PhaseIconsLayer; templa
 function RarityDiamondProps({ layer, templateId }: { layer: RarityDiamondLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<RarityDiamondLayer>) => updateLayer(templateId, layer.id, partial)
+  const snap = () => snapshotLayers(templateId)
 
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Rarity Diamond</p>
-      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} />
-      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} />
-      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} />
-      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} />
-      <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} />
-      <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} />
-      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} />
+      <NumInput label="X" value={layer.x} onChange={(v) => up({ x: v })} onFocus={snap} />
+      <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
+      <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
+      <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
+      <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} onPickerOpen={snap} />
+      <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} onFocus={snap} />
+      <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
         <select
           aria-label="Show If Field"
           value={layer.showIfField ?? ''}
-          onChange={(e) => up({ showIfField: (e.target.value as keyof CardData) || undefined })}
+          onChange={(e) => { snap(); up({ showIfField: (e.target.value as keyof CardData) || undefined }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           {SHOW_IF_OPTIONS.map((opt) => (
@@ -348,6 +348,7 @@ function RarityDiamondProps({ layer, templateId }: { layer: RarityDiamondLayer; 
 
 function LayerLabelInput({ layer, templateId }: { layer: TemplateLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
+  const snap = () => snapshotLayers(templateId)
   return (
     <div className="flex items-center gap-2 px-3 pt-3 pb-1 border-b border-neutral-800">
       <label htmlFor="layer-label" className="text-xs text-neutral-500 w-24 shrink-0">
@@ -359,6 +360,7 @@ function LayerLabelInput({ layer, templateId }: { layer: TemplateLayer; template
         aria-label="Layer Label"
         value={layer.label ?? ''}
         onChange={(e) => updateLayer(templateId, layer.id, { label: e.target.value || undefined })}
+        onFocus={snap}
         placeholder={layer.type}
         className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 w-28 outline-none focus:ring-1 focus:ring-indigo-500"
       />

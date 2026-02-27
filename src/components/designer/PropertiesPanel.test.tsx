@@ -144,10 +144,9 @@ describe('PropertiesPanel — text layer', () => {
     expect(screen.getByRole('combobox', { name: /^field$/i })).toHaveValue('name')
   })
 
-  it('renders fontSize, fontFamily dropdown, fontStyle, fill, align, lineHeight inputs', () => {
+  it('renders fontSize, fontStyle, fill, align, lineHeight inputs', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
     expect(screen.getByRole('spinbutton', { name: /font size/i })).toHaveValue(18)
-    expect(screen.getByRole('combobox', { name: /font family/i })).toHaveValue('Arial')
     expect(screen.getByRole('combobox', { name: /font style/i })).toHaveValue('bold')
     expect(screen.getByRole('textbox', { name: /^fill$/i })).toHaveValue('#ffffff')
     expect(screen.getByRole('combobox', { name: /^align$/i })).toHaveValue('center')
@@ -225,5 +224,30 @@ describe('PropertiesPanel — rarity-diamond layer', () => {
     await userEvent.type(input, '3')
     const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'rarity-1')! as any
     expect(layer.strokeWidth).toBe(3)
+  })
+})
+
+describe('PropertiesPanel snapshot on input focus/select change (task 80)', () => {
+  function freshPanel() {
+    useProjectStore.setState({ project: null })
+    useUiStore.setState({ isDirty: false, activeTemplateId: 'tmpl-1', selectedLayerId: 'rect-1', undoStack: [], redoStack: [] })
+    useProjectStore.getState().newProject()
+    useProjectStore.getState().addTemplate(TEMPLATE)
+  }
+
+  beforeEach(freshPanel)
+
+  it('focusing a number input pushes a snapshot', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const xInput = screen.getByRole('spinbutton', { name: /^x$/i })
+    xInput.focus()
+    expect(useUiStore.getState().undoStack).toHaveLength(1)
+  })
+
+  it('changing a select pushes a snapshot', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const fillSourceSelect = screen.getByRole('combobox', { name: /fill source/i })
+    await userEvent.selectOptions(fillSourceSelect, 'class.primary')
+    expect(useUiStore.getState().undoStack).toHaveLength(1)
   })
 })

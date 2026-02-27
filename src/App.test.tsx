@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, fireEvent, waitFor } from '@testing-library/react'
 import { App } from './App'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
+import * as undoRedo from '@/lib/undoRedo'
 
 beforeEach(() => {
   useProjectStore.setState({ project: null })
-  useUiStore.setState({ isDirty: false })
+  useUiStore.setState({ isDirty: false, activeView: 'set-info', activeTemplateId: null, undoStack: [], redoStack: [] })
   useProjectStore.getState().newProject()
   window.electronAPI = {
     showOpenDialog: vi.fn().mockResolvedValue(null),
@@ -28,14 +29,38 @@ describe('App keyboard shortcuts', () => {
     await waitFor(() => expect(spy).toHaveBeenCalled())
   })
 
-  it('Ctrl+Z shows "Undo not yet available" toast', async () => {
+  it('Ctrl+Z in designer view calls performUndo', () => {
+    const undoSpy = vi.spyOn(undoRedo, 'performUndo')
+    const templateId = useProjectStore.getState().project?.templates[0].id ?? ''
+    useUiStore.setState({ activeView: 'designer', activeTemplateId: templateId })
     render(<App />)
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true })
-    expect(await screen.findByText(/undo not yet available/i)).toBeInTheDocument()
+    expect(undoSpy).toHaveBeenCalledWith(templateId)
   })
 
-  it('Ctrl+Z toast is not visible before any shortcut press', () => {
+  it('Ctrl+Z in non-designer view does not call performUndo', () => {
+    const undoSpy = vi.spyOn(undoRedo, 'performUndo')
+    useUiStore.setState({ activeView: 'cards', activeTemplateId: null })
     render(<App />)
-    expect(screen.queryByText(/undo not yet available/i)).not.toBeInTheDocument()
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true })
+    expect(undoSpy).not.toHaveBeenCalled()
+  })
+
+  it('Ctrl+Y in designer view calls performRedo', () => {
+    const redoSpy = vi.spyOn(undoRedo, 'performRedo')
+    const templateId = useProjectStore.getState().project?.templates[0].id ?? ''
+    useUiStore.setState({ activeView: 'designer', activeTemplateId: templateId })
+    render(<App />)
+    fireEvent.keyDown(window, { key: 'y', ctrlKey: true })
+    expect(redoSpy).toHaveBeenCalledWith(templateId)
+  })
+
+  it('Ctrl+Shift+Z in designer view calls performRedo', () => {
+    const redoSpy = vi.spyOn(undoRedo, 'performRedo')
+    const templateId = useProjectStore.getState().project?.templates[0].id ?? ''
+    useUiStore.setState({ activeView: 'designer', activeTemplateId: templateId })
+    render(<App />)
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true })
+    expect(redoSpy).toHaveBeenCalledWith(templateId)
   })
 })

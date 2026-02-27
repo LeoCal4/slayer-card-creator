@@ -24,7 +24,9 @@ class MockRect extends MockNode {}
 class MockText extends MockNode {}
 class MockCircle extends MockNode {}
 class MockGroup extends MockNode {
-  add(_node: any) { return this }
+  private _children: MockNode[] = []
+  add(node: any) { this._children.push(node); return this }
+  getChildren() { return this._children }
 }
 class MockImage extends MockNode {}
 class MockRegularPolygon extends MockNode {}

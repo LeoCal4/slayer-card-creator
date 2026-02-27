@@ -18,6 +18,7 @@ export function resolveFieldText(
   field: TextLayer['field'],
   card: CardData | null,
 ): string {
+  if (!field) return ''
   if (!card) return `[${field}]`
   if (field === 'stats') return `${card.power ?? '-'}/${card.hp ?? '-'}`
   if (field === 'statsVP') return `${card.vp ?? '-'} VP`

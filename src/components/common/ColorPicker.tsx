@@ -6,9 +6,10 @@ interface Props {
   value: string
   onChange: (hex: string) => void
   label?: string
+  onPickerOpen?: () => void
 }
 
-export function ColorPicker({ value, onChange, label }: Props) {
+export function ColorPicker({ value, onChange, label, onPickerOpen }: Props) {
   const colorInputRef = useRef<HTMLInputElement>(null)
   const [localHex, setLocalHex] = useState(value)
 
@@ -26,7 +27,7 @@ export function ColorPicker({ value, onChange, label }: Props) {
       <button
         type="button"
         aria-label="Open color picker"
-        onClick={() => colorInputRef.current?.click()}
+        onClick={() => { onPickerOpen?.(); colorInputRef.current?.click() }}
         style={{ backgroundColor: value }}
         className="w-7 h-7 rounded border border-neutral-600 shrink-0"
       />

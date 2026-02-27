@@ -484,3 +484,122 @@
 
 ### 74. Vertically centre text in Phase Icon squares
 - [ ] In `DesignerCanvas.tsx` `PhaseIconsNode`, add `verticalAlign="middle"` to each inner `<Text>` node
+
+---
+
+## Phase 23 — Designer Undo / Redo
+
+> Implements PLAN.md §23. TDD: write tests RED → implement → GREEN → typecheck after each task.
+
+### 75. `undoStack` / `redoStack` / `clearUndoHistory` in `uiStore`
+- [ ] Add `undoStack: TemplateLayer[][]` field to `uiStore` state (default `[]`)
+- [ ] Add `redoStack: TemplateLayer[][]` field to `uiStore` state (default `[]`)
+- [ ] Add `clearUndoHistory(): void` action — sets both stacks to `[]`
+- [ ] Import `TemplateLayer` in `uiStore.ts`
+- [ ] Write test: initial stacks are empty arrays
+- [ ] Write test: `clearUndoHistory()` empties both stacks when they contain entries
+
+### 76. `setTemplateLayers` in `projectStore`
+- [ ] Add `setTemplateLayers(templateId: string, layers: TemplateLayer[]): void` to `projectStore`
+- [ ] Implementation: find template by `templateId`, replace its `layers` array wholesale, mark `isDirty = true`
+- [ ] No-op (log warning) if `templateId` not found
+- [ ] Write test: calling `setTemplateLayers` replaces the layers on the correct template
+- [ ] Write test: `isDirty` becomes `true` after `setTemplateLayers`
+
+### 77. `src/lib/undoRedo.ts` — `pushSnapshot`, `performUndo`, `performRedo`
+- [ ] Create `src/lib/undoRedo.ts`
+- [ ] Define `MAX_UNDO = 50` constant
+- [ ] `pushSnapshot(layers: TemplateLayer[]): void`:
+  - Deep-copies `layers` (`layers.map(l => ({ ...l }))`)
+  - Appends to `undoStack`; if length exceeds `MAX_UNDO`, drops the oldest entry
+  - Clears `redoStack` (new action invalidates redo history)
+- [ ] `performUndo(templateId: string): void`:
+  - No-op if `undoStack` is empty
+  - Reads current template layers from `projectStore`
+  - Pushes deep copy of current layers to `redoStack`
+  - Pops the most recent snapshot from `undoStack`
+  - Calls `projectStore.getState().setTemplateLayers(templateId, snapshot)`
+- [ ] `performRedo(templateId: string): void`:
+  - No-op if `redoStack` is empty
+  - Reads current template layers from `projectStore`
+  - Pushes deep copy of current layers to `undoStack`
+  - Pops the most recent snapshot from `redoStack`
+  - Calls `projectStore.getState().setTemplateLayers(templateId, snapshot)`
+- [ ] Write test: `pushSnapshot` appends to `undoStack` and clears `redoStack`
+- [ ] Write test: `pushSnapshot` enforces `MAX_UNDO` cap (oldest entry dropped)
+- [ ] Write test: `performUndo` applies the snapshot to the template and moves layers to `redoStack`
+- [ ] Write test: `performUndo` is a no-op when `undoStack` is empty
+- [ ] Write test: `performRedo` applies the snapshot to the template and moves layers to `undoStack`
+- [ ] Write test: `performRedo` is a no-op when `redoStack` is empty
+- [ ] Write test: `pushSnapshot` after `performUndo` clears `redoStack`
+
+### 78. Wire Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z in `App.tsx`
+- [ ] Remove the existing Ctrl+Z placeholder toast
+- [ ] In the `keydown` handler (or a new one): when `activeView === 'designer'` and `activeTemplateId !== null`:
+  - `Ctrl+Z` → `performUndo(activeTemplateId)`
+  - `Ctrl+Y` → `performRedo(activeTemplateId)`
+  - `Ctrl+Shift+Z` → `performRedo(activeTemplateId)`
+- [ ] Use `e.preventDefault()` to suppress browser defaults for these combos
+- [ ] Write test: Ctrl+Z in designer view calls `performUndo` (or at minimum applies the snapshot)
+- [ ] Write test: Ctrl+Z in a non-designer view does not trigger undo
+
+### 79. Snapshot before drag-end in `DesignerCanvas.tsx`
+- [ ] Import `pushSnapshot` from `@/lib/undoRedo`
+- [ ] Access current template layers from the projectStore in the `DesignerCanvas` component
+- [ ] Wrap each `onDragEnd` callback passed to `LayerNode` to call `pushSnapshot(currentLayers)` **before** calling `updateLayer`
+  - Regular nodes: snapshot then `updateLayer(templateId, layer.id, { x, y })`
+  - RarityDiamondNode: same pattern (center offset already handled)
+- [ ] Write test: after completing a drag, the `undoStack` has one more entry than before
+- [ ] Write test: Ctrl+Z after a drag restores the layer to its pre-drag position (integration test)
+
+### 80. Snapshot on focus / change in `PropertiesPanel.tsx` and `ColorPicker.tsx`
+- [ ] Import `pushSnapshot` from `@/lib/undoRedo`
+- [ ] Add `onPickerOpen?: () => void` optional prop to `ColorPicker.tsx`; call it when the swatch `<button>` is clicked (before opening the native color input)
+- [ ] In `PropertiesPanel.tsx`, for **every** `<input type="number">` and `<input type="text">`:
+  - Add `onFocus={() => pushSnapshot(currentLayers)}` (captures state before the user starts editing)
+- [ ] In `PropertiesPanel.tsx`, for **every** `<select>` element:
+  - At the top of the `onChange` handler, call `pushSnapshot(currentLayers)` before the `updateLayer` call
+- [ ] In `PropertiesPanel.tsx`, for **every** `<ColorPicker>`:
+  - Pass `onPickerOpen={() => pushSnapshot(currentLayers)}`
+- [ ] `currentLayers` is obtained from the live template in the projectStore (not the layer prop)
+- [ ] Write test: focusing a number input in PropertiesPanel pushes a snapshot
+- [ ] Write test: changing a select dropdown pushes a snapshot
+- [ ] Write test: after a property change, Ctrl+Z restores the original value
+
+### 81. Snapshot before `addLayer` in `AddLayerMenu.tsx`
+- [ ] Import `pushSnapshot` from `@/lib/undoRedo`
+- [ ] Obtain current template layers from the projectStore inside the add-layer handler
+- [ ] Call `pushSnapshot(currentLayers)` before `projectStore.addLayer(templateId, layer)`
+- [ ] Write test: clicking a layer type in AddLayerMenu pushes a snapshot before adding
+- [ ] Write test: Ctrl+Z after adding a layer removes the newly added layer
+
+### 82. Snapshot before `deleteLayer` / `reorderLayers` in `LayerPanel.tsx`
+- [ ] Import `pushSnapshot` from `@/lib/undoRedo`
+- [ ] Obtain current template layers from the projectStore
+- [ ] Call `pushSnapshot(currentLayers)` before `projectStore.deleteLayer(templateId, layerId)`
+- [ ] Call `pushSnapshot(currentLayers)` before `projectStore.reorderLayers(templateId, orderedIds)`
+- [ ] Write test: deleting a layer pushes a snapshot
+- [ ] Write test: Ctrl+Z after deleting a layer restores the deleted layer
+- [ ] Write test: reordering layers pushes a snapshot
+
+### 83. Clear undo history on template switch, new project, load project
+- [ ] In `TemplateDesignerView.tsx`, add `useEffect(() => { clearUndoHistory() }, [activeTemplateId])` to reset history when the user switches templates
+- [ ] In `projectStore.ts` `newProject()` action: call `useUiStore.getState().clearUndoHistory()`
+- [ ] In `projectStore.ts` `loadProject()` action: call `useUiStore.getState().clearUndoHistory()`
+- [ ] Write test: switching `activeTemplateId` in `uiStore` triggers `clearUndoHistory` (via the effect)
+- [ ] Write test: after `newProject()`, both stacks are empty
+
+### 84. Undo / Redo toolbar buttons in `TemplateDesignerView.tsx`
+- [ ] Import `performUndo`, `performRedo` from `@/lib/undoRedo`
+- [ ] Subscribe to `undoStack.length` and `redoStack.length` from `uiStore`
+- [ ] Add **Undo** button (lucide `Undo2` icon) to the designer toolbar:
+  - `disabled` when `undoStack.length === 0`
+  - `onClick`: `performUndo(activeTemplateId)`
+  - `title="Undo (Ctrl+Z)"`
+- [ ] Add **Redo** button (lucide `Redo2` icon) to the designer toolbar:
+  - `disabled` when `redoStack.length === 0`
+  - `onClick`: `performRedo(activeTemplateId)`
+  - `title="Redo (Ctrl+Y)"`
+- [ ] Write test: Undo button is disabled when `undoStack` is empty
+- [ ] Write test: Undo button is enabled when `undoStack` has entries
+- [ ] Write test: clicking the Undo button calls `performUndo`

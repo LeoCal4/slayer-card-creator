@@ -31,7 +31,7 @@ export interface ImageLayer extends LayerBase {
 
 export interface TextLayer extends LayerBase {
   type: 'text'
-  field: keyof CardData | 'stats' | 'statsVP'
+  field?: keyof CardData | 'stats' | 'statsVP'
   fontSize: number
   fontFamily?: string
   fontStyle?: 'normal' | 'bold' | 'italic' | 'bold italic'
@@ -48,6 +48,8 @@ export interface BadgeLayer extends LayerBase {
   fill?: string
   textFill?: string
   fontSize?: number
+  stroke?: string
+  strokeWidth?: number
 }
 
 export interface PhaseIconsLayer extends LayerBase {

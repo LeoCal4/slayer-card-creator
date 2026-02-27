@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LayerPanel } from './LayerPanel'
 import { useProjectStore } from '@/store/projectStore'
@@ -85,5 +85,44 @@ describe('LayerPanel', () => {
     await userEvent.click(buttons[0])
     const tmpl = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!
     expect(tmpl.layers.find((l) => l.id === 'l3')!.locked).toBe(false)
+  })
+
+  it('renders a delete button for each layer', () => {
+    render(<LayerPanel templateId="tmpl-1" />)
+    expect(screen.getAllByRole('button', { name: /delete layer/i })).toHaveLength(3)
+  })
+
+  it('clicking delete button removes the layer', async () => {
+    render(<LayerPanel templateId="tmpl-1" />)
+    const buttons = screen.getAllByRole('button', { name: /delete layer/i })
+    await userEvent.click(buttons[0]) // row 0 = l3
+    const tmpl = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!
+    expect(tmpl.layers.find((l) => l.id === 'l3')).toBeUndefined()
+  })
+})
+
+describe('LayerPanel snapshot (task 82)', () => {
+  beforeEach(() => {
+    useProjectStore.setState({ project: null })
+    useUiStore.setState({ isDirty: false, activeTemplateId: 'tmpl-1', selectedLayerId: null, undoStack: [], redoStack: [] })
+    useProjectStore.getState().newProject()
+    useProjectStore.getState().addTemplate(TEMPLATE)
+  })
+
+  it('deleting a layer pushes a snapshot', async () => {
+    render(<LayerPanel templateId="tmpl-1" />)
+    const buttons = screen.getAllByRole('button', { name: /delete layer/i })
+    await userEvent.click(buttons[0])
+    expect(useUiStore.getState().undoStack).toHaveLength(1)
+  })
+
+  it('reordering layers pushes a snapshot', () => {
+    render(<LayerPanel templateId="tmpl-1" />)
+    const rows = screen.getAllByRole('listitem')
+    // simulate drag-drop: dragStart on row[0], drop on row[2]
+    fireEvent.dragStart(rows[0])
+    fireEvent.dragOver(rows[2])
+    fireEvent.drop(rows[2])
+    expect(useUiStore.getState().undoStack).toHaveLength(1)
   })
 })

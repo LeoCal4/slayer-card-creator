@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import * as undoRedo from '@/lib/undoRedo'
 import { TemplateDesignerView } from './TemplateDesignerView'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
@@ -81,5 +82,84 @@ describe('TemplateDesignerView', () => {
     render(<TemplateDesignerView />)
     await userEvent.click(screen.getByRole('checkbox', { name: /slayer/i }))
     expect(useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.cardTypes).not.toContain('Slayer')
+  })
+})
+
+describe('TemplateDesignerView — undo/redo toolbar buttons (task 84)', () => {
+  beforeEach(() => {
+    useProjectStore.setState({ project: null })
+    useUiStore.setState({ isDirty: false, activeTemplateId: null, undoStack: [], redoStack: [] })
+    useProjectStore.getState().newProject()
+    useProjectStore.getState().addTemplate(TEMPLATE)
+    useUiStore.getState().setActiveTemplate('tmpl-1')
+    vi.spyOn(undoRedo, 'performUndo').mockImplementation(() => {})
+    vi.spyOn(undoRedo, 'performRedo').mockImplementation(() => {})
+  })
+
+  it('Undo button is disabled when undoStack is empty', () => {
+    useUiStore.setState({ undoStack: [], redoStack: [] })
+    render(<TemplateDesignerView />)
+    expect(screen.getByRole('button', { name: /undo/i })).toBeDisabled()
+  })
+
+  it('Undo button is enabled when undoStack has entries', () => {
+    useUiStore.setState({ undoStack: [[]], redoStack: [] })
+    render(<TemplateDesignerView />)
+    expect(screen.getByRole('button', { name: /undo/i })).not.toBeDisabled()
+  })
+
+  it('clicking Undo button calls performUndo', async () => {
+    useUiStore.setState({ undoStack: [[]], redoStack: [] })
+    render(<TemplateDesignerView />)
+    await userEvent.click(screen.getByRole('button', { name: /undo/i }))
+    expect(undoRedo.performUndo).toHaveBeenCalledWith('tmpl-1')
+  })
+
+  it('Redo button is disabled when redoStack is empty', () => {
+    useUiStore.setState({ undoStack: [], redoStack: [] })
+    render(<TemplateDesignerView />)
+    expect(screen.getByRole('button', { name: /redo/i })).toBeDisabled()
+  })
+
+  it('Redo button is enabled when redoStack has entries', () => {
+    useUiStore.setState({ undoStack: [], redoStack: [[]] })
+    render(<TemplateDesignerView />)
+    expect(screen.getByRole('button', { name: /redo/i })).not.toBeDisabled()
+  })
+
+  it('clicking Redo button calls performRedo', async () => {
+    useUiStore.setState({ undoStack: [], redoStack: [[]] })
+    render(<TemplateDesignerView />)
+    await userEvent.click(screen.getByRole('button', { name: /redo/i }))
+    expect(undoRedo.performRedo).toHaveBeenCalledWith('tmpl-1')
+  })
+})
+
+describe('TemplateDesignerView — undo history cleared on template switch (task 83)', () => {
+  const TEMPLATE2: Template = {
+    id: 'tmpl-2',
+    name: 'Spell',
+    cardTypes: ['Action'],
+    canvas: { width: 375, height: 523 },
+    layers: [],
+  }
+
+  beforeEach(() => {
+    useProjectStore.setState({ project: null })
+    useUiStore.setState({ isDirty: false, activeTemplateId: null, undoStack: [], redoStack: [] })
+    useProjectStore.getState().newProject()
+    useProjectStore.getState().addTemplate(TEMPLATE)
+    useProjectStore.getState().addTemplate(TEMPLATE2)
+    useUiStore.getState().setActiveTemplate('tmpl-1')
+  })
+
+  it('switching activeTemplateId clears undo/redo history', () => {
+    render(<TemplateDesignerView />)
+    // seed the stacks
+    useUiStore.setState({ undoStack: [[]], redoStack: [[]] })
+    // switch to a different template
+    act(() => { useUiStore.getState().setActiveTemplate('tmpl-2') })
+    expect(useUiStore.getState().undoStack).toEqual([])
+    expect(useUiStore.getState().redoStack).toEqual([])
   })
 })

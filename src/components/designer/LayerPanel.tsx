@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
+import { pushSnapshot } from '@/lib/undoRedo'
 import type { TemplateLayer } from '@/types/template'
 
 interface Props {
@@ -55,7 +56,9 @@ function LockOpenIcon() {
 export function LayerPanel({ templateId }: Props) {
   const templates = useProjectStore((s) => s.project?.templates)
   const updateLayer = useProjectStore((s) => s.updateLayer)
+  const deleteLayer = useProjectStore((s) => s.deleteLayer)
   const reorderLayers = useProjectStore((s) => s.reorderLayers)
+  const currentLayers = useProjectStore((s) => s.project?.templates.find((t) => t.id === templateId)?.layers ?? [])
   const selectedLayerId = useUiStore((s) => s.selectedLayerId)
   const setSelectedLayer = useUiStore((s) => s.setSelectedLayer)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -88,6 +91,7 @@ export function LayerPanel({ templateId }: Props) {
             const next = [...reversed]
             const [item] = next.splice(fromIdx, 1)
             next.splice(toIdx, 0, item)
+            pushSnapshot(currentLayers)
             reorderLayers(templateId, [...next].reverse().map((l) => l.id))
             setDraggingId(null)
             setDragOverId(null)
@@ -133,6 +137,21 @@ export function LayerPanel({ templateId }: Props) {
             ].join(' ')}
           >
             {layer.locked ? <LockClosedIcon /> : <LockOpenIcon />}
+          </button>
+
+          <button
+            type="button"
+            aria-label="Delete layer"
+            onClick={(e) => {
+              e.stopPropagation()
+              pushSnapshot(currentLayers)
+              deleteLayer(templateId, layer.id)
+            }}
+            className="w-5 h-5 flex items-center justify-center rounded text-neutral-600 hover:text-red-400"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </li>
       ))}

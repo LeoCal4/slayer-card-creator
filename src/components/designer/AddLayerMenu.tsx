@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
+import { pushSnapshot } from '@/lib/undoRedo'
 import type { TemplateLayer } from '@/types/template'
 
 interface Props {
@@ -16,7 +17,7 @@ function defaultLayer(type: LayerType): TemplateLayer {
     case 'rect':
       return { ...base, type: 'rect', width: 375, height: 50, fill: '#333333' }
     case 'text':
-      return { ...base, type: 'text', x: 10, y: 10, width: 355, height: 30, field: 'name', fontSize: 18, fill: '#ffffff', align: 'left' }
+      return { ...base, type: 'text', x: 10, y: 10, width: 355, height: 30, fontSize: 18, fill: '#ffffff', align: 'left' }
     case 'image':
       return { ...base, type: 'image', width: 375, height: 523, imageSource: 'frame', imageFit: 'cover', opacity: 1 }
     case 'badge':
@@ -36,9 +37,11 @@ function labelFor(type: LayerType): string {
 
 export function AddLayerMenu({ templateId }: Props) {
   const addLayer = useProjectStore((s) => s.addLayer)
+  const currentLayers = useProjectStore((s) => s.project?.templates.find((t) => t.id === templateId)?.layers ?? [])
   const [open, setOpen] = useState(false)
 
   function handleAdd(type: LayerType) {
+    pushSnapshot(currentLayers)
     addLayer(templateId, defaultLayer(type))
     setOpen(false)
   }

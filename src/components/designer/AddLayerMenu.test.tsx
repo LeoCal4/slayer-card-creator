@@ -105,3 +105,19 @@ describe('AddLayerMenu', () => {
     expect(layer.label).toBeUndefined()
   })
 })
+
+describe('AddLayerMenu snapshot (task 81)', () => {
+  beforeEach(() => {
+    useProjectStore.setState({ project: null })
+    useUiStore.setState({ isDirty: false, undoStack: [], redoStack: [] })
+    useProjectStore.getState().newProject()
+    useProjectStore.getState().addTemplate(TEMPLATE)
+  })
+
+  it('adding a layer pushes a snapshot to undoStack', async () => {
+    render(<AddLayerMenu templateId="tmpl-1" />)
+    await userEvent.click(screen.getByRole('button', { name: /add layer/i }))
+    await userEvent.click(screen.getByRole('menuitem', { name: /rect/i }))
+    expect(useUiStore.getState().undoStack).toHaveLength(1)
+  })
+})
