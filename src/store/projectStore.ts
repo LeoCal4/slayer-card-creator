@@ -18,12 +18,12 @@ const STARTER_TEMPLATES: Template[] = [
 ]
 
 const DEFAULT_CLASS_COLORS: Record<string, ClassConfig> = {
-  Cleric:  { primary: '#d4ac0d', secondary: '#9a7d0a', cockatriceColor: 'W' },
-  Hunter:  { primary: '#27ae60', secondary: '#1e8449', cockatriceColor: 'G' },
-  Mage:    { primary: '#2980b9', secondary: '#1a5276', cockatriceColor: 'U' },
-  Rogue:   { primary: '#5d6d7e', secondary: '#2c3e50', cockatriceColor: 'B' },
-  Warlock: { primary: '#7d3c98', secondary: '#4a235a', cockatriceColor: 'B' },
-  Warrior: { primary: '#c0392b', secondary: '#7b241c', cockatriceColor: 'R' },
+  Cleric:  { primary: '#d4ac0d', secondary: '#9a7d0a', cockatriceColor: 'C' },
+  Hunter:  { primary: '#27ae60', secondary: '#1e8449', cockatriceColor: 'H' },
+  Mage:    { primary: '#2980b9', secondary: '#1a5276', cockatriceColor: 'M' },
+  Rogue:   { primary: '#5d6d7e', secondary: '#2c3e50', cockatriceColor: 'R' },
+  Warlock: { primary: '#7d3c98', secondary: '#4a235a', cockatriceColor: 'K' },
+  Warrior: { primary: '#c0392b', secondary: '#7b241c', cockatriceColor: 'W' },
 }
 
 const DEFAULT_PHASE_ABBREVIATIONS: Record<string, string> = {
