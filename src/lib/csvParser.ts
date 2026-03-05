@@ -1,9 +1,5 @@
 import Papa from 'papaparse'
 import type { CardData, CardType, Rarity } from '@/types/card'
-
-const CARD_TYPES = new Set<string>([
-  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
-])
 const RARITY_ALIASES: Record<string, string> = {
   comune: 'common',
   rara: 'rare',
@@ -19,6 +15,7 @@ export interface ParseResult {
 
 export interface ParseOptions {
   delimiter?: string
+  validTypes?: string[]
 }
 
 function cleanValue(val: string | undefined): string {
@@ -49,6 +46,8 @@ export function mergeByName(existing: CardData[], incoming: CardData[]): CardDat
 }
 
 export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
+  const validTypesSet = options.validTypes ? new Set(options.validTypes) : null
+
   const parsed = Papa.parse<Record<string, string>>(raw, {
     header: true,
     skipEmptyLines: true,
@@ -74,7 +73,7 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
     const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
     const rarityRaw = (RARITY_ALIASES[rarityInput] ?? rarityInput) as Rarity
 
-    if (!CARD_TYPES.has(typeRaw)) {
+    if (validTypesSet && !validTypesSet.has(typeRaw)) {
       rowErrors.push(`Row ${rowNum}: invalid type "${typeRaw}"`)
     }
     if (!RARITIES.has(rarityInput)) {

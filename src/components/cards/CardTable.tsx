@@ -11,14 +11,11 @@ import {
 import { useProjectStore } from '@/store/projectStore'
 import { CardRow } from './CardRow'
 import { EmptyState } from '@/components/common/EmptyState'
-import type { CardData, CardType, Rarity } from '@/types/card'
+import type { CardData, Rarity } from '@/types/card'
 
-const CARD_TYPES: CardType[] = [
-  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase',
-]
 const RARITIES: Rarity[] = ['common', 'rare', 'epic']
 
-function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp', type: CardType): boolean {
+function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp', type: string): boolean {
   switch (field) {
     case 'power':
     case 'hp': return type !== 'Slayer' && type !== 'Errant'
@@ -91,9 +88,9 @@ export function CardTable() {
             aria-label="type"
             className="bg-neutral-800 text-sm text-neutral-100 rounded"
             value={row.original.type}
-            onChange={(e) => updateCard(row.original.id, { type: e.target.value as CardType })}
+            onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
           >
-            {CARD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {project.cardTypes.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         ),
       },
@@ -238,7 +235,7 @@ export function CardTable() {
               id: crypto.randomUUID(),
               name: '',
               class: '',
-              type: 'Action',
+              type: project.cardTypes[0] ?? '',
               rarity: 'common',
               effect: '',
             })

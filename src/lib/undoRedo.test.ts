@@ -16,7 +16,7 @@ const TEMPLATE_ID = 'tmpl-1'
 const BASE_PROJECT: ProjectFile = {
   version: 1,
   set: { name: 'Test', code: 'TST', type: 'Custom', releaseDate: '' },
-  classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+  classColors: {}, cardTypes: [], phaseAbbreviations: {}, phaseMap: {},
   rarityConfig: {
     common: { aliases: [], color: '#4ade80' },
     rare:   { aliases: [], color: '#f87171' },

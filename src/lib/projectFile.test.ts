@@ -6,6 +6,7 @@ const MINIMAL: ProjectFile = {
   version: 1,
   set: { name: 'Test Set', code: 'TST', type: 'Custom', releaseDate: '' },
   classColors: {},
+  cardTypes: [],
   phaseAbbreviations: {},
   phaseMap: {},
   rarityConfig: {
@@ -58,5 +59,13 @@ describe('deserialize', () => {
   it('throws when a required key is missing', () => {
     const { templates: _t, ...rest } = MINIMAL
     expect(() => deserialize(JSON.stringify(rest))).toThrow('templates')
+  })
+
+  it('fills in default cardTypes when missing (migration)', () => {
+    const { cardTypes: _ct, ...rest } = MINIMAL
+    const result = deserialize(JSON.stringify(rest))
+    expect(result.cardTypes).toHaveLength(10)
+    expect(result.cardTypes).toContain('Slayer')
+    expect(result.cardTypes).toContain('Status')
   })
 })

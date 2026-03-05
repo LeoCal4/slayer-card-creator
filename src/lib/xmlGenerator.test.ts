@@ -9,6 +9,7 @@ const project: ProjectFile = {
     Warrior: { primary: '#c0392b', secondary: '#7b241c', cockatriceColor: 'R' },
     Mage:    { primary: '#2980b9', secondary: '#1a5276', cockatriceColor: 'U' },
   },
+  cardTypes: [],
   phaseAbbreviations: {},
   phaseMap: {
     Slayer:  ['Encounter'],

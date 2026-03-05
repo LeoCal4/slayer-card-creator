@@ -35,6 +35,7 @@ const project: ProjectFile = {
   version: 1,
   set: { name: 'Test', code: 'TST', type: 'Core', releaseDate: '' },
   classColors: {},
+  cardTypes: [],
   phaseAbbreviations: {},
   phaseMap: {},
   rarityConfig: {

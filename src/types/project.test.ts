@@ -27,6 +27,7 @@ describe('ProjectFile', () => {
       version: 1,
       set: { name: 'Slayer', code: 'SNC', type: 'Custom', releaseDate: '2025-01-01' },
       classColors: {},
+      cardTypes: ['Slayer', 'Action'],
       phaseAbbreviations: { Encounter: 'E', Preparation: 'P', Combat: 'B', Camp: 'C' },
       phaseMap: {},
       rarityConfig: {
@@ -46,6 +47,7 @@ describe('ProjectFile', () => {
       version: 1,
       set: { name: 'S', code: 'S', type: 'Custom', releaseDate: '2025-01-01' },
       classColors: {},
+      cardTypes: [],
       phaseAbbreviations: {},
       phaseMap: {},
       rarityConfig: {

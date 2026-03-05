@@ -2,9 +2,9 @@ import { describe, it } from 'vitest'
 import type { CardData, CardType, Rarity } from './card'
 
 describe('CardType', () => {
-  it('includes all 10 game types', () => {
-    void (['Slayer', 'Errant', 'Action', 'Ploy',
-      'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status'] satisfies CardType[])
+  it('is a string alias (card types are project-defined)', () => {
+    void ('Slayer' satisfies CardType)
+    void ('CustomType' satisfies CardType)
   })
 })
 

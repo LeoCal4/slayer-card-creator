@@ -3,17 +3,12 @@ import { Undo2, Redo2 } from 'lucide-react'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { performUndo, performRedo } from '@/lib/undoRedo'
-import type { CardType } from '@/types/card'
 import { DesignerCanvas } from '@/components/designer/DesignerCanvas'
 import { CanvasErrorBoundary } from '@/components/designer/CanvasErrorBoundary'
 import { LayerPanel } from '@/components/designer/LayerPanel'
 import { PropertiesPanel } from '@/components/designer/PropertiesPanel'
 import { AddLayerMenu } from '@/components/designer/AddLayerMenu'
 import { PreviewCardSelector } from '@/components/designer/PreviewCardSelector'
-
-const CARD_TYPES: CardType[] = [
-  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase',
-]
 
 const SNAP_SIZES = [1, 5, 10, 20] as const
 
@@ -22,6 +17,7 @@ export function TemplateDesignerView() {
   const clearUndoHistory = useUiStore((s) => s.clearUndoHistory)
   const undoCount = useUiStore((s) => s.undoStack.length)
   const redoCount = useUiStore((s) => s.redoStack.length)
+  const cardTypes = useProjectStore((s) => s.project?.cardTypes ?? [])
   const templates = useProjectStore((s) => s.project?.templates)
   const updateTemplate = useProjectStore((s) => s.updateTemplate)
   const snapGridEnabled = useUiStore((s) => s.snapGridEnabled)
@@ -48,7 +44,7 @@ export function TemplateDesignerView() {
     )
   }
 
-  function handleCardTypeChange(type: CardType, checked: boolean) {
+  function handleCardTypeChange(type: string, checked: boolean) {
     if (!template) return
     const next = checked
       ? [...template.cardTypes, type]
@@ -168,7 +164,7 @@ export function TemplateDesignerView() {
 
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-neutral-500">Card Types</span>
-          {CARD_TYPES.map((ct) => (
+          {cardTypes.map((ct) => (
             <label key={ct} className="flex items-center gap-1 text-xs text-neutral-300">
               <input
                 type="checkbox"

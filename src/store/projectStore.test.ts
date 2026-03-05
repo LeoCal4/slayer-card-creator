@@ -35,6 +35,14 @@ describe('newProject', () => {
     const abbrevs = useProjectStore.getState().project?.phaseAbbreviations
     expect(abbrevs).toEqual({ Encounter: 'E', Preparation: 'P', Combat: 'B', Camp: 'C' })
   })
+
+  it('creates a project with the 10 default card types', () => {
+    useProjectStore.getState().newProject()
+    const cardTypes = useProjectStore.getState().project?.cardTypes ?? []
+    expect(cardTypes).toHaveLength(10)
+    expect(cardTypes).toContain('Slayer')
+    expect(cardTypes).toContain('Status')
+  })
 })
 
 describe('updateSetInfo', () => {
@@ -94,6 +102,59 @@ describe('updateClassColor', () => {
   it('updates the primary color of a class', () => {
     useProjectStore.getState().updateClassColor('Mage', { primary: '#ff0000' })
     expect(useProjectStore.getState().project?.classColors['Mage'].primary).toBe('#ff0000')
+  })
+})
+
+describe('addCardType / deleteCardType / renameCardType', () => {
+  beforeEach(() => {
+    freshStore()
+    useProjectStore.getState().newProject()
+  })
+
+  it('addCardType appends a new type', () => {
+    useProjectStore.getState().addCardType('Trap')
+    expect(useProjectStore.getState().project?.cardTypes).toContain('Trap')
+  })
+
+  it('deleteCardType removes the type', () => {
+    useProjectStore.getState().deleteCardType('Action')
+    expect(useProjectStore.getState().project?.cardTypes).not.toContain('Action')
+  })
+
+  it('deleteCardType reassigns cards of that type to the first remaining type', () => {
+    useProjectStore.getState().addCard({
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x',
+    })
+    useProjectStore.getState().deleteCardType('Action')
+    expect(useProjectStore.getState().project?.cards[0].type).not.toBe('Action')
+  })
+
+  it('deleteCardType removes the type from template cardTypes', () => {
+    const tmplId = useProjectStore.getState().project!.templates[0].id
+    useProjectStore.getState().updateTemplate(tmplId, { cardTypes: ['Slayer', 'Action'] })
+    useProjectStore.getState().deleteCardType('Action')
+    expect(useProjectStore.getState().project!.templates[0].cardTypes).not.toContain('Action')
+  })
+
+  it('renameCardType updates the name in the list', () => {
+    useProjectStore.getState().renameCardType('Action', 'Spell')
+    expect(useProjectStore.getState().project?.cardTypes).toContain('Spell')
+    expect(useProjectStore.getState().project?.cardTypes).not.toContain('Action')
+  })
+
+  it('renameCardType updates card types in cards', () => {
+    useProjectStore.getState().addCard({
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x',
+    })
+    useProjectStore.getState().renameCardType('Action', 'Spell')
+    expect(useProjectStore.getState().project?.cards[0].type).toBe('Spell')
+  })
+
+  it('renameCardType migrates the phaseMap key', () => {
+    useProjectStore.getState().updatePhaseMap('Action', ['Combat'])
+    useProjectStore.getState().renameCardType('Action', 'Spell')
+    expect(useProjectStore.getState().project?.phaseMap['Spell']).toEqual(['Combat'])
+    expect(useProjectStore.getState().project?.phaseMap['Action']).toBeUndefined()
   })
 })
 
@@ -196,7 +257,7 @@ describe('dirty state tracking', () => {
     const data: ProjectFile = {
       version: 1,
       set: { name: 'Loaded', code: 'LD', type: 'Custom', releaseDate: '' },
-      classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+      classColors: {}, cardTypes: [], phaseAbbreviations: {}, phaseMap: {},
       rarityConfig: {
         common: { aliases: ['comune'], color: '#4ade80' },
         rare:   { aliases: ['rara'],   color: '#f87171' },
@@ -213,7 +274,7 @@ describe('saveProject', () => {
   const validProject: ProjectFile = {
     version: 1,
     set: { name: 'Save Test', code: 'SV', type: 'Custom', releaseDate: '' },
-    classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+    classColors: {}, cardTypes: [], phaseAbbreviations: {}, phaseMap: {},
     rarityConfig: {
       common: { aliases: ['comune'], color: '#4ade80' },
       rare:   { aliases: ['rara'],   color: '#f87171' },
@@ -285,7 +346,7 @@ describe('openProject', () => {
   const validProject: ProjectFile = {
     version: 1,
     set: { name: 'Opened Set', code: 'OP', type: 'Custom', releaseDate: '' },
-    classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+    classColors: {}, cardTypes: [], phaseAbbreviations: {}, phaseMap: {},
     rarityConfig: {
       common: { aliases: ['comune'], color: '#4ade80' },
       rare:   { aliases: ['rara'],   color: '#f87171' },
@@ -346,7 +407,7 @@ describe('undo history cleared on project lifecycle (task 83)', () => {
   const validProject: ProjectFile = {
     version: 1,
     set: { name: 'Loaded', code: 'LD', type: 'Custom', releaseDate: '' },
-    classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+    classColors: {}, cardTypes: [], phaseAbbreviations: {}, phaseMap: {},
     rarityConfig: {
       common: { aliases: ['comune'], color: '#4ade80' },
       rare:   { aliases: ['rara'],   color: '#f87171' },

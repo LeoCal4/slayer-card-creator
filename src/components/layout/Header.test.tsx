@@ -9,7 +9,7 @@ import type { ProjectFile } from '@/types/project'
 const SAMPLE_PROJECT: ProjectFile = {
   version: 1,
   set: { name: 'My Awesome Set', code: 'MAS', type: 'Custom', releaseDate: '' },
-  classColors: {}, phaseAbbreviations: {}, phaseMap: {},
+  classColors: {}, cardTypes: [], phaseAbbreviations: {}, phaseMap: {},
   rarityConfig: {
     common: { aliases: ['comune'], color: '#4ade80' },
     rare:   { aliases: ['rara'],   color: '#f87171' },

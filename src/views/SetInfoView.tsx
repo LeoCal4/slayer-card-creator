@@ -1,5 +1,6 @@
 import { useProjectStore } from '@/store/projectStore'
 import { ClassPaletteEditor } from '@/components/set-info/ClassPaletteEditor'
+import { CardTypeTable } from '@/components/set-info/CardTypeTable'
 import { PhaseMapTable } from '@/components/set-info/PhaseMapTable'
 import { RarityConfigTable } from '@/components/set-info/RarityConfigTable'
 
@@ -104,6 +105,11 @@ export function SetInfoView() {
       <section>
         <h2 className="text-base font-semibold text-neutral-100 mb-4">Rarity Configuration</h2>
         <RarityConfigTable />
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-neutral-100 mb-4">Card Types</h2>
+        <CardTypeTable />
       </section>
 
       <section>

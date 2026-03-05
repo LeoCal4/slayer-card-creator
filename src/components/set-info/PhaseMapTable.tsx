@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useProjectStore } from '@/store/projectStore'
-import type { CardType } from '@/types/card'
-
-const CARD_TYPES: CardType[] = [
-  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
-]
 
 function uniqueNewName(existing: string[]): string {
   let n = 1
@@ -45,7 +40,7 @@ export function PhaseMapTable() {
 
   const phases = Object.keys(project.phaseAbbreviations)
 
-  function handleCheckbox(phase: string, type: CardType, checked: boolean) {
+  function handleCheckbox(phase: string, type: string, checked: boolean) {
     const current = project!.phaseMap[type] ?? []
     if (checked) {
       updatePhaseMap(type, [...current, phase])
@@ -105,7 +100,7 @@ export function PhaseMapTable() {
                 <th className="text-left text-neutral-500 text-xs pr-4 pb-2 font-normal">
                   Phase
                 </th>
-                {CARD_TYPES.map((type) => (
+                {project.cardTypes.map((type) => (
                   <th
                     key={type}
                     scope="col"
@@ -122,7 +117,7 @@ export function PhaseMapTable() {
                   <td className="text-neutral-300 text-xs pr-4 py-1 whitespace-nowrap">
                     {phase}
                   </td>
-                  {CARD_TYPES.map((type) => {
+                  {project.cardTypes.map((type) => {
                     const checked = project.phaseMap[type]?.includes(phase) ?? false
                     return (
                       <td key={type} className="text-center px-2 py-1">

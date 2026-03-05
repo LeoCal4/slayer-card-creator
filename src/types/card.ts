@@ -1,6 +1,4 @@
-export type CardType =
-  | 'Slayer' | 'Errant' | 'Action' | 'Ploy'
-  | 'Intervention' | 'Chamber' | 'Relic' | 'Dungeon' | 'Phase' | 'Status'
+export type CardType = string
 
 export type Rarity = 'common' | 'rare' | 'epic'
 

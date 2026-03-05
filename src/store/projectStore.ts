@@ -26,6 +26,10 @@ const DEFAULT_CLASS_COLORS: Record<string, ClassConfig> = {
   Warrior: { primary: '#c0392b', secondary: '#7b241c', cockatriceColor: 'R' },
 }
 
+const DEFAULT_CARD_TYPES: string[] = [
+  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
+]
+
 const DEFAULT_PHASE_ABBREVIATIONS: Record<string, string> = {
   Encounter: 'E',
   Preparation: 'P',
@@ -57,6 +61,7 @@ function createDefaultProject(): ProjectFile {
     version: 1,
     set: { name: 'New Set', code: 'NEW', type: 'Custom', releaseDate: '' },
     classColors: { ...DEFAULT_CLASS_COLORS },
+    cardTypes: [...DEFAULT_CARD_TYPES],
     phaseAbbreviations: { ...DEFAULT_PHASE_ABBREVIATIONS },
     phaseMap: { ...DEFAULT_PHASE_MAP },
     rarityConfig: {
@@ -88,6 +93,10 @@ interface ProjectState {
   updateClassColor: (className: string, partial: Partial<ClassConfig>) => void
   addClassColor: (className: string, config: ClassConfig) => void
   deleteClassColor: (className: string) => void
+
+  addCardType: (name: string) => void
+  deleteCardType: (name: string) => void
+  renameCardType: (oldName: string, newName: string) => void
 
   addPhase: (name: string) => void
   deletePhase: (name: string) => void
@@ -195,6 +204,43 @@ export const useProjectStore = create<ProjectState>()(
 
     deleteClassColor: (className) => {
       set((state) => { if (state.project) delete state.project.classColors[className] })
+      markDirty()
+    },
+
+    addCardType: (name) => {
+      set((state) => { if (state.project) state.project.cardTypes.push(name) })
+      markDirty()
+    },
+
+    deleteCardType: (name) => {
+      set((state) => {
+        if (!state.project) return
+        state.project.cardTypes = state.project.cardTypes.filter((t) => t !== name)
+        delete state.project.phaseMap[name]
+        state.project.cards.forEach((c) => {
+          if (c.type === name) c.type = state.project!.cardTypes[0] ?? ''
+        })
+        state.project.templates.forEach((tmpl) => {
+          tmpl.cardTypes = tmpl.cardTypes.filter((t) => t !== name)
+        })
+      })
+      markDirty()
+    },
+
+    renameCardType: (oldName, newName) => {
+      set((state) => {
+        if (!state.project || !newName || newName === oldName) return
+        const idx = state.project.cardTypes.indexOf(oldName)
+        if (idx !== -1) state.project.cardTypes[idx] = newName
+        if (state.project.phaseMap[oldName] !== undefined) {
+          state.project.phaseMap[newName] = state.project.phaseMap[oldName]
+          delete state.project.phaseMap[oldName]
+        }
+        state.project.cards.forEach((c) => { if (c.type === oldName) c.type = newName })
+        state.project.templates.forEach((tmpl) => {
+          tmpl.cardTypes = tmpl.cardTypes.map((t) => (t === oldName ? newName : t))
+        })
+      })
       markDirty()
     },
 

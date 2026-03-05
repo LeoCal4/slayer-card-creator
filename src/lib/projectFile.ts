@@ -1,6 +1,10 @@
 import type { ProjectFile, RarityConfig } from '@/types/project'
 import type { Rarity } from '@/types/card'
 
+const DEFAULT_CARD_TYPES: string[] = [
+  'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
+]
+
 const REQUIRED_KEYS: (keyof ProjectFile)[] = [
   'version',
   'set',
@@ -32,6 +36,10 @@ export function deserialize(raw: string): ProjectFile {
     if (!(key in parsed)) {
       throw new Error(`Invalid project file: missing required key "${key}"`)
     }
+  }
+  // Migrate: fill in cardTypes if absent (old project files)
+  if (!parsed.cardTypes) {
+    parsed.cardTypes = [...DEFAULT_CARD_TYPES]
   }
   // Migrate: fill in rarityConfig if absent (old project files)
   if (!parsed.rarityConfig) {

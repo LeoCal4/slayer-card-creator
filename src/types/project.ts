@@ -25,6 +25,7 @@ export interface ProjectFile {
   version: number
   set: SetInfo
   classColors: Record<string, ClassConfig>
+  cardTypes: string[]
   phaseAbbreviations: Record<string, string>
   phaseMap: PhaseMap
   rarityConfig: Record<Rarity, RarityConfig>
