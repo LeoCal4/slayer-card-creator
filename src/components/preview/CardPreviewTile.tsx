@@ -16,29 +16,33 @@ export function CardPreviewTile({ card, template, project, artImages, frameImage
   const ref = useRef<HTMLDivElement>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    if (!template) return
     const el = ref.current
     if (!el) return
-
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !dataUrl && !loading) {
-          setLoading(true)
-          renderCard({ card, template, project, artImages, frameImages })
-            .then((blob) => {
-              setDataUrl(URL.createObjectURL(blob))
-              setLoading(false)
-            })
-            .catch(() => setLoading(false))
-        }
-      },
+      (entries) => setIsVisible(entries[0].isIntersecting),
       { threshold: 0.1 },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [card, template, project, artImages, frameImages])
+  }, [])
+
+  useEffect(() => {
+    if (!template || !isVisible) return
+    let cancelled = false
+    setLoading(true)
+    renderCard({ card, template, project, artImages, frameImages })
+      .then((blob) => {
+        if (!cancelled) {
+          setDataUrl(URL.createObjectURL(blob))
+          setLoading(false)
+        }
+      })
+      .catch(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [card, template, project, artImages, frameImages, isVisible])
 
   return (
     <div>
