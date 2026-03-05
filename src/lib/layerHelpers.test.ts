@@ -185,4 +185,74 @@ describe('resolveRectFill', () => {
     )
     expect(result.fillLinearGradientColorStops).toEqual([0, '#ff0000', 1, '#0000ff'])
   })
+
+  describe('dual-class cards', () => {
+    const DUAL_CARD: CardData = { ...CARD, class: 'Mage,Warrior' }
+
+    it('class.primary returns gradient of the two classes primary colors', () => {
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.primary' },
+        CLASS_COLORS,
+        DUAL_CARD,
+      )
+      expect(result.fillLinearGradientColorStops).toEqual([0, '#2980b9', 1, '#c0392b'])
+      expect(result.fill).toBeUndefined()
+    })
+
+    it('class.secondary returns gradient of the two classes secondary colors', () => {
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.secondary' },
+        CLASS_COLORS,
+        DUAL_CARD,
+      )
+      expect(result.fillLinearGradientColorStops).toEqual([0, '#1a5276', 1, '#7b241c'])
+    })
+
+    it('class.gradient defaults to the two classes primary colors', () => {
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.gradient' },
+        CLASS_COLORS,
+        DUAL_CARD,
+      )
+      expect(result.fillLinearGradientColorStops).toEqual([0, '#2980b9', 1, '#c0392b'])
+    })
+
+    it('class.gradient respects gradientStartColor override for dual-class', () => {
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.gradient', gradientStartColor: '#ff0000' },
+        CLASS_COLORS,
+        DUAL_CARD,
+      )
+      expect(result.fillLinearGradientColorStops).toEqual([0, '#ff0000', 1, '#c0392b'])
+    })
+
+    it('class.gradient respects gradientEndColor override for dual-class', () => {
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.gradient', gradientEndColor: '#00ff00' },
+        CLASS_COLORS,
+        DUAL_CARD,
+      )
+      expect(result.fillLinearGradientColorStops).toEqual([0, '#2980b9', 1, '#00ff00'])
+    })
+
+    it('dual-class gradient respects gradientAngle', () => {
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.primary', gradientAngle: 90 },
+        CLASS_COLORS,
+        DUAL_CARD,
+      )
+      expect(result.fillLinearGradientStartPoint).toEqual({ x: 50, y: 0 })
+      expect(result.fillLinearGradientEndPoint).toEqual({ x: 50, y: 100 })
+    })
+
+    it('falls back to grey when one dual-class is unknown', () => {
+      const unknownDual: CardData = { ...CARD, class: 'Mage,Unknown' }
+      const result = resolveRectFill(
+        { ...baseRect, fillSource: 'class.primary' },
+        CLASS_COLORS,
+        unknownDual,
+      )
+      expect(result.fillLinearGradientColorStops).toEqual([0, '#2980b9', 1, '#555555'])
+    })
+  })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseCSV, mergeByName } from './csvParser'
+import { parseCSV, mergeByName, normalizeClass } from './csvParser'
 import type { CardData } from '@/types/card'
 
 const VALID_CSV = `name,class,type,rarity,effect
@@ -145,6 +145,48 @@ C,,Status,epica,Effect.`
     expect(errors).toHaveLength(0)
     expect(cards).toHaveLength(1)
     expect(cards[0].name).toBe('Fireball')
+  })
+})
+
+describe('normalizeClass', () => {
+  it('returns single class unchanged', () => {
+    expect(normalizeClass('Mage')).toBe('Mage')
+  })
+
+  it('normalizes "Class1 - Class2" dash format to comma-separated', () => {
+    expect(normalizeClass('Mage - Warrior')).toBe('Mage,Warrior')
+  })
+
+  it('normalizes "Class1, Class2" comma-space format to comma-separated', () => {
+    expect(normalizeClass('Mage, Warrior')).toBe('Mage,Warrior')
+  })
+
+  it('trims surrounding whitespace', () => {
+    expect(normalizeClass('  Mage  ')).toBe('Mage')
+  })
+
+  it('returns already comma-separated class unchanged', () => {
+    expect(normalizeClass('Mage,Warrior')).toBe('Mage,Warrior')
+  })
+
+  it('returns empty string unchanged', () => {
+    expect(normalizeClass('')).toBe('')
+  })
+})
+
+describe('parseCSV dual-class', () => {
+  it('parses "Class1 - Class2" dash format into comma-separated class', () => {
+    const csv = 'name,class,type,rarity,effect\nDual Hero,Mage - Warrior,Action,common,Effect.'
+    const { cards, errors } = parseCSV(csv)
+    expect(errors).toHaveLength(0)
+    expect(cards[0].class).toBe('Mage,Warrior')
+  })
+
+  it('parses "Class1, Class2" comma-space format (quoted) into comma-separated class', () => {
+    const csv = 'name,class,type,rarity,effect\nDual Hero,"Mage, Warrior",Action,common,Effect.'
+    const { cards, errors } = parseCSV(csv)
+    expect(errors).toHaveLength(0)
+    expect(cards[0].class).toBe('Mage,Warrior')
   })
 })
 

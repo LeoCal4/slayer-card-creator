@@ -12,7 +12,7 @@ Built with Electron + React + Vite. No internet connection required at runtime.
 | Area | What you can do |
 |---|---|
 | **Card list** | Import cards from a CSV file or add/edit them manually; required fields are highlighted when blank |
-| **Set info** | Configure the set code, release date, class palette (primary / secondary colors), and phase abbreviations |
+| **Set info** | Configure the set code, release date, class palette (primary / secondary colors), card types, and phase abbreviations |
 | **Template designer** | Visual canvas editor — add rect, text, image, badge, and phase-icon layers; drag to move, handles to resize, snap-to-grid |
 | **Preview** | Lazy-loaded card grid that renders every card through its template |
 | **Export** | Generates a Cockatrice-compatible XML file and renders all card images into a ZIP archive |
@@ -33,7 +33,7 @@ Built with Electron + React + Vite. No internet connection required at runtime.
 | CSV parsing | Papa Parse |
 | ZIP generation | JSZip |
 | Packaging | electron-builder (NSIS installer for Windows) |
-| Tests | Vitest + Testing Library (372 tests) |
+| Tests | Vitest + Testing Library (508 tests) |
 
 ---
 
@@ -51,7 +51,7 @@ npm run dev        # opens the Electron window in dev mode with HMR
 Other scripts:
 
 ```bash
-npm test           # run all 372 unit tests once
+npm test           # run all 493 unit tests once
 npm run test:watch # run tests in watch mode
 npm run typecheck  # TypeScript check with no output files
 npm run build      # compile renderer + main process to dist/ and dist-electron/
@@ -65,14 +65,11 @@ npm run package    # build + create platform installer via electron-builder
 
 ## Card types and CSV format
 
-The tool supports nine card types defined for the Slayer card game:
+Card types are **fully user-defined** per project — add, rename, or remove them in **Set Info → Card Types**. New projects start with the ten default types:
 
-| Type | Required fields |
-|---|---|
-| **Slayer** | name, class, type, rarity, cost, power, hp, effect |
-| **Errant** | name, class, type, rarity, cost, power, hp, vp, effect |
-| **Action / Ploy / Intervention / Chamber / Relic** | name, class, type, rarity, cost, effect |
-| **Dungeon / Phase** | name, type, effect |
+`Slayer`, `Errant`, `Action`, `Ploy`, `Intervention`, `Chamber`, `Relic`, `Dungeon`, `Phase`, `Status`
+
+Renaming or deleting a type cascades automatically: affected cards are reassigned, phase-map entries are migrated, and template bindings are updated.
 
 ### CSV import
 
@@ -86,9 +83,9 @@ name,type,class,rarity,cost,power,hp,vp,effect
 | Column | Notes |
 |---|---|
 | `name` | Card display name |
-| `type` | One of: `Slayer`, `Errant`, `Action`, `Ploy`, `Intervention`, `Chamber`, `Relic`, `Dungeon`, `Phase` |
-| `class` | Class name(s) — multi-class cards separate names with `/` or a space |
-| `rarity` | `common`, `uncommon`, `rare`, or `mythic`. Blank defaults to `common` |
+| `type` | Any card type defined in the project's Card Types list |
+| `class` | Class name(s) — multi-class cards use comma, space, or `Class1 - Class2` format |
+| `rarity` | `common`, `rare`, or `epic`. Blank defaults to `common` |
 | `cost` | Integer |
 | `power` / `hp` / `vp` | Integer, optional depending on type |
 | `effect` | Card text |
@@ -101,7 +98,7 @@ A sample CSV is included at [`examples/sanctuary_test_csv.csv`](examples/sanctua
 
 Each template is bound to one or more card types. Layers (bottom to top):
 
-- **Rect** — solid fill or class-colour fill (primary, secondary, or gradient)
+- **Rect** — solid fill or class-colour fill (Primary Color, Secondary Color, or Gradient). On dual-class cards, Primary Color and Gradient automatically render as a horizontal gradient between the two classes' primary colours; Secondary Color renders the two secondary colours. The Gradient fill source also accepts per-layer start/end colour overrides.
 - **Image** — card art (loaded from the art folder) or a frame image (uploaded per template)
 - **Text** — any card field, with font, size, alignment, and colour options
 - **Badge** — circular label for a numeric field (cost, power, hp, vp)
@@ -174,7 +171,7 @@ slayer-card-creator/
 │   │   ├── cards/                # CardTable, CardRow, CSVImportModal
 │   │   ├── designer/             # DesignerCanvas, LayerPanel, PropertiesPanel, …
 │   │   ├── preview/              # PreviewGrid, CardPreviewTile
-│   │   ├── set-info/             # ClassPaletteEditor, PhaseMapTable
+│   │   ├── set-info/             # ClassPaletteEditor, CardTypeTable, PhaseMapTable, RarityConfigTable
 │   │   └── common/               # ColorPicker, Modal, FileDropZone, EmptyState
 │   └── test/                     # Shared test setup (vitest setup file)
 ├── resources/

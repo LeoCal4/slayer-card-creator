@@ -85,7 +85,7 @@ export function generateXML(project: ProjectFile): string {
     }
 
     // colors: split multi-class, look up each, join
-    const classes = card.class.split(/[\s/]+/).filter(Boolean)
+    const classes = card.class.split(/[,\s/]+/).filter(Boolean)
     const color = classes.map((c) => project.classColors[c]?.cockatriceColor ?? '').join('')
     appendText(doc, propEl, 'colors', color)
     appendText(doc, propEl, 'coloridentity', color)

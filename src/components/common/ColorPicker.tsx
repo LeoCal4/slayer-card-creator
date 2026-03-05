@@ -45,7 +45,7 @@ export function ColorPicker({ value, onChange, label, onPickerOpen }: Props) {
         value={localHex}
         onChange={(e) => handleTextChange(e.target.value)}
         maxLength={7}
-        className="bg-neutral-800 text-neutral-100 text-xs font-mono rounded px-2 py-1 w-24 outline-none focus:ring-1 focus:ring-indigo-500"
+        className="bg-neutral-800 text-neutral-100 text-xs font-mono rounded px-2 py-1 w-20 outline-none focus:ring-1 focus:ring-indigo-500"
         spellCheck={false}
       />
     </div>

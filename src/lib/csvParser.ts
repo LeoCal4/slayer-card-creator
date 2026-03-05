@@ -23,6 +23,13 @@ function cleanValue(val: string | undefined): string {
   return s === '||' ? '' : s
 }
 
+export function normalizeClass(raw: string): string {
+  const trimmed = raw.trim()
+  const parts = trimmed.split(/ - |, /).map((s) => s.trim()).filter(Boolean)
+  if (parts.length <= 1) return trimmed
+  return parts.join(',')
+}
+
 function sanitizeNumber(val: string | undefined): number | undefined {
   const s = cleanValue(val)
   if (!s) return undefined
@@ -86,7 +93,7 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
     cards.push({
       id: crypto.randomUUID(),
       name: cleanValue(row['name']),
-      class: cleanValue(row['class']),
+      class: normalizeClass(cleanValue(row['class'])),
       type: typeRaw as CardType,
       rarity: rarityRaw,
       cost: sanitizeNumber(row['cost']),

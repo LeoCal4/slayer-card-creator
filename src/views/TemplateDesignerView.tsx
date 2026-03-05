@@ -202,7 +202,7 @@ export function TemplateDesignerView() {
         </div>
 
         {/* Properties panel (right) */}
-        <div className="w-56 shrink-0 border-l border-neutral-800 overflow-y-auto">
+        <div className="w-64 shrink-0 border-l border-neutral-800 overflow-y-auto">
           <PropertiesPanel templateId={activeTemplateId} />
         </div>
       </div>

@@ -82,9 +82,9 @@ function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
           <option value="">(manual)</option>
-          <option value="class.primary">class.primary</option>
-          <option value="class.secondary">class.secondary</option>
-          <option value="class.gradient">class.gradient</option>
+          <option value="class.primary">Primary Color</option>
+          <option value="class.secondary">Secondary Color</option>
+          <option value="class.gradient">Gradient</option>
         </select>
       </div>
       {layer.fillSource === 'class.gradient' && (
