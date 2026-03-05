@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PreviewCardSelector } from './PreviewCardSelector'
 import { useProjectStore } from '@/store/projectStore'
@@ -56,5 +56,25 @@ describe('PreviewCardSelector', () => {
     useUiStore.getState().setPreviewCard('c3')
     render(<PreviewCardSelector cardTypes={['Action']} />)
     expect(screen.getByRole('combobox', { name: /preview as/i })).toHaveValue('c3')
+  })
+
+  it('lists matching cards in alphabetical order', () => {
+    useProjectStore.getState().addCard({
+      id: 'c4', name: 'Arctic Blast', class: 'Mage', type: 'Action', rarity: 'common', effect: '',
+    })
+    render(<PreviewCardSelector cardTypes={['Action']} />)
+    const opts = within(screen.getByRole('combobox', { name: /preview as/i })).getAllByRole('option')
+    expect(opts[0]).toHaveTextContent('Arctic Blast')
+    expect(opts[1]).toHaveTextContent('Fireball')
+    expect(opts[2]).toHaveTextContent('Frost Nova')
+  })
+
+  it('has a search input that filters card options when typing', async () => {
+    render(<PreviewCardSelector cardTypes={['Action']} />)
+    const searchInput = screen.getByRole('textbox', { name: /search/i })
+    await userEvent.type(searchInput, 'Frost')
+    const opts = within(screen.getByRole('combobox', { name: /preview as/i })).getAllByRole('option')
+    expect(opts).toHaveLength(1)
+    expect(opts[0]).toHaveTextContent('Frost Nova')
   })
 })

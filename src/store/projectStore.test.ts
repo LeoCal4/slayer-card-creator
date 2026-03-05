@@ -97,6 +97,62 @@ describe('updateClassColor', () => {
   })
 })
 
+describe('addPhase / deletePhase / renamePhase', () => {
+  beforeEach(() => {
+    freshStore()
+    useProjectStore.getState().newProject()
+  })
+
+  it('addPhase adds a new phase with empty abbreviation', () => {
+    useProjectStore.getState().addPhase('Rest')
+    expect(useProjectStore.getState().project?.phaseAbbreviations['Rest']).toBe('')
+  })
+
+  it('addPhase sets isDirty', () => {
+    freshUiStore()
+    useProjectStore.getState().addPhase('Rest')
+    expect(useUiStore.getState().isDirty).toBe(true)
+  })
+
+  it('deletePhase removes phase from phaseAbbreviations', () => {
+    useProjectStore.getState().deletePhase('Encounter')
+    expect(useProjectStore.getState().project?.phaseAbbreviations).not.toHaveProperty('Encounter')
+  })
+
+  it('deletePhase removes phase from all phaseMap entries', () => {
+    useProjectStore.getState().deletePhase('Encounter')
+    const phaseMap = useProjectStore.getState().project?.phaseMap
+    expect(phaseMap?.['Slayer']).not.toContain('Encounter')
+    expect(phaseMap?.['Errant']).not.toContain('Encounter')
+  })
+
+  it('deletePhase sets isDirty', () => {
+    freshUiStore()
+    useProjectStore.getState().deletePhase('Encounter')
+    expect(useUiStore.getState().isDirty).toBe(true)
+  })
+
+  it('renamePhase updates the key in phaseAbbreviations preserving the abbreviation', () => {
+    useProjectStore.getState().renamePhase('Encounter', 'Battling')
+    const abbrevs = useProjectStore.getState().project?.phaseAbbreviations
+    expect(abbrevs).not.toHaveProperty('Encounter')
+    expect(abbrevs?.['Battling']).toBe('E')
+  })
+
+  it('renamePhase updates all references in phaseMap', () => {
+    useProjectStore.getState().renamePhase('Encounter', 'Battling')
+    const phaseMap = useProjectStore.getState().project?.phaseMap
+    expect(phaseMap?.['Slayer']).toContain('Battling')
+    expect(phaseMap?.['Slayer']).not.toContain('Encounter')
+  })
+
+  it('renamePhase sets isDirty', () => {
+    freshUiStore()
+    useProjectStore.getState().renamePhase('Encounter', 'Battling')
+    expect(useUiStore.getState().isDirty).toBe(true)
+  })
+})
+
 describe('updatePhaseMap', () => {
   beforeEach(() => {
     freshStore()

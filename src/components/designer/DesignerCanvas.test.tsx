@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
@@ -147,5 +147,59 @@ describe('DesignerCanvas drag snapshot (task 79)', () => {
     // undoStack should have grown (snapshot pushed before updateLayer)
     expect(useUiStore.getState().undoStack).toHaveLength(1)
     spy.mockRestore()
+  })
+})
+
+describe('DesignerCanvas — art image loading', () => {
+  const ART_TEMPLATE: Template = {
+    id: 'tmpl-art',
+    name: 'Art Test',
+    cardTypes: ['Slayer'],
+    canvas: { width: 375, height: 523 },
+    layers: [
+      { id: 'l-art', type: 'image', x: 0, y: 0, width: 375, height: 300, imageSource: 'art', imageFit: 'cover', visible: true },
+    ],
+  }
+
+  beforeEach(() => {
+    setup()
+    useProjectStore.getState().addTemplate(ART_TEMPLATE)
+    useProjectStore.getState().setArtFolderPath('/path/to/art')
+    window.electronAPI = {
+      showOpenDialog: vi.fn(),
+      showSaveDialog: vi.fn(),
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      readArtFile: vi.fn().mockResolvedValue('data:image/png;base64,abc'),
+      listArtFiles: vi.fn(),
+      getRecentProjects: vi.fn(),
+      addRecentProject: vi.fn(),
+    }
+  })
+
+  it('calls readArtFile with artFolderPath and card name when preview card is set', async () => {
+    useProjectStore.getState().addCard({
+      id: 'c-art', name: 'Fireball', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '',
+    })
+    useUiStore.getState().setPreviewCard('c-art')
+    render(<DesignerCanvas templateId="tmpl-art" />)
+    await waitFor(() => {
+      expect(window.electronAPI.readArtFile).toHaveBeenCalledWith('/path/to/art', 'Fireball')
+    })
+  })
+
+  it('does not call readArtFile when no preview card is set', () => {
+    render(<DesignerCanvas templateId="tmpl-art" />)
+    expect(window.electronAPI.readArtFile).not.toHaveBeenCalled()
+  })
+
+  it('does not call readArtFile when artFolderPath is empty', () => {
+    useProjectStore.getState().setArtFolderPath('')
+    useProjectStore.getState().addCard({
+      id: 'c-art2', name: 'IceSpike', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '',
+    })
+    useUiStore.getState().setPreviewCard('c-art2')
+    render(<DesignerCanvas templateId="tmpl-art" />)
+    expect(window.electronAPI.readArtFile).not.toHaveBeenCalled()
   })
 })

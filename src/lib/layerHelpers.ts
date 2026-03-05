@@ -27,16 +27,37 @@ export function resolveFieldText(
   return str.replace(/\\n/g, '\n')
 }
 
+export interface RectFillResult {
+  fill?: string
+  fillLinearGradientStartPoint?: { x: number; y: number }
+  fillLinearGradientEndPoint?: { x: number; y: number }
+  fillLinearGradientColorStops?: (number | string)[]
+}
+
 export function resolveRectFill(
   layer: RectLayer,
   classColors: Record<string, ClassConfig>,
   previewCard: CardData | null,
-): string {
-  if (!layer.fillSource) return layer.fill ?? FALLBACK_FILL
-  if (!previewCard) return FALLBACK_FILL
-  const config = classColors[previewCard.class]
-  if (!config) return FALLBACK_FILL
-  if (layer.fillSource === 'class.primary') return config.primary
-  if (layer.fillSource === 'class.secondary') return config.secondary
-  return layer.fill ?? FALLBACK_FILL
+): RectFillResult {
+  if (!layer.fillSource) return { fill: layer.fill ?? FALLBACK_FILL }
+  const config = previewCard ? classColors[previewCard.class] : undefined
+  if (layer.fillSource === 'class.primary') return { fill: config?.primary ?? FALLBACK_FILL }
+  if (layer.fillSource === 'class.secondary') return { fill: config?.secondary ?? FALLBACK_FILL }
+  if (layer.fillSource === 'class.gradient') {
+    const startColor = layer.gradientStartColor ?? config?.primary ?? FALLBACK_FILL
+    const endColor = layer.gradientEndColor ?? config?.secondary ?? FALLBACK_FILL
+    if (!layer.gradientStartColor && !layer.gradientEndColor && !config) return { fill: FALLBACK_FILL }
+    const rad = ((layer.gradientAngle ?? 0) * Math.PI) / 180
+    const cos = Math.cos(rad)
+    const sin = Math.sin(rad)
+    const cx = layer.width / 2
+    const cy = layer.height / 2
+    const r = (n: number) => Math.round(n * 1e10) / 1e10
+    return {
+      fillLinearGradientStartPoint: { x: r(cx * (1 - cos)), y: r(cy * (1 - sin)) },
+      fillLinearGradientEndPoint:   { x: r(cx * (1 + cos)), y: r(cy * (1 + sin)) },
+      fillLinearGradientColorStops: [0, startColor, 1, endColor],
+    }
+  }
+  return { fill: layer.fill ?? FALLBACK_FILL }
 }

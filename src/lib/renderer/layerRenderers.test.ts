@@ -71,6 +71,15 @@ describe('renderRect', () => {
     expect(node!.attrs.fill).toBe('#ff0000')
   })
 
+  it('uses gradient attrs when fillSource is "class.gradient"', () => {
+    const layer: RectLayer = { ...baseRect, fillSource: 'class.gradient' }
+    const node = renderRect(layer, baseCtx)
+    // angle 0° → left-to-right along horizontal centre line (y = height/2)
+    expect(node!.attrs.fillLinearGradientColorStops).toEqual([0, '#ff0000', 1, '#880000'])
+    expect(node!.attrs.fillLinearGradientStartPoint).toEqual({ x: 0, y: 523 / 2 })
+    expect(node!.attrs.fill).toBeUndefined()
+  })
+
   it('returns null for a hidden layer', () => {
     const node = renderRect({ ...baseRect, visible: false }, baseCtx)
     expect(node).toBeNull()

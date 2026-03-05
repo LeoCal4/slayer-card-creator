@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Stage, Layer, Rect, Text, Image, Circle, Group, Line, RegularPolygon } from 'react-konva'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
-import { shouldShowLayer, resolveRectFill, resolveFieldText } from '@/lib/layerHelpers'
+import { shouldShowLayer, resolveRectFill, resolveFieldText, type RectFillResult } from '@/lib/layerHelpers'
 import { pushSnapshot } from '@/lib/undoRedo'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 import type { CardData } from '@/types/card'
@@ -60,11 +60,11 @@ function useDragBound() {
 }
 
 function RectNode({
-  layer, onSelect, fill, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, fillResult, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: RectLayer
   onSelect: () => void
-  fill: string
+  fillResult: RectFillResult
   onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
@@ -75,7 +75,7 @@ function RectNode({
     <Rect
       id={layer.id}
       x={layer.x} y={layer.y} width={layer.width} height={layer.height}
-      fill={fill}
+      {...fillResult}
       cornerRadius={layer.cornerRadius}
       stroke={layer.stroke}
       strokeWidth={layer.strokeWidth}
@@ -128,11 +128,12 @@ function TextNode({
 }
 
 function ImageNode({
-  layer, onSelect, frameBase64, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, frameBase64, artBase64, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: ImageLayer
   onSelect: () => void
   frameBase64?: string
+  artBase64?: string
   onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
@@ -140,12 +141,13 @@ function ImageNode({
 }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const { bound, saveDragStart } = useDragBound()
+  const src = layer.imageSource === 'art' ? artBase64 : frameBase64
   useEffect(() => {
-    if (!frameBase64) { setImg(null); return }
+    if (!src) { setImg(null); return }
     const el = new window.Image()
     el.onload = () => setImg(el)
-    el.src = frameBase64
-  }, [frameBase64])
+    el.src = src
+  }, [src])
 
   return (
     <Image
@@ -303,7 +305,7 @@ function RarityDiamondNode({
 }
 
 function LayerNode({
-  layer, onSelect, previewCard, classColors, rarityConfig, frameBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, classColors, rarityConfig, frameBase64, artBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TemplateLayer
   onSelect: () => void
@@ -311,6 +313,7 @@ function LayerNode({
   classColors: Record<string, ClassConfig>
   rarityConfig: Record<string, RarityConfig>
   frameBase64?: string
+  artBase64?: string
   phases: string[]
   abbreviations: Record<string, string>
   onDragMove: (x: number, y: number) => void
@@ -324,7 +327,7 @@ function LayerNode({
       <RectNode
         layer={layer}
         onSelect={onSelect}
-        fill={resolveRectFill(layer, classColors, previewCard)}
+        fillResult={resolveRectFill(layer, classColors, previewCard)}
         onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
@@ -351,6 +354,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         frameBase64={frameBase64}
+        artBase64={artBase64}
         onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
@@ -413,6 +417,15 @@ export function DesignerCanvas({ templateId }: Props) {
   const stageRef = useRef<any>(null)
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null)
   const [dragPos, setDragPos] = useState<{ layerId: string; x: number; y: number } | null>(null)
+  const [artBase64, setArtBase64] = useState<string | undefined>()
+
+  useEffect(() => {
+    const card = project?.cards.find((c) => c.id === previewCardId)
+    if (!card || !project?.artFolderPath) { setArtBase64(undefined); return }
+    window.electronAPI?.readArtFile(project.artFolderPath, card.name).then((b64) => {
+      setArtBase64(b64 ?? undefined)
+    })
+  }, [previewCardId, project?.artFolderPath])
 
   if (!project) return null
   const template = project.templates.find((t) => t.id === templateId)
@@ -480,6 +493,7 @@ export function DesignerCanvas({ templateId }: Props) {
             classColors={classColors}
             rarityConfig={rarityConfig}
             frameBase64={frameBase64}
+            artBase64={artBase64}
             phases={phases}
             abbreviations={abbreviations}
             onDragMove={(x, y) => setDragPos({ layerId: layer.id, x, y })}

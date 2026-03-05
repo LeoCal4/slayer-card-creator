@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import type { CardType } from '@/types/card'
 
@@ -5,8 +6,38 @@ const CARD_TYPES: CardType[] = [
   'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
 ]
 
+function uniqueNewName(existing: string[]): string {
+  let n = 1
+  while (existing.includes(`New Phase ${n}`)) n++
+  return `New Phase ${n}`
+}
+
+function PhaseNameInput({ phase }: { phase: string }) {
+  const renamePhase = useProjectStore((s) => s.renamePhase)
+  const [localName, setLocalName] = useState(phase)
+
+  useEffect(() => { setLocalName(phase) }, [phase])
+
+  return (
+    <input
+      type="text"
+      aria-label={`${phase} name`}
+      value={localName}
+      onChange={(e) => setLocalName(e.target.value)}
+      onBlur={() => {
+        const trimmed = localName.trim()
+        if (trimmed && trimmed !== phase) renamePhase(phase, trimmed)
+        else setLocalName(phase)
+      }}
+      className="bg-neutral-800 text-neutral-100 text-sm rounded px-2 py-1 w-32 outline-none focus:ring-1 focus:ring-indigo-500"
+    />
+  )
+}
+
 export function PhaseMapTable() {
   const project = useProjectStore((s) => s.project)
+  const addPhase = useProjectStore((s) => s.addPhase)
+  const deletePhase = useProjectStore((s) => s.deletePhase)
   const updatePhaseAbbreviation = useProjectStore((s) => s.updatePhaseAbbreviation)
   const updatePhaseMap = useProjectStore((s) => s.updatePhaseMap)
 
@@ -26,25 +57,38 @@ export function PhaseMapTable() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3">
-          Phase Abbreviations
-        </h3>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">
+            Phase Configuration
+          </h3>
+          <button
+            type="button"
+            aria-label="Add Phase"
+            onClick={() => addPhase(uniqueNewName(phases))}
+            className="px-2 py-1 text-xs rounded bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
+          >
+            Add Phase
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
           {phases.map((phase) => (
             <div key={phase} className="flex items-center gap-2">
-              <label
-                htmlFor={`abbrev-${phase}`}
-                className="text-sm text-neutral-300 w-28"
-              >
-                {phase}
-              </label>
+              <PhaseNameInput phase={phase} />
               <input
-                id={`abbrev-${phase}`}
                 type="text"
+                aria-label={`${phase} abbreviation`}
                 value={project.phaseAbbreviations[phase]}
                 onChange={(e) => updatePhaseAbbreviation(phase, e.target.value)}
                 className="bg-neutral-800 text-neutral-100 text-sm rounded px-2 py-1 w-16 outline-none text-center focus:ring-1 focus:ring-indigo-500"
               />
+              <button
+                type="button"
+                aria-label={`Delete ${phase}`}
+                onClick={() => deletePhase(phase)}
+                className="text-neutral-500 hover:text-red-400 text-sm px-1 transition-colors"
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>

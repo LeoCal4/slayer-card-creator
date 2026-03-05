@@ -227,6 +227,102 @@ describe('PropertiesPanel — rarity-diamond layer', () => {
   })
 })
 
+describe('PropertiesPanel — rect gradient angle', () => {
+  function setupGradient() {
+    setup('rect-1')
+    useProjectStore.getState().updateLayer('tmpl-1', 'rect-1', { fillSource: 'class.gradient', gradientAngle: 45 } as any)
+  }
+
+  beforeEach(setupGradient)
+
+  it('shows gradient angle input when fillSource is class.gradient', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('spinbutton', { name: /gradient angle/i })).toBeInTheDocument()
+  })
+
+  it('gradient angle input shows current value', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('spinbutton', { name: /gradient angle/i })).toHaveValue(45)
+  })
+
+  it('changing gradient angle updates the store', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const input = screen.getByRole('spinbutton', { name: /gradient angle/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '90')
+    const layer = useProjectStore.getState().project!.templates
+      .find((t) => t.id === 'tmpl-1')!.layers
+      .find((l) => l.id === 'rect-1')! as any
+    expect(layer.gradientAngle).toBe(90)
+  })
+
+  it('gradient angle input is hidden when fillSource is not class.gradient', () => {
+    useProjectStore.getState().updateLayer('tmpl-1', 'rect-1', { fillSource: undefined } as any)
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.queryByRole('spinbutton', { name: /gradient angle/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('PropertiesPanel — rect gradient colors', () => {
+  function setupGradientColors() {
+    setup('rect-1')
+    useProjectStore.getState().updateLayer('tmpl-1', 'rect-1', {
+      fillSource: 'class.gradient', gradientStartColor: '#ff0000', gradientEndColor: '#0000ff',
+    } as any)
+  }
+
+  beforeEach(setupGradientColors)
+
+  it('shows gradient start color picker when fillSource is class.gradient', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('textbox', { name: /gradient start/i })).toBeInTheDocument()
+  })
+
+  it('shows gradient end color picker when fillSource is class.gradient', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('textbox', { name: /gradient end/i })).toBeInTheDocument()
+  })
+
+  it('gradient start picker shows current value', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('textbox', { name: /gradient start/i })).toHaveValue('#ff0000')
+  })
+
+  it('gradient end picker shows current value', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('textbox', { name: /gradient end/i })).toHaveValue('#0000ff')
+  })
+
+  it('changing gradient start color updates the store', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const input = screen.getByRole('textbox', { name: /gradient start/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '#aabbcc')
+    const layer = useProjectStore.getState().project!.templates
+      .find((t) => t.id === 'tmpl-1')!.layers
+      .find((l) => l.id === 'rect-1')! as any
+    expect(layer.gradientStartColor).toBe('#aabbcc')
+  })
+
+  it('changing gradient end color updates the store', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const input = screen.getByRole('textbox', { name: /gradient end/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, '#112233')
+    const layer = useProjectStore.getState().project!.templates
+      .find((t) => t.id === 'tmpl-1')!.layers
+      .find((l) => l.id === 'rect-1')! as any
+    expect(layer.gradientEndColor).toBe('#112233')
+  })
+
+  it('gradient color pickers are hidden when fillSource is not class.gradient', () => {
+    useProjectStore.getState().updateLayer('tmpl-1', 'rect-1', { fillSource: undefined } as any)
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.queryByRole('textbox', { name: /gradient start/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: /gradient end/i })).not.toBeInTheDocument()
+  })
+})
+
 describe('PropertiesPanel snapshot on input focus/select change (task 80)', () => {
   function freshPanel() {
     useProjectStore.setState({ project: null })

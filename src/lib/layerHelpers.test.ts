@@ -93,11 +93,11 @@ describe('resolveRectFill', () => {
   }
 
   it('returns fill when no fillSource is set', () => {
-    expect(resolveRectFill({ ...baseRect, fill: '#ff0000' }, CLASS_COLORS, null)).toBe('#ff0000')
+    expect(resolveRectFill({ ...baseRect, fill: '#ff0000' }, CLASS_COLORS, null).fill).toBe('#ff0000')
   })
 
   it('returns fallback grey when fill and fillSource are both absent', () => {
-    expect(resolveRectFill(baseRect, CLASS_COLORS, null)).toBe('#555555')
+    expect(resolveRectFill(baseRect, CLASS_COLORS, null).fill).toBe('#555555')
   })
 
   it('returns primary color when fillSource is "class.primary"', () => {
@@ -106,7 +106,7 @@ describe('resolveRectFill', () => {
       CLASS_COLORS,
       CARD,
     )
-    expect(result).toBe('#2980b9')
+    expect(result.fill).toBe('#2980b9')
   })
 
   it('returns secondary color when fillSource is "class.secondary"', () => {
@@ -115,7 +115,7 @@ describe('resolveRectFill', () => {
       CLASS_COLORS,
       CARD,
     )
-    expect(result).toBe('#1a5276')
+    expect(result.fill).toBe('#1a5276')
   })
 
   it('falls back to grey when fillSource is set but class not found in classColors', () => {
@@ -125,7 +125,7 @@ describe('resolveRectFill', () => {
       CLASS_COLORS,
       cardUnknownClass,
     )
-    expect(result).toBe('#555555')
+    expect(result.fill).toBe('#555555')
   })
 
   it('falls back to grey when fillSource is set but no preview card', () => {
@@ -134,6 +134,55 @@ describe('resolveRectFill', () => {
       CLASS_COLORS,
       null,
     )
-    expect(result).toBe('#555555')
+    expect(result.fill).toBe('#555555')
+  })
+
+  it('returns gradient attributes when fillSource is "class.gradient"', () => {
+    const result = resolveRectFill(
+      { ...baseRect, fillSource: 'class.gradient' },
+      CLASS_COLORS,
+      CARD,
+    )
+    expect(result).toHaveProperty('fillLinearGradientColorStops', [0, '#2980b9', 1, '#1a5276'])
+    // default angle 0° → left-to-right along the horizontal centre line
+    expect(result).toHaveProperty('fillLinearGradientStartPoint', { x: 0, y: 50 })
+    expect(result).toHaveProperty('fillLinearGradientEndPoint', { x: 100, y: 50 })
+  })
+
+  it('gradient angle 90° produces a top-to-bottom gradient', () => {
+    const result = resolveRectFill(
+      { ...baseRect, fillSource: 'class.gradient', gradientAngle: 90 },
+      CLASS_COLORS,
+      CARD,
+    )
+    expect(result.fillLinearGradientStartPoint).toEqual({ x: 50, y: 0 })
+    expect(result.fillLinearGradientEndPoint).toEqual({ x: 50, y: 100 })
+  })
+
+  it('uses gradientStartColor when set, keeps class.secondary as end', () => {
+    const result = resolveRectFill(
+      { ...baseRect, fillSource: 'class.gradient', gradientStartColor: '#ff0000' },
+      CLASS_COLORS,
+      CARD,
+    )
+    expect(result.fillLinearGradientColorStops).toEqual([0, '#ff0000', 1, '#1a5276'])
+  })
+
+  it('uses gradientEndColor when set, keeps class.primary as start', () => {
+    const result = resolveRectFill(
+      { ...baseRect, fillSource: 'class.gradient', gradientEndColor: '#00ff00' },
+      CLASS_COLORS,
+      CARD,
+    )
+    expect(result.fillLinearGradientColorStops).toEqual([0, '#2980b9', 1, '#00ff00'])
+  })
+
+  it('renders gradient without preview card when both custom colors are set', () => {
+    const result = resolveRectFill(
+      { ...baseRect, fillSource: 'class.gradient', gradientStartColor: '#ff0000', gradientEndColor: '#0000ff' },
+      CLASS_COLORS,
+      null,
+    )
+    expect(result.fillLinearGradientColorStops).toEqual([0, '#ff0000', 1, '#0000ff'])
   })
 })

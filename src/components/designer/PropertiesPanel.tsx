@@ -87,6 +87,15 @@ function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string
           <option value="class.gradient">class.gradient</option>
         </select>
       </div>
+      {layer.fillSource === 'class.gradient' && (
+        <NumInput label="Gradient Angle" value={layer.gradientAngle ?? 0} onChange={(v) => up({ gradientAngle: v })} min={0} max={360} step={1} onFocus={snap} />
+      )}
+      {layer.fillSource === 'class.gradient' && (
+        <ColorRow label="Gradient Start" value={layer.gradientStartColor} onChange={(v) => up({ gradientStartColor: v })} onPickerOpen={snap} />
+      )}
+      {layer.fillSource === 'class.gradient' && (
+        <ColorRow label="Gradient End" value={layer.gradientEndColor} onChange={(v) => up({ gradientEndColor: v })} onPickerOpen={snap} />
+      )}
       <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} onPickerOpen={snap} />
       <NumInput label="Corner Radius" value={layer.cornerRadius} onChange={(v) => up({ cornerRadius: v })} min={0} onFocus={snap} />
       <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} onPickerOpen={snap} />

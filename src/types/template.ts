@@ -16,6 +16,9 @@ export interface RectLayer extends LayerBase {
   type: 'rect'
   fill?: string
   fillSource?: 'class.primary' | 'class.secondary' | 'class.gradient'
+  gradientAngle?: number
+  gradientStartColor?: string
+  gradientEndColor?: string
   cornerRadius?: number
   stroke?: string
   strokeWidth?: number

@@ -5,13 +5,14 @@ import type { RenderContext } from './cardRenderer'
 
 export function renderRect(layer: RectLayer, ctx: RenderContext): Konva.Rect | null {
   if (layer.visible === false) return null
+  const fillAttrs = resolveRectFill(layer, ctx.project.classColors, ctx.card)
   return new (Konva.Rect as any)({
     id: layer.id,
     x: layer.x,
     y: layer.y,
     width: layer.width,
     height: layer.height,
-    fill: resolveRectFill(layer, ctx.project.classColors, ctx.card),
+    ...fillAttrs,
     cornerRadius: layer.cornerRadius,
     stroke: layer.stroke,
     strokeWidth: layer.strokeWidth,

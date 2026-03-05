@@ -89,6 +89,9 @@ interface ProjectState {
   addClassColor: (className: string, config: ClassConfig) => void
   deleteClassColor: (className: string) => void
 
+  addPhase: (name: string) => void
+  deletePhase: (name: string) => void
+  renamePhase: (oldName: string, newName: string) => void
   updatePhaseAbbreviation: (phase: string, letter: string) => void
   updatePhaseMap: (type: CardType, phases: string[]) => void
   updateRarityConfig: (rarity: Rarity, partial: Partial<RarityConfig>) => void
@@ -192,6 +195,37 @@ export const useProjectStore = create<ProjectState>()(
 
     deleteClassColor: (className) => {
       set((state) => { if (state.project) delete state.project.classColors[className] })
+      markDirty()
+    },
+
+    addPhase: (name) => {
+      set((state) => { if (state.project) state.project.phaseAbbreviations[name] = '' })
+      markDirty()
+    },
+
+    deletePhase: (name) => {
+      set((state) => {
+        if (!state.project) return
+        delete state.project.phaseAbbreviations[name]
+        for (const type of Object.keys(state.project.phaseMap) as CardType[]) {
+          const arr = state.project.phaseMap[type]
+          if (arr) state.project.phaseMap[type] = arr.filter((p) => p !== name)
+        }
+      })
+      markDirty()
+    },
+
+    renamePhase: (oldName, newName) => {
+      set((state) => {
+        if (!state.project || !newName || newName === oldName) return
+        const abbrev = state.project.phaseAbbreviations[oldName]
+        delete state.project.phaseAbbreviations[oldName]
+        state.project.phaseAbbreviations[newName] = abbrev
+        for (const type of Object.keys(state.project.phaseMap) as CardType[]) {
+          const arr = state.project.phaseMap[type]
+          if (arr) state.project.phaseMap[type] = arr.map((p) => (p === oldName ? newName : p))
+        }
+      })
       markDirty()
     },
 
