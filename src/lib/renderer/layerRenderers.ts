@@ -1,5 +1,7 @@
 import Konva from 'konva'
 import { resolveRectFill, resolveFieldText } from '@/lib/layerHelpers'
+import { parseEffectText } from '@/lib/richTextParser'
+import { createRichTextShape } from '@/lib/renderer/richTextRenderer'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer } from '@/types/template'
 import type { RenderContext } from './cardRenderer'
 
@@ -20,15 +22,40 @@ export function renderRect(layer: RectLayer, ctx: RenderContext): Konva.Rect | n
   })
 }
 
-export function renderText(layer: TextLayer, ctx: RenderContext): Konva.Text | null {
+export function renderText(layer: TextLayer, ctx: RenderContext): Konva.Node | null {
   if (layer.visible === false) return null
+
+  const text = resolveFieldText(layer.field, ctx.card)
+  const formatting = ctx.project.set.effectFormatting
+
+  // Use rich text rendering for the effect field when formatting rules are defined
+  if (
+    layer.field === 'effect' &&
+    formatting &&
+    (formatting.boldTerms.length > 0 || formatting.italicTerms.length > 0 || /\d+@/.test(text))
+  ) {
+    const spans = parseEffectText(text, formatting.boldTerms, formatting.italicTerms)
+    const shape = createRichTextShape(layer.x, layer.y, {
+      spans,
+      width: layer.width,
+      height: layer.height,
+      fontSize: layer.fontSize,
+      fontFamily: layer.fontFamily ?? 'sans-serif',
+      defaultColor: layer.fill ?? '#ffffff',
+      lineHeight: layer.lineHeight ?? 1,
+      align: layer.align ?? 'left',
+    })
+    ;(shape as any).id(layer.id)
+    return shape
+  }
+
   return new (Konva.Text as any)({
     id: layer.id,
     x: layer.x,
     y: layer.y,
     width: layer.width,
     height: layer.height,
-    text: resolveFieldText(layer.field, ctx.card),
+    text,
     fontSize: layer.fontSize,
     fontFamily: layer.fontFamily ?? 'sans-serif',
     fontStyle: layer.fontStyle ?? 'normal',
