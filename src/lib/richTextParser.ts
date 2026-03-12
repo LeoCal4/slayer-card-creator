@@ -41,7 +41,7 @@ export function parseEffectText(
   const descs: MatchDesc[] = []
 
   // Red numbers — highest priority
-  descs.push({ pattern: /\d+@/g, bold: false, italic: false, red: true })
+  descs.push({ pattern: /\d+@/g, bold: true, italic: false, red: true })
 
   // Bold terms (longest first)
   const sortedBold = [...boldTerms].sort((a, b) => b.length - a.length)

@@ -14,7 +14,7 @@ function italic(text: string): TextSpan {
   return { text, bold: false, italic: true }
 }
 function red(text: string): TextSpan {
-  return { text, bold: false, italic: false, color: '#ff2222' }
+  return { text, bold: true, italic: false, color: '#ff2222' }
 }
 
 // ─── empty / trivial input ────────────────────────────────────────────────────
