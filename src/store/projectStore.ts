@@ -59,7 +59,7 @@ const DEFAULT_RARITY_CONFIG: ProjectFile['rarityConfig'] = {
 function createDefaultProject(): ProjectFile {
   return {
     version: 1,
-    set: { name: 'New Set', code: 'NEW', type: 'Custom', releaseDate: '' },
+    set: { name: 'New Set', code: 'NEW', type: 'Custom', releaseDate: '', effectFormatting: { boldTerms: [], italicTerms: [] } },
     classColors: { ...DEFAULT_CLASS_COLORS },
     cardTypes: [...DEFAULT_CARD_TYPES],
     phaseAbbreviations: { ...DEFAULT_PHASE_ABBREVIATIONS },
