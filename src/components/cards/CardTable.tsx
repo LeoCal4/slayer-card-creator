@@ -90,7 +90,7 @@ export function CardTable() {
             value={row.original.type}
             onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
           >
-            {project.cardTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+            {project?.cardTypes.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         ),
       },

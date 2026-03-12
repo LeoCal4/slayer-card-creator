@@ -16,6 +16,7 @@ const baseCtx: RenderContext = {
   project: {
     version: 1,
     set: { name: 'Test', code: 'TST', type: 'Core', releaseDate: '' },
+    cardTypes: [],
     classColors: { Warrior: { primary: '#ff0000', secondary: '#880000', cockatriceColor: 'R' } },
     phaseAbbreviations: { Encounter: 'E', Preparation: 'P' },
     phaseMap: { Slayer: ['Encounter', 'Preparation'] },

@@ -24,7 +24,7 @@ export interface SetInfo {
   code: string
   type: string
   releaseDate: string
-  effectFormatting: EffectFormatting
+  effectFormatting?: EffectFormatting
 }
 
 export interface ProjectFile {

@@ -17,6 +17,7 @@ const ctx: RenderContext = {
   project: {
     version: 1,
     set: { name: 'Test', code: 'TST', type: 'Core', releaseDate: '' },
+    cardTypes: [],
     classColors: {},
     phaseAbbreviations: {},
     phaseMap: {},
