@@ -49,5 +49,9 @@ export function deserialize(raw: string): ProjectFile {
       epic:   { ...DEFAULT_RARITY_CONFIG.epic,   aliases: [...DEFAULT_RARITY_CONFIG.epic.aliases] },
     }
   }
+  // Migrate: fill in effectFormatting if absent (old project files)
+  if (!parsed.set.effectFormatting) {
+    parsed.set.effectFormatting = { boldTerms: [], italicTerms: [] }
+  }
   return parsed as ProjectFile
 }

@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Stage, Layer, Rect, Text, Image, Circle, Group, Line, RegularPolygon } from 'react-konva'
+import { Stage, Layer, Rect, Text, Image, Circle, Group, Line, RegularPolygon, Shape } from 'react-konva'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { shouldShowLayer, resolveRectFill, resolveFieldText, type RectFillResult } from '@/lib/layerHelpers'
+import { parseEffectText } from '@/lib/richTextParser'
+import { makeRichTextSceneFunc } from '@/lib/renderer/richTextRenderer'
 import { pushSnapshot } from '@/lib/undoRedo'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 import type { CardData } from '@/types/card'
-import type { ClassConfig, RarityConfig } from '@/types/project'
+import type { ClassConfig, RarityConfig, EffectFormatting } from '@/types/project'
 
 interface Props {
   templateId: string
@@ -93,36 +95,71 @@ function RectNode({
 }
 
 function TextNode({
-  layer, onSelect, previewCard, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, effectFormatting, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TextLayer
   onSelect: () => void
   previewCard: CardData | null
+  effectFormatting: EffectFormatting
   onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
 }) {
   const { bound, saveDragStart } = useDragBound()
+  const text = resolveFieldText(layer.field, previewCard)
+  const sharedDragProps = {
+    draggable: !layer.locked,
+    dragBoundFunc: bound,
+    onDragStart: (e: any) => { saveDragStart(e); onSelect() },
+    onDragMove: (e: any) => onDragMove(e.target.x(), e.target.y()),
+    onDragEnd: (e: any) => onDragEnd(e.target.x(), e.target.y()),
+    onMouseEnter: onHover,
+    onMouseLeave: onHoverEnd,
+    onClick: (e: any) => { e.cancelBubble = true; onSelect() },
+  }
+
+  const useRichText =
+    layer.field === 'effect' &&
+    (effectFormatting.boldTerms.length > 0 ||
+      effectFormatting.italicTerms.length > 0 ||
+      /\d+@/.test(text))
+
+  if (useRichText) {
+    const spans = parseEffectText(text, effectFormatting.boldTerms, effectFormatting.italicTerms)
+    const sceneFunc = makeRichTextSceneFunc({
+      spans,
+      width: layer.width,
+      height: layer.height,
+      fontSize: layer.fontSize,
+      fontFamily: layer.fontFamily ?? 'sans-serif',
+      defaultColor: layer.fill ?? '#ffffff',
+      lineHeight: layer.lineHeight ?? 1,
+      align: layer.align ?? 'left',
+    })
+    return (
+      <Shape
+        id={layer.id}
+        x={layer.x} y={layer.y}
+        width={layer.width} height={layer.height}
+        sceneFunc={sceneFunc as any}
+        {...sharedDragProps}
+      />
+    )
+  }
+
   return (
     <Text
       id={layer.id}
       x={layer.x} y={layer.y} width={layer.width} height={layer.height}
-      text={resolveFieldText(layer.field, previewCard)}
+      text={text}
       fontSize={layer.fontSize}
       fontFamily={layer.fontFamily ?? 'sans-serif'}
       fontStyle={layer.fontStyle ?? 'normal'}
       fill={layer.fill ?? '#ffffff'}
       align={layer.align ?? 'left'}
       lineHeight={layer.lineHeight ?? 1}
-      onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
-      draggable={!layer.locked}
-      dragBoundFunc={bound}
-      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
-      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
-      onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
-      onMouseEnter={onHover}
-      onMouseLeave={onHoverEnd}
+      {...sharedDragProps}
     />
   )
 }
@@ -305,13 +342,14 @@ function RarityDiamondNode({
 }
 
 function LayerNode({
-  layer, onSelect, previewCard, classColors, rarityConfig, frameBase64, artBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, classColors, rarityConfig, effectFormatting, frameBase64, artBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TemplateLayer
   onSelect: () => void
   previewCard: CardData | null
   classColors: Record<string, ClassConfig>
   rarityConfig: Record<string, RarityConfig>
+  effectFormatting: EffectFormatting
   frameBase64?: string
   artBase64?: string
   phases: string[]
@@ -341,6 +379,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         previewCard={previewCard}
+        effectFormatting={effectFormatting}
         onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}
@@ -434,6 +473,7 @@ export function DesignerCanvas({ templateId }: Props) {
   const previewCard = project.cards.find((c) => c.id === previewCardId) ?? null
   const classColors = project.classColors
   const rarityConfig = project.rarityConfig
+  const effectFormatting = project.set.effectFormatting ?? { boldTerms: [], italicTerms: [] }
   const frameBase64 = project.frameImages[templateId]
   const phases = previewCard ? (project.phaseMap[previewCard.type] ?? []) : []
   const abbreviations = project.phaseAbbreviations
@@ -492,6 +532,7 @@ export function DesignerCanvas({ templateId }: Props) {
             previewCard={previewCard}
             classColors={classColors}
             rarityConfig={rarityConfig}
+            effectFormatting={effectFormatting}
             frameBase64={frameBase64}
             artBase64={artBase64}
             phases={phases}

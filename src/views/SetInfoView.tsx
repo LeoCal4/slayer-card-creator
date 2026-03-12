@@ -3,6 +3,7 @@ import { ClassPaletteEditor } from '@/components/set-info/ClassPaletteEditor'
 import { CardTypeTable } from '@/components/set-info/CardTypeTable'
 import { PhaseMapTable } from '@/components/set-info/PhaseMapTable'
 import { RarityConfigTable } from '@/components/set-info/RarityConfigTable'
+import { EffectFormattingEditor } from '@/components/set-info/EffectFormattingEditor'
 
 export function SetInfoView() {
   const project = useProjectStore((s) => s.project)
@@ -115,6 +116,11 @@ export function SetInfoView() {
       <section>
         <h2 className="text-base font-semibold text-neutral-100 mb-4">Phase Configuration</h2>
         <PhaseMapTable />
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-neutral-100 mb-4">Effect Text Formatting</h2>
+        <EffectFormattingEditor />
       </section>
     </div>
   )

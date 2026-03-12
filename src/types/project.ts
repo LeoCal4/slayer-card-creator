@@ -14,11 +14,17 @@ export interface RarityConfig {
 
 export type PhaseMap = Partial<Record<CardType, string[]>>
 
+export interface EffectFormatting {
+  boldTerms: string[]
+  italicTerms: string[]
+}
+
 export interface SetInfo {
   name: string
   code: string
   type: string
   releaseDate: string
+  effectFormatting: EffectFormatting
 }
 
 export interface ProjectFile {
