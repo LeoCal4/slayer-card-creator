@@ -1,6 +1,6 @@
 import type { CardData } from '@/types/card'
 import type { ClassConfig } from '@/types/project'
-import type { RectLayer, TextLayer } from '@/types/template'
+import type { RectLayer, TextLayer, BadgeLayer } from '@/types/template'
 
 const FALLBACK_FILL = '#555555'
 
@@ -90,4 +90,19 @@ export function resolveRectFill(
     return makeGradient(layer, startColor, endColor)
   }
   return { fill: layer.fill ?? FALLBACK_FILL }
+}
+
+export function resolveBadgeFill(
+  layer: BadgeLayer,
+  classColors: Record<string, ClassConfig>,
+  card: CardData | null,
+): string {
+  if (!layer.fillSource) return layer.fill ?? '#000000'
+  const classes = card?.class
+    ? card.class.split(',').map((c) => c.trim()).filter(Boolean)
+    : []
+  const config = classes.length >= 1 ? classColors[classes[0]] : undefined
+  if (layer.fillSource === 'class.primary') return config?.primary ?? FALLBACK_FILL
+  if (layer.fillSource === 'class.secondary') return config?.secondary ?? FALLBACK_FILL
+  return layer.fill ?? '#000000'
 }

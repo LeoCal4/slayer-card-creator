@@ -1,5 +1,5 @@
 import Konva from 'konva'
-import { resolveRectFill, resolveFieldText } from '@/lib/layerHelpers'
+import { resolveRectFill, resolveFieldText, resolveBadgeFill } from '@/lib/layerHelpers'
 import { parseEffectText } from '@/lib/richTextParser'
 import { createRichTextShape } from '@/lib/renderer/richTextRenderer'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer } from '@/types/template'
@@ -103,24 +103,61 @@ export function renderImage(layer: ImageLayer, ctx: RenderContext): Konva.Node |
 
 export function renderBadge(layer: BadgeLayer, ctx: RenderContext): Konva.Group | null {
   if (layer.visible === false) return null
-  const r = Math.min(layer.width, layer.height) / 2
   const group = new (Konva.Group as any)({ id: layer.id, x: layer.x, y: layer.y })
-  group.add(new (Konva.Circle as any)({
-    x: layer.width / 2,
-    y: layer.height / 2,
-    radius: r,
-    fill: layer.fill ?? '#000000',
-  }))
-  group.add(new (Konva.Text as any)({
-    x: 0,
-    y: 0,
-    width: layer.width,
-    height: layer.height,
-    text: resolveFieldText(layer.field, ctx.card),
-    fontSize: layer.fontSize ?? 18,
-    fill: layer.textFill ?? '#ffffff',
-    align: 'center',
-  }))
+  const resolvedFill = resolveBadgeFill(layer, ctx.project.classColors, ctx.card)
+
+  if (layer.shape === 'banner') {
+    const w = layer.width
+    const h = layer.height
+    const rectH = h * 0.7
+    group.add(new (Konva.Shape as any)({
+      width: w,
+      height: h,
+      fill: resolvedFill,
+      stroke: layer.stroke,
+      strokeWidth: layer.strokeWidth,
+      sceneFunc: (context: any, shape: any) => {
+        context.beginPath()
+        context.moveTo(0, 0)
+        context.lineTo(w, 0)
+        context.lineTo(w, rectH)
+        context.lineTo(w / 2, h)
+        context.lineTo(0, rectH)
+        context.closePath()
+        context.fillStrokeShape(shape)
+      },
+    }))
+    group.add(new (Konva.Text as any)({
+      x: 0,
+      y: 0,
+      width: w,
+      height: rectH,
+      text: resolveFieldText(layer.field, ctx.card),
+      fontSize: layer.fontSize ?? 18,
+      fill: layer.textFill ?? '#ffffff',
+      align: 'center',
+      verticalAlign: 'middle',
+    }))
+  } else {
+    const r = Math.min(layer.width, layer.height) / 2
+    group.add(new (Konva.Circle as any)({
+      x: layer.width / 2,
+      y: layer.height / 2,
+      radius: r,
+      fill: resolvedFill,
+    }))
+    group.add(new (Konva.Text as any)({
+      x: 0,
+      y: 0,
+      width: layer.width,
+      height: layer.height,
+      text: resolveFieldText(layer.field, ctx.card),
+      fontSize: layer.fontSize ?? 18,
+      fill: layer.textFill ?? '#ffffff',
+      align: 'center',
+    }))
+  }
+
   return group
 }
 

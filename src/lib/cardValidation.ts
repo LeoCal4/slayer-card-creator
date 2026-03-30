@@ -2,13 +2,13 @@ import type { CardData, CardType } from '@/types/card'
 import type { Template } from '@/types/template'
 
 export const REQUIRED_FIELDS: Record<CardType, (keyof CardData)[]> = {
-  Slayer:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'effect'],
-  Errant:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'effect'],
-  Action:       ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
-  Ploy:         ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
-  Intervention: ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
-  Chamber:      ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
-  Relic:        ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
+  Slayer:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'speed', 'effect'],
+  Errant:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'speed', 'effect'],
+  Action:       ['name', 'class', 'type', 'rarity', 'cost', 'speed', 'effect'],
+  Ploy:         ['name', 'class', 'type', 'rarity', 'cost', 'speed', 'effect'],
+  Intervention: ['name', 'class', 'type', 'rarity', 'cost', 'speed', 'effect'],
+  Chamber:      ['name', 'class', 'type', 'rarity', 'cost', 'speed', 'effect'],
+  Relic:        ['name', 'class', 'type', 'rarity', 'cost', 'speed', 'effect'],
   Dungeon:      ['name', 'type', 'effect'],
   Phase:        ['name', 'type', 'effect'],
   Status:       ['name', 'type', 'effect'],

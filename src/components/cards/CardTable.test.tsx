@@ -114,5 +114,28 @@ describe('CardTable', () => {
     render(<CardTable />)
     expect(screen.getByText(/no cards yet/i)).toBeInTheDocument()
   })
+
+  it('renders Speed column header', () => {
+    render(<CardTable />)
+    expect(screen.getByRole('columnheader', { name: /speed/i })).toBeInTheDocument()
+  })
+
+  it('speed input is enabled for Action type cards', () => {
+    render(<CardTable />)
+    const speedInputs = screen.getAllByRole('spinbutton', { name: /speed/i })
+    // c1 is Action, c2 is Ploy — both playable, so enabled
+    speedInputs.forEach((input) => expect(input).not.toBeDisabled())
+  })
+
+  it('speed input is disabled for Dungeon type cards', () => {
+    useProjectStore.getState().addCard({
+      id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
+    })
+    render(<CardTable />)
+    // There are now 3 cards: Action, Ploy, Dungeon. Only Dungeon should have disabled speed.
+    const speedInputs = screen.getAllByRole('spinbutton', { name: /speed/i })
+    const disabledInputs = speedInputs.filter((input) => (input as HTMLInputElement).disabled)
+    expect(disabledInputs).toHaveLength(1)
+  })
 })
 

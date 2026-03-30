@@ -12,5 +12,6 @@ export interface CardData {
   power?: number
   hp?: number
   vp?: number
+  speed?: number
   effect: string
 }

@@ -30,6 +30,7 @@ class MockGroup extends MockNode {
 }
 class MockImage extends MockNode {}
 class MockRegularPolygon extends MockNode {}
+class MockShape extends MockNode {}
 
 const Konva = {
   Stage: MockStage,
@@ -40,6 +41,7 @@ const Konva = {
   Group: MockGroup,
   Image: MockImage,
   RegularPolygon: MockRegularPolygon,
+  Shape: MockShape,
 }
 
 export default Konva

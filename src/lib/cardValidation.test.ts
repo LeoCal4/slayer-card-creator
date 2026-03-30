@@ -5,15 +5,15 @@ import type { Template } from '@/types/template'
 
 const fullSlayer: CardData = {
   id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer',
-  rarity: 'common', cost: 3, power: 4, hp: 5, effect: 'Strike.',
+  rarity: 'common', cost: 3, power: 4, hp: 5, speed: 2, effect: 'Strike.',
 }
 const fullErrant: CardData = {
   id: 'c2', name: 'Runner', class: 'Rogue', type: 'Errant',
-  rarity: 'common', cost: 2, power: 2, hp: 3, vp: 1, effect: 'Evade.',
+  rarity: 'common', cost: 2, power: 2, hp: 3, vp: 1, speed: 3, effect: 'Evade.',
 }
 const fullAction: CardData = {
   id: 'c3', name: 'Fireball', class: 'Mage', type: 'Action',
-  rarity: 'rare', cost: 3, effect: 'Deal 3 damage.',
+  rarity: 'rare', cost: 3, speed: 1, effect: 'Deal 3 damage.',
 }
 const fullDungeon: CardData = {
   id: 'c4', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
@@ -66,6 +66,16 @@ describe('getMissingFields', () => {
     expect(fields).not.toContain('power')
     expect(fields).not.toContain('hp')
     expect(fields).not.toContain('cost')
+  })
+
+  it('flags missing speed for Slayer', () => {
+    const card = { ...fullSlayer, speed: undefined }
+    expect(getMissingFields(card)).toContain('speed')
+  })
+
+  it('does not flag missing speed for Dungeon', () => {
+    const fields = getMissingFields(fullDungeon)
+    expect(fields).not.toContain('speed')
   })
 
   it('flags missing effect for Action', () => {

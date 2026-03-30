@@ -6,8 +6,8 @@ const VALID_CSV = `name,class,type,rarity,effect
 Fireball,Mage,Action,common,Deal 3 damage.
 Heal Wave,Cleric,Ploy,rare,Restore 2 HP.`
 
-const NUMERIC_CSV = `name,class,type,rarity,cost,power,hp,vp,effect
-Swordsman,Warrior,Slayer,common,3💰,5⚔️,8❤️,,Attack.`
+const NUMERIC_CSV = `name,class,type,rarity,cost,power,hp,vp,speed,effect
+Swordsman,Warrior,Slayer,common,3💰,5⚔️,8❤️,,2,Attack.`
 
 describe('parseCSV', () => {
   it('parses a valid CSV into CardData', () => {
@@ -40,6 +40,20 @@ describe('parseCSV', () => {
     expect(cards[0].power).toBe(5)
     expect(cards[0].hp).toBe(8)
     expect(cards[0].vp).toBeUndefined()
+    expect(cards[0].speed).toBe(2)
+  })
+
+  it('parses speed column as a number', () => {
+    const csv = 'name,class,type,rarity,speed,effect\nRunner,Rogue,Slayer,common,3,Dash.'
+    const { cards, errors } = parseCSV(csv)
+    expect(errors).toHaveLength(0)
+    expect(cards[0].speed).toBe(3)
+  })
+
+  it('returns undefined for empty speed field', () => {
+    const csv = 'name,class,type,rarity,speed,effect\nFoo,Mage,Action,common,,Draw.'
+    const { cards } = parseCSV(csv)
+    expect(cards[0].speed).toBeUndefined()
   })
 
   it('returns undefined for empty numeric fields', () => {

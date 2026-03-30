@@ -9,6 +9,7 @@
     { "id": "ap-footer", "type": "rect", "x": 0, "y": 380, "width": 375, "height": 143, "fillSource": "class.secondary", "opacity": 0.85, "visible": true, "locked": false },
     { "id": "ap-name", "type": "text", "x": 12, "y": 12, "width": 300, "height": 30, "field": "name", "fontSize": 20, "fill": "#ffffff", "fontStyle": "bold", "align": "left", "visible": true, "locked": false },
     { "id": "ap-cost", "type": "badge", "x": 320, "y": 8, "width": 46, "height": 46, "shape": "circle", "field": "cost", "fill": "#1a1a2e", "textFill": "#ffd700", "fontSize": 45, "visible": true, "locked": false, "showIfField": "cost" },
+    { "id": "ap-speed", "type": "badge", "x": 325, "y": 58, "width": 36, "height": 50, "shape": "banner", "field": "speed", "fillSource": "class.secondary", "textFill": "#ffffff", "fontSize": 18, "visible": true, "locked": false, "showIfField": "speed" },
     { "id": "ap-type", "type": "text", "x": 12, "y": 278, "width": 200, "height": 22, "field": "type", "fontSize": 12, "fill": "#eeeeee", "fontStyle": "italic", "align": "left", "visible": true, "locked": false },
     { "id": "ap-phases", "type": "phase-icons", "x": 260, "y": 278, "width": 105, "height": 28, "orientation": "horizontal", "iconSize": 24, "gap": 4, "fill": "#1a1a2e", "textFill": "#ffffff", "cornerRadius": 4, "visible": true, "locked": false },
     { "id": "ap-rarity", "type": "rarity-diamond", "x": 328, "y": 318, "width": 38, "height": 38, "visible": true, "locked": false },

@@ -146,6 +146,11 @@ describe('renderImage', () => {
   })
 })
 
+const baseBannerBadge: BadgeLayer = {
+  id: 'l-speed', type: 'badge', x: 20, y: 60, width: 36, height: 50,
+  shape: 'banner', field: 'speed', fill: '#1a1a2e', textFill: '#ffffff', fontSize: 18,
+}
+
 describe('renderBadge', () => {
   it('returns a Konva.Group with correct position', () => {
     const node = renderBadge(baseBadge, baseCtx)
@@ -156,6 +161,18 @@ describe('renderBadge', () => {
 
   it('returns null for a hidden layer', () => {
     expect(renderBadge({ ...baseBadge, visible: false }, baseCtx)).toBeNull()
+  })
+
+  it('returns a Konva.Group for banner shape', () => {
+    const ctx = { ...baseCtx, card: { ...baseCtx.card, speed: 2 } }
+    const node = renderBadge(baseBannerBadge, ctx)
+    expect(node).toBeInstanceOf(Konva.Group)
+    expect(node!.attrs.x).toBe(20)
+    expect(node!.attrs.y).toBe(60)
+  })
+
+  it('returns null for a hidden banner layer', () => {
+    expect(renderBadge({ ...baseBannerBadge, visible: false }, baseCtx)).toBeNull()
   })
 })
 

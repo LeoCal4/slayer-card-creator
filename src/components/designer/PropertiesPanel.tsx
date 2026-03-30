@@ -10,10 +10,10 @@ function snapshotLayers(templateId: string) {
   pushSnapshot(layers)
 }
 
-const SHOW_IF_OPTIONS: (keyof CardData | '')[] = ['', 'cost', 'power', 'hp', 'vp', 'effect']
+const SHOW_IF_OPTIONS: (keyof CardData | '')[] = ['', 'cost', 'power', 'hp', 'vp', 'speed', 'effect']
 
 const TEXT_FIELDS: (keyof CardData | 'stats' | 'statsVP' | '')[] = [
-  '', 'name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'effect', 'stats', 'statsVP',
+  '', 'name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'speed', 'effect', 'stats', 'statsVP',
 ]
 
 const FONT_STYLES = ['normal', 'bold', 'italic', 'bold italic'] as const
@@ -189,7 +189,7 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
   )
 }
 
-const BADGE_FIELDS: (keyof CardData)[] = ['cost', 'power', 'hp', 'vp']
+const BADGE_FIELDS: (keyof CardData)[] = ['cost', 'power', 'hp', 'vp', 'speed']
 
 function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
@@ -278,6 +278,19 @@ function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: stri
           {BADGE_FIELDS.map((f) => (
             <option key={f} value={f}>{f}</option>
           ))}
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-neutral-500 w-24 shrink-0">Fill Source</label>
+        <select
+          aria-label="Fill Source"
+          value={layer.fillSource ?? ''}
+          onChange={(e) => { snap(); up({ fillSource: (e.target.value as BadgeLayer['fillSource']) || undefined }) }}
+          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          <option value="">(manual)</option>
+          <option value="class.primary">Primary Color</option>
+          <option value="class.secondary">Secondary Color</option>
         </select>
       </div>
       <ColorRow label="Fill" value={layer.fill} onChange={(v) => up({ fill: v })} onPickerOpen={snap} />

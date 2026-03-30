@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Stage, Layer, Rect, Text, Image, Circle, Group, Line, RegularPolygon, Shape } from 'react-konva'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
-import { shouldShowLayer, resolveRectFill, resolveFieldText, type RectFillResult } from '@/lib/layerHelpers'
+import { shouldShowLayer, resolveRectFill, resolveFieldText, resolveBadgeFill, type RectFillResult } from '@/lib/layerHelpers'
 import { parseEffectText } from '@/lib/richTextParser'
 import { makeRichTextSceneFunc } from '@/lib/renderer/richTextRenderer'
 import { pushSnapshot } from '@/lib/undoRedo'
@@ -205,36 +205,76 @@ function ImageNode({
 }
 
 function BadgeNode({
-  layer, onSelect, previewCard, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, classColors, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: BadgeLayer
   onSelect: () => void
   previewCard: CardData | null
+  classColors: Record<string, ClassConfig>
   onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
   onHover: () => void
   onHoverEnd: () => void
 }) {
-  const r = Math.min(layer.width, layer.height) / 2
   const { bound, saveDragStart } = useDragBound()
+  const w = layer.width
+  const h = layer.height
+  const rectH = h * 0.7
+  const resolvedFill = resolveBadgeFill(layer, classColors, previewCard)
+
+  const sharedGroupProps = {
+    id: layer.id,
+    name: 'badge',
+    x: layer.x,
+    y: layer.y,
+    onClick: (e: any) => { e.cancelBubble = true; onSelect() },
+    draggable: !layer.locked,
+    dragBoundFunc: bound,
+    onDragStart: (e: any) => { saveDragStart(e); onSelect() },
+    onDragMove: (e: any) => onDragMove(e.target.x(), e.target.y()),
+    onDragEnd: (e: any) => onDragEnd(e.target.x(), e.target.y()),
+    onMouseEnter: onHover,
+    onMouseLeave: onHoverEnd,
+  }
+
+  if (layer.shape === 'banner') {
+    return (
+      <Group {...sharedGroupProps}>
+        <Shape
+          width={w}
+          height={h}
+          fill={resolvedFill}
+          stroke={layer.stroke}
+          strokeWidth={layer.strokeWidth}
+          sceneFunc={(context: any, shape: any) => {
+            context.beginPath()
+            context.moveTo(0, 0)
+            context.lineTo(w, 0)
+            context.lineTo(w, rectH)
+            context.lineTo(w / 2, h)
+            context.lineTo(0, rectH)
+            context.closePath()
+            context.fillStrokeShape(shape)
+          }}
+        />
+        <Text
+          x={0} y={0} width={w} height={rectH}
+          text={resolveFieldText(layer.field, previewCard)}
+          fontSize={layer.fontSize ?? 18}
+          fill={layer.textFill ?? '#ffffff'}
+          align="center"
+          verticalAlign="middle"
+        />
+      </Group>
+    )
+  }
+
+  const r = Math.min(w, h) / 2
   return (
-    <Group
-      id={layer.id}
-      name="badge"
-      x={layer.x}
-      y={layer.y}
-      onClick={(e: any) => { e.cancelBubble = true; onSelect() }}
-      draggable={!layer.locked}
-      dragBoundFunc={bound}
-      onDragStart={(e: any) => { saveDragStart(e); onSelect() }}
-      onDragMove={(e: any) => onDragMove(e.target.x(), e.target.y())}
-      onDragEnd={(e: any) => onDragEnd(e.target.x(), e.target.y())}
-      onMouseEnter={onHover}
-      onMouseLeave={onHoverEnd}
-    >
-      <Circle x={layer.width / 2} y={layer.height / 2} radius={r} fill={layer.fill ?? '#000000'} stroke={layer.stroke} strokeWidth={layer.strokeWidth} />
+    <Group {...sharedGroupProps}>
+      <Circle x={w / 2} y={h / 2} radius={r} fill={resolvedFill} stroke={layer.stroke} strokeWidth={layer.strokeWidth} />
       <Text
-        x={0} y={0} width={layer.width} height={layer.height}
+        x={0} y={0} width={w} height={h}
         text={resolveFieldText(layer.field, previewCard)}
         fontSize={layer.fontSize ?? 18}
         fill={layer.textFill ?? '#ffffff'}
@@ -407,6 +447,7 @@ function LayerNode({
         layer={layer}
         onSelect={onSelect}
         previewCard={previewCard}
+        classColors={classColors}
         onDragMove={onDragMove}
         onDragEnd={onDragEnd}
         onHover={onHover}

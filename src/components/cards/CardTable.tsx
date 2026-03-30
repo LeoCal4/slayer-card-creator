@@ -15,12 +15,13 @@ import type { CardData, Rarity } from '@/types/card'
 
 const RARITIES: Rarity[] = ['common', 'rare', 'epic']
 
-function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp', type: string): boolean {
+function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp' | 'speed', type: string): boolean {
   switch (field) {
     case 'power':
     case 'hp': return type !== 'Slayer' && type !== 'Errant'
     case 'vp': return type !== 'Errant'
     case 'cost': return type === 'Dungeon' || type === 'Phase'
+    case 'speed': return type === 'Dungeon' || type === 'Phase' || type === 'Status'
   }
 }
 
@@ -176,6 +177,25 @@ export function CardTable() {
             onChange={(e) => {
               const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
               updateCard(row.original.id, { vp: val })
+            }}
+          />
+        ),
+      },
+      {
+        accessorKey: 'speed',
+        header: 'Speed',
+        cell: ({ row }) => (
+          <input
+            aria-label="speed"
+            type="number"
+            min={1}
+            max={3}
+            className="bg-transparent w-12 text-sm text-neutral-100 outline-none disabled:opacity-30"
+            value={row.original.speed ?? ''}
+            disabled={isCellDisabled('speed', row.original.type)}
+            onChange={(e) => {
+              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
+              updateCard(row.original.id, { speed: val })
             }}
           />
         ),

@@ -61,6 +61,18 @@ const TEMPLATE: Template = {
       visible: true,
       locked: false,
     },
+    {
+      id: 'badge-1',
+      type: 'badge',
+      x: 10, y: 10, width: 40, height: 40,
+      shape: 'circle',
+      field: 'cost',
+      fill: '#000000',
+      textFill: '#ffffff',
+      fontSize: 18,
+      visible: true,
+      locked: false,
+    },
   ],
 }
 
@@ -224,6 +236,17 @@ describe('PropertiesPanel — rarity-diamond layer', () => {
     await userEvent.type(input, '3')
     const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'rarity-1')! as any
     expect(layer.strokeWidth).toBe(3)
+  })
+})
+
+describe('PropertiesPanel — badge layer', () => {
+  beforeEach(() => setup('badge-1'))
+
+  it('speed appears in badge field dropdown', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    const fieldSelect = screen.getByRole('combobox', { name: /^field$/i })
+    const options = Array.from(fieldSelect.querySelectorAll('option')).map((o) => o.value)
+    expect(options).toContain('speed')
   })
 })
 

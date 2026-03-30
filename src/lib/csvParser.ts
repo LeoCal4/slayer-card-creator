@@ -100,6 +100,7 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
       power: sanitizeNumber(row['power']),
       hp: sanitizeNumber(row['hp']),
       vp: sanitizeNumber(row['vp']),
+      speed: sanitizeNumber(row['speed']),
       effect: cleanValue(row['effect']),
     })
   })

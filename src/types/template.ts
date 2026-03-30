@@ -46,9 +46,10 @@ export interface TextLayer extends LayerBase {
 
 export interface BadgeLayer extends LayerBase {
   type: 'badge'
-  shape: 'circle'
+  shape: 'circle' | 'banner'
   field: keyof CardData
   fill?: string
+  fillSource?: 'class.primary' | 'class.secondary'
   textFill?: string
   fontSize?: number
   stroke?: string
