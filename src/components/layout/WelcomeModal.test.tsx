@@ -27,6 +27,7 @@ beforeEach(() => {
     readFile: vi.fn(),
     writeFile: vi.fn().mockResolvedValue(undefined),
     readArtFile: vi.fn(),
+    readImageFile: vi.fn(),
     listArtFiles: vi.fn(),
     getRecentProjects: vi.fn().mockResolvedValue([]),
     addRecentProject: vi.fn().mockResolvedValue(undefined),

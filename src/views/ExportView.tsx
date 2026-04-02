@@ -10,6 +10,7 @@ export function ExportView() {
   const [progress, setProgress] = useState<ZipProgress | null>(null)
   const [warnings, setWarnings] = useState<string[]>([])
   const [savedPath, setSavedPath] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!project?.artFolderPath) { setArtFound(null); return }
@@ -33,6 +34,7 @@ export function ExportView() {
     setSavedPath(null)
     setWarnings([])
     setProgress(null)
+    setError(null)
 
     try {
       const { blob, warnings: w } = await buildZip(project!, (p) => setProgress(p))
@@ -50,6 +52,9 @@ export function ExportView() {
         await window.electronAPI?.writeFile(savePath, `data:application/zip;base64,${base64}`)
         setSavedPath(savePath)
       }
+    } catch (err) {
+      console.error('Export failed:', err)
+      setError(err instanceof Error ? err.message : 'Export failed unexpectedly')
     } finally {
       setExporting(false)
       setProgress(null)
@@ -108,6 +113,13 @@ export function ExportView() {
       >
         {exporting ? progressLabel ?? 'Exporting…' : 'Export ZIP'}
       </button>
+
+      {/* Error */}
+      {error && (
+        <p className="text-sm text-red-400 bg-red-400/10 px-3 py-2 rounded">
+          {error}
+        </p>
+      )}
 
       {/* Success */}
       {savedPath && (

@@ -11,6 +11,9 @@ const api: ElectronAPI = {
   readFile: (filePath: string) =>
     ipcRenderer.invoke('fs:readFile', filePath),
 
+  readImageFile: (filePath: string) =>
+    ipcRenderer.invoke('fs:readImageFile', filePath),
+
   writeFile: (filePath: string, data: string) =>
     ipcRenderer.invoke('fs:writeFile', filePath, data),
 

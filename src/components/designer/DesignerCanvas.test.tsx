@@ -171,6 +171,7 @@ describe('DesignerCanvas — art image loading', () => {
       readFile: vi.fn(),
       writeFile: vi.fn(),
       readArtFile: vi.fn().mockResolvedValue('data:image/png;base64,abc'),
+      readImageFile: vi.fn(),
       listArtFiles: vi.fn(),
       getRecentProjects: vi.fn(),
       addRecentProject: vi.fn(),

@@ -202,10 +202,9 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
       filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
     })
     if (!path) return
-    const raw = await window.electronAPI.readFile(path)
-    const ext = path.split('.').pop()?.toLowerCase() ?? 'png'
-    const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`
-    setFrameImage(templateId, `data:${mime};base64,${raw}`)
+    const dataUri = await window.electronAPI.readImageFile(path)
+    if (!dataUri) return
+    setFrameImage(templateId, dataUri)
   }
 
   return (

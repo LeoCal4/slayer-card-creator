@@ -27,6 +27,7 @@ beforeEach(() => {
     readFile: vi.fn().mockResolvedValue(VALID_CSV),
     writeFile: vi.fn(),
     readArtFile: vi.fn(),
+    readImageFile: vi.fn(),
     listArtFiles: vi.fn(),
     getRecentProjects: vi.fn(),
     addRecentProject: vi.fn().mockResolvedValue(undefined),

@@ -19,8 +19,9 @@ export async function preloadArtImages(
     const base64 = await window.electronAPI?.readArtFile(project.artFolderPath, filename)
     if (base64) {
       const img = new Image()
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve()
+        img.onerror = () => reject(new Error(`Failed to load art image for "${card.name}"`))
         img.src = base64
       })
       map.set(card.name, img)
@@ -35,8 +36,9 @@ export async function preloadFrameImages(
   const map = new Map<string, HTMLImageElement>()
   for (const [templateId, base64] of Object.entries(project.frameImages)) {
     const img = new Image()
-    await new Promise<void>((resolve) => {
+    await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve()
+      img.onerror = () => reject(new Error(`Failed to load frame image for template "${templateId}"`))
       img.src = base64
     })
     map.set(templateId, img)

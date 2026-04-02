@@ -21,6 +21,7 @@ export interface ElectronAPI {
   showOpenDialog: (options: OpenDialogOptions) => Promise<string | null>
   showSaveDialog: (options: SaveDialogOptions) => Promise<string | null>
   readFile: (filePath: string) => Promise<string>
+  readImageFile: (filePath: string) => Promise<string | null>
   writeFile: (filePath: string, data: string) => Promise<void>
   readArtFile: (artFolderPath: string, filename: string) => Promise<string | null>
   listArtFiles: (artFolderPath: string) => Promise<string[]>

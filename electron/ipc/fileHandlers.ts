@@ -33,6 +33,17 @@ export function registerFileHandlers(): void {
     }
   })
 
+  ipcMain.handle('fs:readImageFile', async (_event, filePath: string) => {
+    try {
+      const buf = await fs.readFile(filePath)
+      const ext = path.extname(filePath).toLowerCase().slice(1)
+      const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`
+      return `data:${mime};base64,${buf.toString('base64')}`
+    } catch {
+      return null
+    }
+  })
+
   ipcMain.handle('art:readArtFile', async (_event, artFolderPath: string, filename: string) => {
     const fullPath = path.join(artFolderPath, filename)
     try {
