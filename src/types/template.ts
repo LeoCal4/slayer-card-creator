@@ -27,7 +27,7 @@ export interface RectLayer extends LayerBase {
 
 export interface ImageLayer extends LayerBase {
   type: 'image'
-  imageSource: 'art' | 'frame'
+  imageSource: 'art' | 'custom'
   imageFit: 'cover' | 'contain' | 'fill' | 'stretch'
   opacity?: number
 }

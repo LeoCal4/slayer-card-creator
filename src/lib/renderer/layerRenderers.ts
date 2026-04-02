@@ -70,8 +70,8 @@ export function renderImage(layer: ImageLayer, ctx: RenderContext): Konva.Node |
   if (layer.visible === false) return null
 
   let image: HTMLImageElement | undefined
-  if (layer.imageSource === 'frame') {
-    image = ctx.frameImages.get(ctx.template.id)
+  if (layer.imageSource === 'custom') {
+    image = ctx.customImages.get(ctx.template.id)
   } else {
     image = ctx.artImages.get(ctx.card.name)
   }

@@ -263,7 +263,7 @@ describe('dirty state tracking', () => {
         rare:   { aliases: ['rara'],   color: '#f87171' },
         epic:   { aliases: ['epica'],  color: '#60a5fa' },
       },
-      templates: [], cards: [], artFolderPath: '', frameImages: {},
+      templates: [], cards: [], artFolderPath: '', customImages: {},
     }
     useProjectStore.getState().loadProject(data)
     expect(useUiStore.getState().isDirty).toBe(false)
@@ -280,7 +280,7 @@ describe('saveProject', () => {
       rare:   { aliases: ['rara'],   color: '#f87171' },
       epic:   { aliases: ['epica'],  color: '#60a5fa' },
     },
-    templates: [], cards: [], artFolderPath: '', frameImages: {},
+    templates: [], cards: [], artFolderPath: '', customImages: {},
   }
 
   beforeEach(() => {
@@ -353,7 +353,7 @@ describe('openProject', () => {
       rare:   { aliases: ['rara'],   color: '#f87171' },
       epic:   { aliases: ['epica'],  color: '#60a5fa' },
     },
-    templates: [], cards: [], artFolderPath: '', frameImages: {},
+    templates: [], cards: [], artFolderPath: '', customImages: {},
   }
 
   beforeEach(() => {
@@ -415,7 +415,7 @@ describe('undo history cleared on project lifecycle (task 83)', () => {
       rare:   { aliases: ['rara'],   color: '#f87171' },
       epic:   { aliases: ['epica'],  color: '#60a5fa' },
     },
-    templates: [], cards: [], artFolderPath: '', frameImages: {},
+    templates: [], cards: [], artFolderPath: '', customImages: {},
   }
 
   beforeEach(() => {

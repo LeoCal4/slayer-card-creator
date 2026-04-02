@@ -38,5 +38,5 @@ export interface ProjectFile {
   templates: Template[]
   cards: CardData[]
   artFolderPath: string
-  frameImages: Record<string, string>
+  customImages: Record<string, string>
 }

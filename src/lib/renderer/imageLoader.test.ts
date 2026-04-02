@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { preloadArtImages, preloadFrameImages } from './imageLoader'
+import { preloadArtImages, preloadCustomImages } from './imageLoader'
 import type { ProjectFile } from '@/types/project'
 
 const baseProject: ProjectFile = {
@@ -20,7 +20,7 @@ const baseProject: ProjectFile = {
     { id: 'c2', name: 'Shadowblade', class: 'Rogue', type: 'Errant', rarity: 'rare', effect: '' },
   ],
   artFolderPath: '/art',
-  frameImages: {
+  customImages: {
     'tmpl-1': 'data:image/png;base64,abc',
     'tmpl-2': 'data:image/png;base64,def',
   },
@@ -64,16 +64,16 @@ describe('preloadArtImages', () => {
   })
 })
 
-describe('preloadFrameImages', () => {
-  it('returns a map with one entry per frame image', async () => {
-    const result = await preloadFrameImages(baseProject)
+describe('preloadCustomImages', () => {
+  it('returns a map with one entry per custom image', async () => {
+    const result = await preloadCustomImages(baseProject)
     expect(result.size).toBe(2)
     expect(result.has('tmpl-1')).toBe(true)
     expect(result.has('tmpl-2')).toBe(true)
   })
 
-  it('returns an empty map when project has no frame images', async () => {
-    const result = await preloadFrameImages({ ...baseProject, frameImages: {} })
+  it('returns an empty map when project has no custom images', async () => {
+    const result = await preloadCustomImages({ ...baseProject, customImages: {} })
     expect(result.size).toBe(0)
   })
 })

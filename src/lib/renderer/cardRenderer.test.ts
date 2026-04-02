@@ -26,10 +26,10 @@ const ctx: RenderContext = {
       rare:   { aliases: ['rara'],   color: '#f87171' },
       epic:   { aliases: ['epica'],  color: '#60a5fa' },
     },
-    templates: [], cards: [], artFolderPath: '', frameImages: {},
+    templates: [], cards: [], artFolderPath: '', customImages: {},
   },
   artImages: new Map(),
-  frameImages: new Map(),
+  customImages: new Map(),
 }
 
 describe('renderCard', () => {

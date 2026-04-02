@@ -30,15 +30,15 @@ export async function preloadArtImages(
   return map
 }
 
-export async function preloadFrameImages(
+export async function preloadCustomImages(
   project: ProjectFile,
 ): Promise<Map<string, HTMLImageElement>> {
   const map = new Map<string, HTMLImageElement>()
-  for (const [templateId, base64] of Object.entries(project.frameImages)) {
+  for (const [templateId, base64] of Object.entries(project.customImages)) {
     const img = new Image()
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve()
-      img.onerror = () => reject(new Error(`Failed to load frame image for template "${templateId}"`))
+      img.onerror = () => reject(new Error(`Failed to load custom image for template "${templateId}"`))
       img.src = base64
     })
     map.set(templateId, img)

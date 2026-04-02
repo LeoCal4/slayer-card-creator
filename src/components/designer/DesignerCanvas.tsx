@@ -165,11 +165,11 @@ function TextNode({
 }
 
 function ImageNode({
-  layer, onSelect, frameBase64, artBase64, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, customBase64, artBase64, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: ImageLayer
   onSelect: () => void
-  frameBase64?: string
+  customBase64?: string
   artBase64?: string
   onDragMove: (x: number, y: number) => void
   onDragEnd: (x: number, y: number) => void
@@ -178,7 +178,7 @@ function ImageNode({
 }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const { bound, saveDragStart } = useDragBound()
-  const src = layer.imageSource === 'art' ? artBase64 : frameBase64
+  const src = layer.imageSource === 'art' ? artBase64 : customBase64
   useEffect(() => {
     if (!src) { setImg(null); return }
     const el = new window.Image()
@@ -382,7 +382,7 @@ function RarityDiamondNode({
 }
 
 function LayerNode({
-  layer, onSelect, previewCard, classColors, rarityConfig, effectFormatting, frameBase64, artBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
+  layer, onSelect, previewCard, classColors, rarityConfig, effectFormatting, customBase64, artBase64, phases, abbreviations, onDragMove, onDragEnd, onHover, onHoverEnd,
 }: {
   layer: TemplateLayer
   onSelect: () => void
@@ -390,7 +390,7 @@ function LayerNode({
   classColors: Record<string, ClassConfig>
   rarityConfig: Record<string, RarityConfig>
   effectFormatting: EffectFormatting
-  frameBase64?: string
+  customBase64?: string
   artBase64?: string
   phases: string[]
   abbreviations: Record<string, string>
@@ -432,7 +432,7 @@ function LayerNode({
       <ImageNode
         layer={layer}
         onSelect={onSelect}
-        frameBase64={frameBase64}
+        customBase64={customBase64}
         artBase64={artBase64}
         onDragMove={onDragMove}
         onDragEnd={onDragEnd}
@@ -515,7 +515,7 @@ export function DesignerCanvas({ templateId }: Props) {
   const classColors = project.classColors
   const rarityConfig = project.rarityConfig
   const effectFormatting = project.set.effectFormatting ?? { boldTerms: [], italicTerms: [] }
-  const frameBase64 = project.frameImages[templateId]
+  const customBase64 = project.customImages[templateId]
   const phases = previewCard ? (project.phaseMap[previewCard.type] ?? []) : []
   const abbreviations = project.phaseAbbreviations
   const visibleLayers = template.layers.filter((l) => l.visible !== false)
@@ -574,7 +574,7 @@ export function DesignerCanvas({ templateId }: Props) {
             classColors={classColors}
             rarityConfig={rarityConfig}
             effectFormatting={effectFormatting}
-            frameBase64={frameBase64}
+            customBase64={customBase64}
             artBase64={artBase64}
             phases={phases}
             abbreviations={abbreviations}

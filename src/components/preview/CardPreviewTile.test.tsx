@@ -37,7 +37,7 @@ const project: ProjectFile = {
     rare:   { aliases: ['rara'],   color: '#f87171' },
     epic:   { aliases: ['epica'],  color: '#60a5fa' },
   },
-  templates: [], cards: [], artFolderPath: '', frameImages: {},
+  templates: [], cards: [], artFolderPath: '', customImages: {},
 }
 
 let intersectCallback: ((entries: IntersectionObserverEntry[]) => void) | null = null
@@ -65,7 +65,7 @@ describe('CardPreviewTile', () => {
     render(
       <CardPreviewTile
         card={card} template={template} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     expect(screen.getByText('Axehand')).toBeInTheDocument()
@@ -76,7 +76,7 @@ describe('CardPreviewTile', () => {
     render(
       <CardPreviewTile
         card={card} template={template} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     expect(screen.queryByRole('img')).toBeNull()
@@ -86,7 +86,7 @@ describe('CardPreviewTile', () => {
     render(
       <CardPreviewTile
         card={card} template={undefined} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     expect(screen.getByText('No template')).toBeInTheDocument()
@@ -97,7 +97,7 @@ describe('CardPreviewTile', () => {
     render(
       <CardPreviewTile
         card={card} template={template} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     await act(async () => { triggerIntersect(true) })
@@ -111,7 +111,7 @@ describe('CardPreviewTile', () => {
     render(
       <CardPreviewTile
         card={card} template={template} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     triggerIntersect(false)

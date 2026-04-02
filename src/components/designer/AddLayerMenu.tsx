@@ -19,7 +19,7 @@ function defaultLayer(type: LayerType): TemplateLayer {
     case 'text':
       return { ...base, type: 'text', x: 10, y: 10, width: 355, height: 30, fontSize: 18, fill: '#ffffff', align: 'left' }
     case 'image':
-      return { ...base, type: 'image', width: 375, height: 523, imageSource: 'frame', imageFit: 'cover', opacity: 1 }
+      return { ...base, type: 'image', width: 375, height: 523, imageSource: 'custom', imageFit: 'cover', opacity: 1 }
     case 'badge':
       return { ...base, type: 'badge', x: 10, y: 10, width: 50, height: 50, shape: 'circle', field: 'cost', fill: '#000000', textFill: '#ffffff', fontSize: 18 }
     case 'phase-icons':

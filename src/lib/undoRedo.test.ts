@@ -23,7 +23,7 @@ const BASE_PROJECT: ProjectFile = {
     epic:   { aliases: [], color: '#60a5fa' },
   },
   templates: [{ id: TEMPLATE_ID, name: 'T', cardTypes: [], canvas: { width: 375, height: 523 }, layers: [LAYER_A] }],
-  cards: [], artFolderPath: '', frameImages: {},
+  cards: [], artFolderPath: '', customImages: {},
 }
 
 function freshStores() {

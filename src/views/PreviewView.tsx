@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import { PreviewGrid } from '@/components/preview/PreviewGrid'
-import { preloadArtImages, preloadFrameImages } from '@/lib/renderer/imageLoader'
+import { preloadArtImages, preloadCustomImages } from '@/lib/renderer/imageLoader'
 import type { CardType } from '@/types/card'
 
 type Filter = CardType | 'all'
@@ -9,14 +9,14 @@ type Filter = CardType | 'all'
 export function PreviewView() {
   const project = useProjectStore((s) => s.project)
   const [artImages, setArtImages] = useState<Map<string, HTMLImageElement>>(new Map())
-  const [frameImages, setFrameImages] = useState<Map<string, HTMLImageElement>>(new Map())
+  const [customImages, setCustomImages] = useState<Map<string, HTMLImageElement>>(new Map())
   const [typeFilter, setTypeFilter] = useState<Filter>('all')
 
   useEffect(() => {
     if (!project) return
     preloadArtImages(project).then(setArtImages)
-    preloadFrameImages(project).then(setFrameImages)
-  }, [project?.artFolderPath, JSON.stringify(project?.frameImages)])
+    preloadCustomImages(project).then(setCustomImages)
+  }, [project?.artFolderPath, JSON.stringify(project?.customImages)])
 
   if (!project) return null
 
@@ -48,7 +48,7 @@ export function PreviewView() {
         templates={project.templates}
         project={project}
         artImages={artImages}
-        frameImages={frameImages}
+        customImages={customImages}
       />
     </div>
   )

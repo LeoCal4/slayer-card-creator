@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import { preloadArtImages, preloadFrameImages } from './renderer/imageLoader'
+import { preloadArtImages, preloadCustomImages } from './renderer/imageLoader'
 import { renderCard } from './renderer/cardRenderer'
 import { generateXML } from './xmlGenerator'
 import type { ProjectFile } from '@/types/project'
@@ -23,7 +23,7 @@ export async function buildZip(
 
   // Step 1: pre-load images
   const artImages  = await preloadArtImages(project)
-  const frameImages = await preloadFrameImages(project)
+  const customImages = await preloadCustomImages(project)
 
   // Step 2: generate XML
   const xml = generateXML(project)
@@ -43,7 +43,7 @@ export async function buildZip(
       continue
     }
 
-    const blob = await renderCard({ card, template, project, artImages, frameImages })
+    const blob = await renderCard({ card, template, project, artImages, customImages })
     zip.file(`pics/CUSTOM/${card.name}.png`, blob)
     current++
     onProgress({ phase: 'rendering', current, total })

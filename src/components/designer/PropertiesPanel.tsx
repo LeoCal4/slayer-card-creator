@@ -193,7 +193,7 @@ const BADGE_FIELDS: (keyof CardData)[] = ['cost', 'power', 'hp', 'vp', 'speed']
 
 function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
-  const setFrameImage = useProjectStore((s) => s.setFrameImage)
+  const setCustomImage = useProjectStore((s) => s.setCustomImage)
   const up = (partial: Partial<ImageLayer>) => updateLayer(templateId, layer.id, partial)
   const snap = () => snapshotLayers(templateId)
 
@@ -204,7 +204,7 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
     if (!path) return
     const dataUri = await window.electronAPI.readImageFile(path)
     if (!dataUri) return
-    setFrameImage(templateId, dataUri)
+    setCustomImage(templateId, dataUri)
   }
 
   return (
@@ -222,7 +222,7 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
           onChange={(e) => { snap(); up({ imageSource: e.target.value as ImageLayer['imageSource'] }) }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
-          <option value="frame">frame</option>
+          <option value="custom">custom</option>
           <option value="art">art</option>
         </select>
       </div>
@@ -240,14 +240,14 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
         </select>
       </div>
       <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} onFocus={snap} />
-      {layer.imageSource === 'frame' && (
+      {layer.imageSource === 'custom' && (
         <button
           type="button"
-          aria-label="Upload Frame"
+          aria-label="Upload Custom Image"
           onClick={handleUpload}
           className="mt-1 px-2 py-1 text-xs rounded bg-neutral-700 hover:bg-neutral-600 text-neutral-100 transition-colors"
         >
-          Upload Frame
+          Upload Custom Image
         </button>
       )}
     </div>

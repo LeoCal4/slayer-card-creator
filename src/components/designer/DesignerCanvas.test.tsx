@@ -17,7 +17,7 @@ const TEMPLATE: Template = {
     { id: 'l-rect', type: 'rect', x: 0, y: 0, width: 375, height: 523, fill: '#222222', visible: true },
     { id: 'l-text', type: 'text', x: 10, y: 10, width: 200, height: 30, field: 'name', fontSize: 18, visible: true },
     { id: 'l-hidden', type: 'rect', x: 0, y: 0, width: 100, height: 100, fill: '#ff0000', visible: false },
-    { id: 'l-image', type: 'image', x: 0, y: 0, width: 375, height: 523, imageSource: 'frame', imageFit: 'cover', visible: true },
+    { id: 'l-image', type: 'image', x: 0, y: 0, width: 375, height: 523, imageSource: 'custom', imageFit: 'cover', visible: true },
     { id: 'l-badge', type: 'badge', x: 10, y: 10, width: 50, height: 50, shape: 'circle', field: 'cost', fill: '#000', textFill: '#fff', visible: true },
     { id: 'l-phase', type: 'phase-icons', x: 5, y: 5, width: 200, height: 30, orientation: 'horizontal', iconSize: 24, gap: 4, visible: true },
     { id: 'l-showif', type: 'rect', x: 0, y: 0, width: 100, height: 50, fill: '#abcdef', visible: true, showIfField: 'cost' },

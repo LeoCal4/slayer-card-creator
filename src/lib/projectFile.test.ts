@@ -17,7 +17,7 @@ const MINIMAL: ProjectFile = {
   templates: [],
   cards: [],
   artFolderPath: '',
-  frameImages: {},
+  customImages: {},
 }
 
 describe('serialize', () => {

@@ -9,10 +9,10 @@ interface Props {
   template: Template | undefined
   project: ProjectFile
   artImages: Map<string, HTMLImageElement>
-  frameImages: Map<string, HTMLImageElement>
+  customImages: Map<string, HTMLImageElement>
 }
 
-export function CardPreviewTile({ card, template, project, artImages, frameImages }: Props) {
+export function CardPreviewTile({ card, template, project, artImages, customImages }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ export function CardPreviewTile({ card, template, project, artImages, frameImage
     if (!template || !isVisible) return
     let cancelled = false
     setLoading(true)
-    renderCard({ card, template, project, artImages, frameImages })
+    renderCard({ card, template, project, artImages, customImages })
       .then((blob) => {
         if (!cancelled) {
           setDataUrl(URL.createObjectURL(blob))
@@ -42,7 +42,7 @@ export function CardPreviewTile({ card, template, project, artImages, frameImage
       })
       .catch(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [card, template, project, artImages, frameImages, isVisible])
+  }, [card, template, project, artImages, customImages, isVisible])
 
   return (
     <div>

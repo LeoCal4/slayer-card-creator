@@ -19,15 +19,15 @@ describe('RectLayer', () => {
 })
 
 describe('ImageLayer', () => {
-  it('accepts art and frame imageSources with all fit modes', () => {
+  it('accepts art and custom imageSources with all fit modes', () => {
     void ({
       id: 'art', type: 'image', x: 15, y: 50, width: 345, height: 210,
       imageSource: 'art', imageFit: 'cover',
     } satisfies ImageLayer)
 
     void ({
-      id: 'frame', type: 'image', x: 0, y: 0, width: 375, height: 523,
-      imageSource: 'frame', imageFit: 'stretch',
+      id: 'custom', type: 'image', x: 0, y: 0, width: 375, height: 523,
+      imageSource: 'custom', imageFit: 'stretch',
     } satisfies ImageLayer)
   })
 })

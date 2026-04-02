@@ -25,10 +25,10 @@ const baseCtx: RenderContext = {
       rare:   { aliases: ['rara'],   color: '#f87171' },
       epic:   { aliases: ['epica'],  color: '#60a5fa' },
     },
-    templates: [], cards: [], artFolderPath: '', frameImages: {},
+    templates: [], cards: [], artFolderPath: '', customImages: {},
   },
   artImages: new Map(),
-  frameImages: new Map(),
+  customImages: new Map(),
 }
 
 const baseRect: RectLayer = {
@@ -130,14 +130,14 @@ describe('renderImage', () => {
     expect(node).toBeInstanceOf(Konva.Group)
   })
 
-  it('returns a Konva.Image for frame source when frame image is available', () => {
+  it('returns a Konva.Image for custom source when custom image is available', () => {
     const img = new Image()
-    const ctxWithFrame: RenderContext = {
+    const ctxWithCustom: RenderContext = {
       ...baseCtx,
-      frameImages: new Map([['tmpl-1', img]]),
+      customImages: new Map([['tmpl-1', img]]),
     }
-    const layer: ImageLayer = { ...baseImage, imageSource: 'frame' }
-    const node = renderImage(layer, ctxWithFrame)
+    const layer: ImageLayer = { ...baseImage, imageSource: 'custom' }
+    const node = renderImage(layer, ctxWithCustom)
     expect(node).toBeInstanceOf(Konva.Image)
   })
 

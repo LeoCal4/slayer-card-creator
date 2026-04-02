@@ -72,7 +72,7 @@ function createDefaultProject(): ProjectFile {
     templates: STARTER_TEMPLATES.map((t) => ({ ...t })),
     cards: [],
     artFolderPath: '',
-    frameImages: {},
+    customImages: {},
   }
 }
 
@@ -113,7 +113,7 @@ interface ProjectState {
   deleteLayer: (templateId: string, layerId: string) => void
   reorderLayers: (templateId: string, orderedIds: string[]) => void
   setTemplateLayers: (templateId: string, layers: TemplateLayer[]) => void
-  setFrameImage: (templateId: string, base64: string) => void
+  setCustomImage: (templateId: string, base64: string) => void
 
   setCards: (cards: CardData[]) => void
   addCard: (card: CardData) => void
@@ -365,8 +365,8 @@ export const useProjectStore = create<ProjectState>()(
       markDirty()
     },
 
-    setFrameImage: (templateId, base64) => {
-      set((state) => { if (state.project) state.project.frameImages[templateId] = base64 })
+    setCustomImage: (templateId, base64) => {
+      set((state) => { if (state.project) state.project.customImages[templateId] = base64 })
       markDirty()
     },
 

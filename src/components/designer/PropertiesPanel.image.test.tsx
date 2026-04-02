@@ -15,7 +15,7 @@ const TEMPLATE: Template = {
     {
       id: 'img-1', type: 'image',
       x: 0, y: 0, width: 375, height: 523,
-      imageSource: 'frame', imageFit: 'cover', opacity: 1,
+      imageSource: 'custom', imageFit: 'cover', opacity: 1,
     },
     {
       id: 'badge-1', type: 'badge',
@@ -50,7 +50,7 @@ describe('PropertiesPanel — image layer', () => {
 
   it('renders imageSource dropdown with current value', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
-    expect(screen.getByRole('combobox', { name: /image source/i })).toHaveValue('frame')
+    expect(screen.getByRole('combobox', { name: /image source/i })).toHaveValue('custom')
   })
 
   it('renders imageFit dropdown with current value', () => {
@@ -70,9 +70,9 @@ describe('PropertiesPanel — image layer', () => {
     expect(layer.imageSource).toBe('art')
   })
 
-  it('shows upload button when imageSource is "frame"', () => {
+  it('shows upload button when imageSource is "custom"', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
-    expect(screen.getByRole('button', { name: /upload frame/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /upload custom image/i })).toBeInTheDocument()
   })
 })
 

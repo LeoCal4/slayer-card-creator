@@ -10,7 +10,7 @@ export interface RenderContext {
   template: Template
   project: ProjectFile
   artImages: Map<string, HTMLImageElement>
-  frameImages: Map<string, HTMLImageElement>
+  customImages: Map<string, HTMLImageElement>
 }
 
 export async function renderCard(ctx: RenderContext): Promise<Blob> {

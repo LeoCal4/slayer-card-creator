@@ -7,7 +7,7 @@ vi.mock('@/lib/renderer/cardRenderer', () => ({
 }))
 vi.mock('@/lib/renderer/imageLoader', () => ({
   preloadArtImages:  vi.fn().mockResolvedValue(new Map()),
-  preloadFrameImages: vi.fn().mockResolvedValue(new Map()),
+  preloadCustomImages: vi.fn().mockResolvedValue(new Map()),
 }))
 vi.mock('@/lib/xmlGenerator', () => ({
   generateXML: vi.fn().mockReturnValue('<xml/>'),
@@ -34,7 +34,7 @@ const project: ProjectFile = {
     { id: 'c3', name: 'Fireball',   class: 'Mage',    type: 'Action',  rarity: 'common', effect: '' },
   ],
   artFolderPath: '',
-  frameImages: {},
+  customImages: {},
 }
 
 describe('buildZip', () => {
@@ -76,12 +76,12 @@ describe('buildZip', () => {
     expect(packingCalls.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('calls preloadArtImages and preloadFrameImages', async () => {
+  it('calls preloadArtImages and preloadCustomImages', async () => {
     const { preloadArtImages } = await import('@/lib/renderer/imageLoader')
-    const { preloadFrameImages } = await import('@/lib/renderer/imageLoader')
+    const { preloadCustomImages } = await import('@/lib/renderer/imageLoader')
     await buildZip(project, vi.fn())
     expect(preloadArtImages).toHaveBeenCalledWith(project)
-    expect(preloadFrameImages).toHaveBeenCalledWith(project)
+    expect(preloadCustomImages).toHaveBeenCalledWith(project)
   })
 
   it('calls generateXML with the project', async () => {

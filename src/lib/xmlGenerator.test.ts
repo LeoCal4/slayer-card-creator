@@ -34,7 +34,7 @@ const project: ProjectFile = {
       cost: 1, power: 2, hp: 3, effect: 'Evade.' },
   ],
   artFolderPath: '',
-  frameImages: {},
+  customImages: {},
 }
 
 describe('generateXML', () => {

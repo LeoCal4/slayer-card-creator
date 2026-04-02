@@ -43,7 +43,7 @@ const project: ProjectFile = {
     rare:   { aliases: ['rara'],   color: '#f87171' },
     epic:   { aliases: ['epica'],  color: '#60a5fa' },
   },
-  templates, cards, artFolderPath: '', frameImages: {},
+  templates, cards, artFolderPath: '', customImages: {},
 }
 
 describe('PreviewGrid', () => {
@@ -51,7 +51,7 @@ describe('PreviewGrid', () => {
     render(
       <PreviewGrid
         cards={cards} templates={templates} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     expect(screen.getByText('Axehand')).toBeInTheDocument()
@@ -63,7 +63,7 @@ describe('PreviewGrid', () => {
     render(
       <PreviewGrid
         cards={cards} templates={templates} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     expect(screen.getByRole('button', { name: /render all/i })).toBeInTheDocument()
@@ -75,7 +75,7 @@ describe('PreviewGrid', () => {
     render(
       <PreviewGrid
         cards={cards} templates={templates} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /render all/i }))
@@ -89,7 +89,7 @@ describe('PreviewGrid', () => {
     render(
       <PreviewGrid
         cards={[]} templates={templates} project={project}
-        artImages={new Map()} frameImages={new Map()}
+        artImages={new Map()} customImages={new Map()}
       />
     )
     expect(screen.getByText(/no cards/i)).toBeInTheDocument()

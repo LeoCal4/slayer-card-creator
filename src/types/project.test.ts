@@ -38,11 +38,11 @@ describe('ProjectFile', () => {
       templates: [],
       cards: [],
       artFolderPath: '',
-      frameImages: {},
+      customImages: {},
     } satisfies ProjectFile)
   })
 
-  it('frameImages maps templateId to base64 string', () => {
+  it('customImages maps templateId to base64 string', () => {
     void ({
       version: 1,
       set: { name: 'S', code: 'S', type: 'Custom', releaseDate: '2025-01-01' },
@@ -58,7 +58,7 @@ describe('ProjectFile', () => {
       templates: [],
       cards: [],
       artFolderPath: '/art',
-      frameImages: { 'template-creature': 'base64data==' },
+      customImages: { 'template-creature': 'base64data==' },
     } satisfies ProjectFile)
   })
 })

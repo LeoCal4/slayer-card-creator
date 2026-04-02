@@ -15,7 +15,7 @@ const SAMPLE_PROJECT: ProjectFile = {
     rare:   { aliases: ['rara'],   color: '#f87171' },
     epic:   { aliases: ['epica'],  color: '#60a5fa' },
   },
-  templates: [], cards: [], artFolderPath: '', frameImages: {},
+  templates: [], cards: [], artFolderPath: '', customImages: {},
 }
 
 beforeEach(() => {

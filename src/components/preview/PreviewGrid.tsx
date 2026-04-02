@@ -10,10 +10,10 @@ interface Props {
   templates: Template[]
   project: ProjectFile
   artImages: Map<string, HTMLImageElement>
-  frameImages: Map<string, HTMLImageElement>
+  customImages: Map<string, HTMLImageElement>
 }
 
-export function PreviewGrid({ cards, templates, project, artImages, frameImages }: Props) {
+export function PreviewGrid({ cards, templates, project, artImages, customImages }: Props) {
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
 
   function findTemplate(card: CardData): Template | undefined {
@@ -26,7 +26,7 @@ export function PreviewGrid({ cards, templates, project, artImages, frameImages 
       const card = cards[i]
       const tmpl = findTemplate(card)
       if (!tmpl) { setProgress({ current: i + 1, total: cards.length }); continue }
-      await renderCard({ card, template: tmpl, project, artImages, frameImages })
+      await renderCard({ card, template: tmpl, project, artImages, customImages })
       setProgress({ current: i + 1, total: cards.length })
     }
     setProgress(null)
@@ -59,7 +59,7 @@ export function PreviewGrid({ cards, templates, project, artImages, frameImages 
               template={findTemplate(card)}
               project={project}
               artImages={artImages}
-              frameImages={frameImages}
+              customImages={customImages}
             />
           ))}
         </div>
