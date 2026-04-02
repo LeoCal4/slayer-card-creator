@@ -14,7 +14,7 @@ const REQUIRED_KEYS: (keyof ProjectFile)[] = [
   'templates',
   'cards',
   'artFolderPath',
-  'frameImages',
+  'customImages',
 ]
 
 const DEFAULT_RARITY_CONFIG: Record<Rarity, RarityConfig> = {
@@ -35,6 +35,23 @@ export function deserialize(raw: string): ProjectFile {
   for (const key of REQUIRED_KEYS) {
     if (!(key in parsed)) {
       throw new Error(`Invalid project file: missing required key "${key}"`)
+    }
+  }
+  // Migrate: rename frameImages → customImages (old project files)
+  if (!parsed.customImages && parsed.frameImages) {
+    parsed.customImages = parsed.frameImages
+    delete parsed.frameImages
+  }
+  // Migrate: rename imageSource 'frame' → 'custom' in template layers
+  if (Array.isArray(parsed.templates)) {
+    for (const tmpl of parsed.templates) {
+      if (Array.isArray(tmpl.layers)) {
+        for (const layer of tmpl.layers) {
+          if (layer.type === 'image' && layer.imageSource === 'frame') {
+            layer.imageSource = 'custom'
+          }
+        }
+      }
     }
   }
   // Migrate: fill in cardTypes if absent (old project files)
