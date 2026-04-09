@@ -436,6 +436,90 @@ describe('undo history cleared on project lifecycle (task 83)', () => {
   })
 })
 
+describe('csvColumns store actions', () => {
+  beforeEach(() => {
+    freshStore()
+    useProjectStore.getState().newProject()
+  })
+
+  it('newProject() initialises csvColumns with default columns', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    expect(cols.length).toBeGreaterThan(0)
+    expect(cols.some((c) => c.name === 'name')).toBe(true)
+    expect(cols.some((c) => c.name === 'effect')).toBe(true)
+  })
+
+  it('default number columns have type "number"', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    expect(cols.find((c) => c.name === 'cost')?.type).toBe('number')
+    expect(cols.find((c) => c.name === 'hp')?.type).toBe('number')
+  })
+
+  it('default rarity column has type "select" with choices', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    const rarityCol = cols.find((c) => c.name === 'rarity')
+    expect(rarityCol?.type).toBe('select')
+    expect(rarityCol?.choices).toContain('common')
+    expect(rarityCol?.choices).toContain('rare')
+    expect(rarityCol?.choices).toContain('epic')
+  })
+
+  it('addCsvColumn() appends a new text column', () => {
+    const before = (useProjectStore.getState().project!.csvColumns ?? []).length
+    useProjectStore.getState().addCsvColumn()
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    expect(cols).toHaveLength(before + 1)
+    expect(cols[cols.length - 1].type).toBe('text')
+    expect(cols[cols.length - 1].id).toBeTruthy()
+  })
+
+  it('addCsvColumn() gives each new column a unique id', () => {
+    useProjectStore.getState().addCsvColumn()
+    useProjectStore.getState().addCsvColumn()
+    const ids = (useProjectStore.getState().project!.csvColumns ?? []).map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('updateCsvColumn() renames a column', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    const col = cols[0]
+    useProjectStore.getState().updateCsvColumn(col.id, { name: 'custom_field' })
+    const updated = (useProjectStore.getState().project!.csvColumns ?? []).find((c) => c.id === col.id)
+    expect(updated?.name).toBe('custom_field')
+  })
+
+  it('updateCsvColumn() changes the type', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    const col = cols[0]
+    useProjectStore.getState().updateCsvColumn(col.id, { type: 'number' })
+    const updated = (useProjectStore.getState().project!.csvColumns ?? []).find((c) => c.id === col.id)
+    expect(updated?.type).toBe('number')
+  })
+
+  it('updateCsvColumn() sets choices for a select column', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    const col = cols[0]
+    useProjectStore.getState().updateCsvColumn(col.id, { type: 'select', choices: ['a', 'b'] })
+    const updated = (useProjectStore.getState().project!.csvColumns ?? []).find((c) => c.id === col.id)
+    expect(updated?.type).toBe('select')
+    expect(updated?.choices).toEqual(['a', 'b'])
+  })
+
+  it('deleteCsvColumn() removes the column by id', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    const col = cols[0]
+    useProjectStore.getState().deleteCsvColumn(col.id)
+    expect((useProjectStore.getState().project!.csvColumns ?? []).find((c) => c.id === col.id)).toBeUndefined()
+  })
+
+  it('deleteCsvColumn() leaves other columns intact', () => {
+    const cols = useProjectStore.getState().project!.csvColumns ?? []
+    const [first, second] = cols
+    useProjectStore.getState().deleteCsvColumn(first.id)
+    expect((useProjectStore.getState().project!.csvColumns ?? []).find((c) => c.id === second.id)).toBeDefined()
+  })
+})
+
 describe('setTemplateLayers', () => {
   beforeEach(() => {
     freshStore()

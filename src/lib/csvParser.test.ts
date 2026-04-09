@@ -204,6 +204,99 @@ describe('parseCSV dual-class', () => {
   })
 })
 
+describe('parseCSV with csvColumns option', () => {
+  const TEXT_COLS = [
+    { id: 'c1', name: 'name',   type: 'text' as const },
+    { id: 'c2', name: 'type',   type: 'text' as const },
+    { id: 'c3', name: 'effect', type: 'text' as const },
+  ]
+
+  it('parses number columns using sanitizeNumber (strips emoji)', () => {
+    const cols = [
+      ...TEXT_COLS,
+      { id: 'c4', name: 'cost', type: 'number' as const },
+    ]
+    const csv = 'name,type,effect,cost\nFireball,Action,Burn.,3💰'
+    const { cards, errors } = parseCSV(csv, { csvColumns: cols })
+    expect(errors).toHaveLength(0)
+    expect(cards[0].cost).toBe(3)
+  })
+
+  it('stores text-column values as strings', () => {
+    const csv = 'name,type,effect\nFireball,Action,Burn something.'
+    const { cards } = parseCSV(csv, { csvColumns: TEXT_COLS })
+    expect(cards[0].name).toBe('Fireball')
+    expect(cards[0].effect).toBe('Burn something.')
+  })
+
+  it('does NOT skip rows with an unrecognised type when csvColumns is provided', () => {
+    const csv = 'name,type,effect\nFoo,UNKNOWN_TYPE,Draw.'
+    const { cards, errors } = parseCSV(csv, { csvColumns: TEXT_COLS })
+    expect(errors).toHaveLength(0)
+    expect(cards).toHaveLength(1)
+    expect(cards[0].type).toBe('UNKNOWN_TYPE')
+  })
+
+  it('does NOT skip rows with an unrecognised rarity when csvColumns is provided', () => {
+    const cols = [
+      ...TEXT_COLS,
+      { id: 'c4', name: 'rarity', type: 'text' as const },
+    ]
+    const csv = 'name,type,effect,rarity\nFoo,Action,Draw.,legendary'
+    const { cards, errors } = parseCSV(csv, { csvColumns: cols })
+    expect(errors).toHaveLength(0)
+    expect(cards).toHaveLength(1)
+  })
+
+  it('returns error and empty cards when "name" column is absent', () => {
+    const cols = [
+      { id: 'c1', name: 'type',   type: 'text' as const },
+      { id: 'c2', name: 'effect', type: 'text' as const },
+    ]
+    const csv = 'type,effect\nAction,Draw.'
+    const { cards, errors } = parseCSV(csv, { csvColumns: cols })
+    expect(errors.length).toBeGreaterThan(0)
+    expect(cards).toHaveLength(0)
+  })
+
+  it('stores "select" column values as strings (no validation/skipping)', () => {
+    const cols = [
+      ...TEXT_COLS,
+      { id: 'c4', name: 'rarity', type: 'select' as const, choices: ['common', 'rare', 'epic'] },
+    ]
+    const csv = 'name,type,effect,rarity\nFoo,Action,Draw.,legendary'
+    const { cards, errors } = parseCSV(csv, { csvColumns: cols })
+    expect(errors).toHaveLength(0)
+    expect(cards).toHaveLength(1)
+  })
+
+  it('applies rarity aliases when csvColumns is provided', () => {
+    const cols = [
+      ...TEXT_COLS,
+      { id: 'c4', name: 'rarity', type: 'text' as const },
+    ]
+    const csv = 'name,type,effect,rarity\nFoo,Action,Draw.,comune'
+    const { cards } = parseCSV(csv, { csvColumns: cols })
+    expect(cards[0].rarity).toBe('common')
+  })
+
+  it('normalises multi-class values when csvColumns is provided', () => {
+    const cols = [
+      ...TEXT_COLS,
+      { id: 'c4', name: 'class', type: 'text' as const },
+    ]
+    const csv = 'name,type,effect,class\nHero,Action,Draw.,Mage - Warrior'
+    const { cards } = parseCSV(csv, { csvColumns: cols })
+    expect(cards[0].class).toBe('Mage,Warrior')
+  })
+
+  it('assigns unique ids to each card', () => {
+    const csv = 'name,type,effect\nA,Action,x.\nB,Ploy,y.'
+    const { cards } = parseCSV(csv, { csvColumns: TEXT_COLS })
+    expect(cards[0].id).not.toBe(cards[1].id)
+  })
+})
+
 describe('mergeByName', () => {
   const base: CardData = {
     id: 'orig-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.',

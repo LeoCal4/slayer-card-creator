@@ -9,21 +9,38 @@ import {
   type SortingState,
   type ColumnSizingState,
 } from '@tanstack/react-table'
-import { useProjectStore } from '@/store/projectStore'
+import { useProjectStore, DEFAULT_CSV_COLUMNS } from '@/store/projectStore'
 import { CardRow } from './CardRow'
 import { EmptyState } from '@/components/common/EmptyState'
 import type { CardData, Rarity } from '@/types/card'
+import type { CsvColumnDef } from '@/types/project'
 
 const RARITIES: Rarity[] = ['common', 'rare', 'epic']
 
-function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp' | 'speed', type: string): boolean {
+function isCellDisabled(field: string, type: string): boolean {
   switch (field) {
     case 'power':
     case 'hp': return type !== 'Slayer' && type !== 'Errant'
     case 'vp': return type !== 'Errant'
     case 'cost': return type === 'Dungeon' || type === 'Phase'
     case 'speed': return type === 'Dungeon' || type === 'Phase' || type === 'Status'
+    default: return false
   }
+}
+
+function computeAnomalies(card: CardData, csvColumns: CsvColumnDef[]): Set<string> {
+  const anomalous = new Set<string>()
+  for (const col of csvColumns) {
+    const key = col.name.toLowerCase()
+    if (isCellDisabled(key, card.type)) continue
+    const val = (card as Record<string, unknown>)[key]
+    if (col.type === 'number') {
+      if (typeof val !== 'number') anomalous.add(key)
+    } else if (col.type === 'select' && col.choices?.length) {
+      if (!col.choices.includes(String(val ?? ''))) anomalous.add(key)
+    }
+  }
+  return anomalous
 }
 
 function sortAriaLabel(sorted: false | 'asc' | 'desc'): 'ascending' | 'descending' | undefined {
@@ -34,6 +51,7 @@ function sortAriaLabel(sorted: false | 'asc' | 'desc'): 'ascending' | 'descendin
 
 export function CardTable() {
   const project = useProjectStore((s) => s.project)
+  const csvColumns = useProjectStore((s) => s.project?.csvColumns ?? DEFAULT_CSV_COLUMNS)
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -344,7 +362,11 @@ export function CardTable() {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <CardRow key={row.id} row={row} />
+                <CardRow
+                  key={row.id}
+                  row={row}
+                  anomalous={computeAnomalies(row.original, csvColumns)}
+                />
               ))}
             </tbody>
           </table>

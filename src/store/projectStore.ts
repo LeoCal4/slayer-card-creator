@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import type { CardData, CardType, Rarity } from '@/types/card'
-import type { ClassConfig, ProjectFile, RarityConfig, SetInfo } from '@/types/project'
+import type { ClassConfig, CsvColumnDef, ProjectFile, RarityConfig, SetInfo } from '@/types/project'
 import type { Template, TemplateLayer } from '@/types/template'
 import { serialize, deserialize } from '@/lib/projectFile'
 import { useUiStore } from '@/store/uiStore'
@@ -50,6 +50,19 @@ const DEFAULT_PHASE_MAP: ProjectFile['phaseMap'] = {
   Status:       [],
 }
 
+export const DEFAULT_CSV_COLUMNS: CsvColumnDef[] = [
+  { id: 'csv-name',   name: 'name',   type: 'text' },
+  { id: 'csv-class',  name: 'class',  type: 'text' },
+  { id: 'csv-type',   name: 'type',   type: 'text' },
+  { id: 'csv-rarity', name: 'rarity', type: 'select', choices: ['common', 'rare', 'epic'] },
+  { id: 'csv-cost',   name: 'cost',   type: 'number' },
+  { id: 'csv-power',  name: 'power',  type: 'number' },
+  { id: 'csv-hp',     name: 'hp',     type: 'number' },
+  { id: 'csv-vp',     name: 'vp',     type: 'number' },
+  { id: 'csv-speed',  name: 'speed',  type: 'number' },
+  { id: 'csv-effect', name: 'effect', type: 'text' },
+]
+
 const DEFAULT_RARITY_CONFIG: ProjectFile['rarityConfig'] = {
   common: { aliases: ['comune'], color: '#4ade80' },
   rare:   { aliases: ['rara'],   color: '#f87171' },
@@ -69,6 +82,7 @@ function createDefaultProject(): ProjectFile {
       rare:   { ...DEFAULT_RARITY_CONFIG.rare,   aliases: [...DEFAULT_RARITY_CONFIG.rare.aliases] },
       epic:   { ...DEFAULT_RARITY_CONFIG.epic,   aliases: [...DEFAULT_RARITY_CONFIG.epic.aliases] },
     },
+    csvColumns: DEFAULT_CSV_COLUMNS.map((c) => ({ ...c, choices: c.choices ? [...c.choices] : undefined })),
     templates: STARTER_TEMPLATES.map((t) => ({ ...t })),
     cards: [],
     artFolderPath: '',
@@ -104,6 +118,10 @@ interface ProjectState {
   updatePhaseAbbreviation: (phase: string, letter: string) => void
   updatePhaseMap: (type: CardType, phases: string[]) => void
   updateRarityConfig: (rarity: Rarity, partial: Partial<RarityConfig>) => void
+
+  addCsvColumn: () => void
+  updateCsvColumn: (id: string, partial: Partial<CsvColumnDef>) => void
+  deleteCsvColumn: (id: string) => void
 
   addTemplate: (template: Template) => void
   updateTemplate: (id: string, partial: Partial<Template>) => void
@@ -289,6 +307,32 @@ export const useProjectStore = create<ProjectState>()(
       set((state) => {
         if (!state.project) return
         Object.assign(state.project.rarityConfig[rarity], partial)
+      })
+      markDirty()
+    },
+
+    addCsvColumn: () => {
+      set((state) => {
+        if (!state.project) return
+        if (!state.project.csvColumns) state.project.csvColumns = []
+        state.project.csvColumns.push({ id: crypto.randomUUID(), name: 'New Column', type: 'text' })
+      })
+      markDirty()
+    },
+
+    updateCsvColumn: (id, partial) => {
+      set((state) => {
+        if (!state.project?.csvColumns) return
+        const col = state.project.csvColumns.find((c) => c.id === id)
+        if (col) Object.assign(col, partial)
+      })
+      markDirty()
+    },
+
+    deleteCsvColumn: (id) => {
+      set((state) => {
+        if (!state.project?.csvColumns) return
+        state.project.csvColumns = state.project.csvColumns.filter((c) => c.id !== id)
       })
       markDirty()
     },

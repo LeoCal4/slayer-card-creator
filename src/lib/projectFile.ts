@@ -1,8 +1,21 @@
-import type { ProjectFile, RarityConfig } from '@/types/project'
+import type { CsvColumnDef, ProjectFile, RarityConfig } from '@/types/project'
 import type { Rarity } from '@/types/card'
 
 const DEFAULT_CARD_TYPES: string[] = [
   'Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status',
+]
+
+const DEFAULT_CSV_COLUMNS: CsvColumnDef[] = [
+  { id: 'csv-name',   name: 'name',   type: 'text' },
+  { id: 'csv-class',  name: 'class',  type: 'text' },
+  { id: 'csv-type',   name: 'type',   type: 'text' },
+  { id: 'csv-rarity', name: 'rarity', type: 'select', choices: ['common', 'rare', 'epic'] },
+  { id: 'csv-cost',   name: 'cost',   type: 'number' },
+  { id: 'csv-power',  name: 'power',  type: 'number' },
+  { id: 'csv-hp',     name: 'hp',     type: 'number' },
+  { id: 'csv-vp',     name: 'vp',     type: 'number' },
+  { id: 'csv-speed',  name: 'speed',  type: 'number' },
+  { id: 'csv-effect', name: 'effect', type: 'text' },
 ]
 
 const REQUIRED_KEYS: (keyof ProjectFile)[] = [
@@ -52,6 +65,10 @@ export function deserialize(raw: string): ProjectFile {
   // Migrate: fill in effectFormatting if absent (old project files)
   if (!parsed.set.effectFormatting) {
     parsed.set.effectFormatting = { boldTerms: [], italicTerms: [] }
+  }
+  // Migrate: fill in csvColumns if absent (old project files)
+  if (!parsed.csvColumns) {
+    parsed.csvColumns = DEFAULT_CSV_COLUMNS.map((c) => ({ ...c, choices: c.choices ? [...c.choices] : undefined }))
   }
   return parsed as ProjectFile
 }

@@ -11,6 +11,7 @@ export function CSVImportModal() {
   const setCards = useProjectStore((s) => s.setCards)
   const existingCards = useProjectStore((s) => s.project?.cards) ?? []
   const validTypes = useProjectStore((s) => s.project?.cardTypes)
+  const csvColumns = useProjectStore((s) => s.project?.csvColumns)
 
   const [step, setStep] = useState<ModalStep | null>(null)
   const [delimiter, setDelimiter] = useState(',')
@@ -24,7 +25,7 @@ export function CSVImportModal() {
     if (!filePath) return
 
     const raw = await window.electronAPI.readFile(filePath)
-    const result = parseCSV(raw, { delimiter, validTypes })
+    const result = parseCSV(raw, { delimiter, validTypes, csvColumns })
 
     if (result.errors.length > 0) {
       setStep({ type: 'errors', errors: result.errors, cards: result.cards })
