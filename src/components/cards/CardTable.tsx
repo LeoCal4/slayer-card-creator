@@ -33,6 +33,7 @@ function computeAnomalies(
   csvColumns: CsvColumnDef[],
   cardTypes: string[],
   rarities: string[],
+  classes: string[],
 ): Set<string> {
   const anomalous = new Set<string>()
   for (const col of csvColumns) {
@@ -47,6 +48,8 @@ function computeAnomalies(
       if (!cardTypes.includes(String(val ?? ''))) anomalous.add(key)
     } else if (col.type === 'select-rarity' && rarities.length) {
       if (!rarities.includes(String(val ?? ''))) anomalous.add(key)
+    } else if (col.type === 'select-class' && classes.length) {
+      if (!classes.includes(String(val ?? ''))) anomalous.add(key)
     }
   }
   return anomalous
@@ -63,6 +66,7 @@ export function CardTable() {
   const csvColumns = useMemo(() => project?.csvColumns ?? DEFAULT_CSV_COLUMNS, [project])
   const cardTypes = useMemo(() => project?.cardTypes ?? [], [project])
   const rarities = useMemo(() => project ? Object.keys(project.rarityConfig) : [], [project])
+  const classes = useMemo(() => project ? Object.keys(project.classColors) : [], [project])
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -376,7 +380,7 @@ export function CardTable() {
                 <CardRow
                   key={row.id}
                   row={row}
-                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities)}
+                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities, classes)}
                 />
               ))}
             </tbody>

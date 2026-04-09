@@ -94,11 +94,13 @@ function CsvColumnRow({ col }: { col: CsvColumnDef }) {
   const deleteCsvColumn = useProjectStore((s) => s.deleteCsvColumn)
   const cardTypes = useProjectStore((s) => s.project?.cardTypes ?? [])
   const rarityConfig = useProjectStore((s) => s.project?.rarityConfig)
+  const classColors = useProjectStore((s) => s.project?.classColors)
   const [localName, setLocalName] = useState(col.name)
 
   useEffect(() => { setLocalName(col.name) }, [col.name])
 
   const rarityValues = rarityConfig ? Object.keys(rarityConfig) : []
+  const classValues = classColors ? Object.keys(classColors) : []
 
   function commitName() {
     const trimmed = localName.trim()
@@ -138,6 +140,7 @@ function CsvColumnRow({ col }: { col: CsvColumnDef }) {
           <option value="select">select</option>
           <option value="select-type">select-type</option>
           <option value="select-rarity">select-rarity</option>
+          <option value="select-class">select-class</option>
         </select>
         <button
           type="button"
@@ -160,6 +163,9 @@ function CsvColumnRow({ col }: { col: CsvColumnDef }) {
       )}
       {col.type === 'select-rarity' && (
         <ReadOnlyChoicesDisplay values={rarityValues} />
+      )}
+      {col.type === 'select-class' && (
+        <ReadOnlyChoicesDisplay values={classValues} />
       )}
     </div>
   )

@@ -50,6 +50,13 @@ describe('CsvColumnEditor', () => {
     expect(typeSelects[colIndex]).toHaveValue('number')
   })
 
+  it('shows "select-class" as the selected type for the class column', () => {
+    render(<CsvColumnEditor />)
+    const colIndex = DEFAULT_CSV_COLUMNS.findIndex((c) => c.name === 'class')
+    const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
+    expect(typeSelects[colIndex]).toHaveValue('select-class')
+  })
+
   it('shows "select-type" as the selected type for the type column', () => {
     render(<CsvColumnEditor />)
     const colIndex = DEFAULT_CSV_COLUMNS.findIndex((c) => c.name === 'type')
@@ -66,7 +73,7 @@ describe('CsvColumnEditor', () => {
 
   // ── dropdown options ──────────────────────────────────────────────────────
 
-  it('type dropdown contains all five type options', () => {
+  it('type dropdown contains all six type options', () => {
     render(<CsvColumnEditor />)
     const firstDropdown = screen.getAllByRole('combobox', { name: /column type/i })[0]
     const options = Array.from(firstDropdown.querySelectorAll('option')).map((o) => o.value)
@@ -75,6 +82,7 @@ describe('CsvColumnEditor', () => {
     expect(options).toContain('select')
     expect(options).toContain('select-type')
     expect(options).toContain('select-rarity')
+    expect(options).toContain('select-class')
   })
 
   // ── select-type / select-rarity read-only display ─────────────────────────
@@ -96,9 +104,15 @@ describe('CsvColumnEditor', () => {
     expect(screen.getByText('epic')).toBeInTheDocument()
   })
 
-  it('"select-type" and "select-rarity" columns do not show an editable "Add choice" input', () => {
+  it('"select-class" column shows class names as read-only indicators', () => {
     render(<CsvColumnEditor />)
-    // No plain 'select' columns in defaults — only select-type and select-rarity
+    const classNames = Object.keys(useProjectStore.getState().project!.classColors)
+    expect(classNames.length).toBeGreaterThan(0)
+    expect(screen.getByText(classNames[0])).toBeInTheDocument()
+  })
+
+  it('"select-type", "select-rarity", and "select-class" columns do not show an editable "Add choice" input', () => {
+    render(<CsvColumnEditor />)
     const choiceInputs = screen.queryAllByPlaceholderText(/add choice/i)
     expect(choiceInputs).toHaveLength(0)
   })
@@ -106,13 +120,18 @@ describe('CsvColumnEditor', () => {
   it('"select-type" read-only tags have no remove button', () => {
     render(<CsvColumnEditor />)
     const firstCardType = useProjectStore.getState().project!.cardTypes[0]
-    // The card type label appears but has no associated "Remove" button
     expect(screen.queryByRole('button', { name: new RegExp(`remove.*${firstCardType}`, 'i') })).not.toBeInTheDocument()
   })
 
   it('"select-rarity" read-only tags have no remove button', () => {
     render(<CsvColumnEditor />)
     expect(screen.queryByRole('button', { name: /remove.*common/i })).not.toBeInTheDocument()
+  })
+
+  it('"select-class" read-only tags have no remove button', () => {
+    render(<CsvColumnEditor />)
+    const firstClass = Object.keys(useProjectStore.getState().project!.classColors)[0]
+    expect(screen.queryByRole('button', { name: new RegExp(`remove.*${firstClass}`, 'i') })).not.toBeInTheDocument()
   })
 
   // ── add column ─────────────────────────────────────────────────────────────
@@ -195,6 +214,15 @@ describe('CsvColumnEditor', () => {
     const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
     await userEvent.selectOptions(typeSelects[0], 'select-rarity')
     expect(screen.queryAllByPlaceholderText(/add choice/i)).toHaveLength(0)
+  })
+
+  it('changing type to "select-class" shows read-only class names and hides choices editor', async () => {
+    render(<CsvColumnEditor />)
+    const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
+    await userEvent.selectOptions(typeSelects[0], 'select-class')
+    expect(screen.queryAllByPlaceholderText(/add choice/i)).toHaveLength(0)
+    const firstClass = Object.keys(useProjectStore.getState().project!.classColors)[0]
+    expect(screen.getAllByText(firstClass).length).toBeGreaterThan(0)
   })
 
   it('changing from "select-type" updates the store type', async () => {

@@ -1,7 +1,7 @@
 import type { CardData, CardType, Rarity } from './card'
 import type { Template } from './template'
 
-export type CsvColumnType = 'text' | 'number' | 'select' | 'select-type' | 'select-rarity'
+export type CsvColumnType = 'text' | 'number' | 'select' | 'select-type' | 'select-rarity' | 'select-class'
 
 export interface CsvColumnDef {
   id: string
