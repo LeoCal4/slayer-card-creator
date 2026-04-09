@@ -7,6 +7,7 @@ import {
   flexRender,
   type ColumnDef,
   type SortingState,
+  type ColumnSizingState,
 } from '@tanstack/react-table'
 import { useProjectStore } from '@/store/projectStore'
 import { CardRow } from './CardRow'
@@ -39,12 +40,16 @@ export function CardTable() {
 
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState('')
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 
   const columns = useMemo<ColumnDef<CardData>[]>(
     () => [
       {
         id: 'delete',
         header: '',
+        size: 36,
+        minSize: 36,
+        enableResizing: false,
         cell: ({ row }) => (
           <button
             aria-label="delete"
@@ -60,6 +65,8 @@ export function CardTable() {
       {
         accessorKey: 'name',
         header: 'Name',
+        size: 150,
+        minSize: 60,
         cell: ({ row }) => (
           <input
             aria-label="name"
@@ -72,6 +79,8 @@ export function CardTable() {
       {
         accessorKey: 'class',
         header: 'Class',
+        size: 100,
+        minSize: 60,
         cell: ({ row }) => (
           <input
             aria-label="class"
@@ -84,6 +93,8 @@ export function CardTable() {
       {
         accessorKey: 'type',
         header: 'Type',
+        size: 100,
+        minSize: 60,
         cell: ({ row }) => (
           <select
             aria-label="type"
@@ -98,6 +109,8 @@ export function CardTable() {
       {
         accessorKey: 'rarity',
         header: 'Rarity',
+        size: 80,
+        minSize: 60,
         cell: ({ row }) => (
           <select
             aria-label="rarity"
@@ -112,6 +125,8 @@ export function CardTable() {
       {
         accessorKey: 'cost',
         header: 'Cost',
+        size: 64,
+        minSize: 50,
         cell: ({ row }) => (
           <input
             aria-label="cost"
@@ -130,6 +145,8 @@ export function CardTable() {
       {
         accessorKey: 'power',
         header: 'Power',
+        size: 70,
+        minSize: 50,
         cell: ({ row }) => (
           <input
             aria-label="power"
@@ -148,6 +165,8 @@ export function CardTable() {
       {
         accessorKey: 'hp',
         header: 'HP',
+        size: 64,
+        minSize: 50,
         cell: ({ row }) => (
           <input
             aria-label="hp"
@@ -166,6 +185,8 @@ export function CardTable() {
       {
         accessorKey: 'vp',
         header: 'VP',
+        size: 64,
+        minSize: 50,
         cell: ({ row }) => (
           <input
             aria-label="vp"
@@ -184,6 +205,8 @@ export function CardTable() {
       {
         accessorKey: 'speed',
         header: 'Speed',
+        size: 70,
+        minSize: 50,
         cell: ({ row }) => (
           <input
             aria-label="speed"
@@ -203,6 +226,8 @@ export function CardTable() {
       {
         accessorKey: 'effect',
         header: 'Effect',
+        size: 280,
+        minSize: 80,
         cell: ({ row }) => (
           <input
             aria-label="effect"
@@ -219,9 +244,11 @@ export function CardTable() {
   const table = useReactTable({
     data: project?.cards ?? [],
     columns,
-    state: { sorting, globalFilter },
+    columnResizeMode: 'onChange',
+    state: { sorting, globalFilter, columnSizing },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnSizingChange: setColumnSizing,
     globalFilterFn: (row, _columnId, filterValue: string) => {
       const search = filterValue.toLowerCase()
       return (
@@ -270,7 +297,10 @@ export function CardTable() {
         <EmptyState message="No cards yet. Import a CSV or add cards manually." />
       ) : (
         <div className="flex-1 overflow-auto">
-          <table className="w-full text-left text-sm border-collapse">
+          <table
+            className="text-left text-sm border-collapse table-fixed"
+            style={{ width: table.getTotalSize() }}
+          >
             <thead className="sticky top-0 bg-neutral-950 border-b border-neutral-700">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -280,7 +310,8 @@ export function CardTable() {
                       <th
                         key={header.id}
                         aria-sort={sortAriaLabel(sorted)}
-                        className="px-2 py-2 text-neutral-400 font-medium text-xs uppercase tracking-wide"
+                        className="relative px-2 py-2 text-neutral-400 font-medium text-xs uppercase tracking-wide overflow-hidden"
+                        style={{ width: header.getSize() }}
                       >
                         {header.column.getCanSort() ? (
                           <button
@@ -293,6 +324,17 @@ export function CardTable() {
                           </button>
                         ) : (
                           flexRender(header.column.columnDef.header, header.getContext())
+                        )}
+                        {header.column.getCanResize() && (
+                          <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`absolute top-0 right-0 w-1 h-full cursor-col-resize select-none touch-none transition-colors ${
+                              header.column.getIsResizing()
+                                ? 'bg-indigo-400'
+                                : 'hover:bg-neutral-500'
+                            }`}
+                          />
                         )}
                       </th>
                     )

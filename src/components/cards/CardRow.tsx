@@ -13,7 +13,8 @@ export function CardRow({ row }: Props) {
       {row.getVisibleCells().map((cell) => (
         <td
           key={cell.id}
-          className={`px-2 py-1${missing.has(cell.column.id) ? ' outline outline-1 outline-red-500/60 rounded' : ''}`}
+          style={{ width: cell.column.getSize() }}
+          className={`px-2 py-1 overflow-hidden${missing.has(cell.column.id) ? ' outline outline-1 outline-red-500/60 rounded' : ''}`}
         >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </td>
