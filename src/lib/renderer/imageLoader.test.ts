@@ -29,8 +29,9 @@ const baseProject: ProjectFile = {
 beforeEach(() => {
   vi.stubGlobal('window', {
     electronAPI: {
+      listArtFiles: vi.fn().mockResolvedValue(['Axehand.png', 'ExtraFile.png']),
       readArtFile: vi.fn().mockImplementation((_folder: string, name: string) => {
-        if (name === 'Axehand') return Promise.resolve('data:image/png;base64,art1')
+        if (name === 'Axehand.png') return Promise.resolve('data:image/png;base64,art1')
         return Promise.resolve(null)
       }),
     },
@@ -56,11 +57,11 @@ describe('preloadArtImages', () => {
     expect(result.has('Shadowblade')).toBe(false)
   })
 
-  it('calls readArtFile once per card', async () => {
+  it('calls readArtFile only for cards with a matching file', async () => {
     await preloadArtImages(baseProject)
-    expect(window.electronAPI.readArtFile).toHaveBeenCalledTimes(2)
-    expect(window.electronAPI.readArtFile).toHaveBeenCalledWith('/art', 'Axehand')
-    expect(window.electronAPI.readArtFile).toHaveBeenCalledWith('/art', 'Shadowblade')
+    expect(window.electronAPI.listArtFiles).toHaveBeenCalledWith('/art')
+    expect(window.electronAPI.readArtFile).toHaveBeenCalledTimes(1)
+    expect(window.electronAPI.readArtFile).toHaveBeenCalledWith('/art', 'Axehand.png')
   })
 })
 
