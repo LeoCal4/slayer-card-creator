@@ -2,6 +2,21 @@ import { useState, useEffect } from 'react'
 import { useProjectStore } from '@/store/projectStore'
 import type { CsvColumnDef, CsvColumnType } from '@/types/project'
 
+function ReadOnlyChoicesDisplay({ values }: { values: string[] }) {
+  return (
+    <div className="mt-1.5 ml-4 flex flex-wrap gap-1">
+      {values.map((v) => (
+        <span
+          key={v}
+          className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-neutral-700 text-neutral-400"
+        >
+          {v}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function SelectChoicesEditor({
   colId,
   colName,
@@ -77,9 +92,13 @@ function SelectChoicesEditor({
 function CsvColumnRow({ col }: { col: CsvColumnDef }) {
   const updateCsvColumn = useProjectStore((s) => s.updateCsvColumn)
   const deleteCsvColumn = useProjectStore((s) => s.deleteCsvColumn)
+  const cardTypes = useProjectStore((s) => s.project?.cardTypes ?? [])
+  const rarityConfig = useProjectStore((s) => s.project?.rarityConfig)
   const [localName, setLocalName] = useState(col.name)
 
   useEffect(() => { setLocalName(col.name) }, [col.name])
+
+  const rarityValues = rarityConfig ? Object.keys(rarityConfig) : []
 
   function commitName() {
     const trimmed = localName.trim()
@@ -117,6 +136,8 @@ function CsvColumnRow({ col }: { col: CsvColumnDef }) {
           <option value="text">text</option>
           <option value="number">number</option>
           <option value="select">select</option>
+          <option value="select-type">select-type</option>
+          <option value="select-rarity">select-rarity</option>
         </select>
         <button
           type="button"
@@ -133,6 +154,12 @@ function CsvColumnRow({ col }: { col: CsvColumnDef }) {
           colName={col.name}
           choices={col.choices ?? []}
         />
+      )}
+      {col.type === 'select-type' && (
+        <ReadOnlyChoicesDisplay values={cardTypes} />
+      )}
+      {col.type === 'select-rarity' && (
+        <ReadOnlyChoicesDisplay values={rarityValues} />
       )}
     </div>
   )

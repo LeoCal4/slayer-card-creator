@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CsvColumnEditor } from './CsvColumnEditor'
-import { useProjectStore } from '@/store/projectStore'
-import { DEFAULT_CSV_COLUMNS } from '@/store/projectStore'
+import { useProjectStore, DEFAULT_CSV_COLUMNS } from '@/store/projectStore'
 
 function setupProject() {
   useProjectStore.setState({ project: null })
@@ -27,7 +26,6 @@ describe('CsvColumnEditor', () => {
 
   it('renders a row for each default csv column', () => {
     render(<CsvColumnEditor />)
-    // Each column has a name input; check that default column names appear
     expect(screen.getByDisplayValue('name')).toBeInTheDocument()
     expect(screen.getByDisplayValue('effect')).toBeInTheDocument()
     expect(screen.getByDisplayValue('cost')).toBeInTheDocument()
@@ -41,10 +39,6 @@ describe('CsvColumnEditor', () => {
 
   it('shows "text" as the selected type for the name column', () => {
     render(<CsvColumnEditor />)
-    // name column is type 'text'
-    const nameInput = screen.getByDisplayValue('name')
-    const row = nameInput.closest('[data-testid]') ?? nameInput.parentElement!.parentElement!
-    // find the type select near the name input
     const typeSelect = screen.getAllByRole('combobox', { name: /column type/i })[0]
     expect(typeSelect).toHaveValue('text')
   })
@@ -56,29 +50,69 @@ describe('CsvColumnEditor', () => {
     expect(typeSelects[colIndex]).toHaveValue('number')
   })
 
-  it('shows "select" as the selected type for the rarity column', () => {
+  it('shows "select-type" as the selected type for the type column', () => {
+    render(<CsvColumnEditor />)
+    const colIndex = DEFAULT_CSV_COLUMNS.findIndex((c) => c.name === 'type')
+    const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
+    expect(typeSelects[colIndex]).toHaveValue('select-type')
+  })
+
+  it('shows "select-rarity" as the selected type for the rarity column', () => {
     render(<CsvColumnEditor />)
     const colIndex = DEFAULT_CSV_COLUMNS.findIndex((c) => c.name === 'rarity')
     const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
-    expect(typeSelects[colIndex]).toHaveValue('select')
+    expect(typeSelects[colIndex]).toHaveValue('select-rarity')
   })
 
-  // ── choices editor visible for select type ─────────────────────────────────
+  // ── dropdown options ──────────────────────────────────────────────────────
 
-  it('shows choices editor for the rarity column (default select type)', () => {
+  it('type dropdown contains all five type options', () => {
     render(<CsvColumnEditor />)
-    // rarity column has choices: common, rare, epic
+    const firstDropdown = screen.getAllByRole('combobox', { name: /column type/i })[0]
+    const options = Array.from(firstDropdown.querySelectorAll('option')).map((o) => o.value)
+    expect(options).toContain('text')
+    expect(options).toContain('number')
+    expect(options).toContain('select')
+    expect(options).toContain('select-type')
+    expect(options).toContain('select-rarity')
+  })
+
+  // ── select-type / select-rarity read-only display ─────────────────────────
+
+  it('"select-type" column shows current card types as read-only indicators', () => {
+    render(<CsvColumnEditor />)
+    // The default project has card types including 'Slayer' and 'Action'
+    const cardTypes = useProjectStore.getState().project!.cardTypes
+    expect(cardTypes.length).toBeGreaterThan(0)
+    // At least one card type should be visible as a read-only indicator
+    expect(screen.getByText(cardTypes[0])).toBeInTheDocument()
+  })
+
+  it('"select-rarity" column shows rarity values as read-only indicators', () => {
+    render(<CsvColumnEditor />)
+    // common/rare/epic should appear from the read-only rarity display
     expect(screen.getByText('common')).toBeInTheDocument()
     expect(screen.getByText('rare')).toBeInTheDocument()
     expect(screen.getByText('epic')).toBeInTheDocument()
   })
 
-  it('does not show choices editor for text-type columns', () => {
+  it('"select-type" and "select-rarity" columns do not show an editable "Add choice" input', () => {
     render(<CsvColumnEditor />)
-    // 'Add choice' input should appear only for select columns (rarity by default)
+    // No plain 'select' columns in defaults — only select-type and select-rarity
     const choiceInputs = screen.queryAllByPlaceholderText(/add choice/i)
-    // only 1 by default (rarity column)
-    expect(choiceInputs).toHaveLength(1)
+    expect(choiceInputs).toHaveLength(0)
+  })
+
+  it('"select-type" read-only tags have no remove button', () => {
+    render(<CsvColumnEditor />)
+    const firstCardType = useProjectStore.getState().project!.cardTypes[0]
+    // The card type label appears but has no associated "Remove" button
+    expect(screen.queryByRole('button', { name: new RegExp(`remove.*${firstCardType}`, 'i') })).not.toBeInTheDocument()
+  })
+
+  it('"select-rarity" read-only tags have no remove button', () => {
+    render(<CsvColumnEditor />)
+    expect(screen.queryByRole('button', { name: /remove.*common/i })).not.toBeInTheDocument()
   })
 
   // ── add column ─────────────────────────────────────────────────────────────
@@ -122,7 +156,6 @@ describe('CsvColumnEditor', () => {
   it('changing type dropdown to "number" updates the store', async () => {
     render(<CsvColumnEditor />)
     const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
-    // change first column (name, text) to number
     await userEvent.selectOptions(typeSelects[0], 'number')
     expect(getCols()[0].type).toBe('number')
   })
@@ -132,60 +165,99 @@ describe('CsvColumnEditor', () => {
     const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
     // change first column (name, text) to select
     await userEvent.selectOptions(typeSelects[0], 'select')
-    // now there should be 2 choice inputs (original rarity + new one)
-    const choiceInputs = screen.getAllByPlaceholderText(/add choice/i)
-    expect(choiceInputs.length).toBeGreaterThan(1)
+    // exactly 1 editable choices input (only the newly-changed column)
+    expect(screen.getAllByPlaceholderText(/add choice/i)).toHaveLength(1)
   })
 
   it('changing type from "select" to "text" hides the choices editor', async () => {
     render(<CsvColumnEditor />)
-    const colIndex = DEFAULT_CSV_COLUMNS.findIndex((c) => c.name === 'rarity')
+    const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
+    // switch first column to 'select' first, then back to 'text'
+    await userEvent.selectOptions(typeSelects[0], 'select')
+    expect(screen.getAllByPlaceholderText(/add choice/i)).toHaveLength(1)
+    await userEvent.selectOptions(typeSelects[0], 'text')
+    expect(screen.queryAllByPlaceholderText(/add choice/i)).toHaveLength(0)
+  })
+
+  it('changing type to "select-type" shows read-only card types and hides choices editor', async () => {
+    render(<CsvColumnEditor />)
+    const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
+    // change 'name' column (text) to 'select-type'
+    await userEvent.selectOptions(typeSelects[0], 'select-type')
+    expect(screen.queryAllByPlaceholderText(/add choice/i)).toHaveLength(0)
+    // card types should be visible
+    const cardTypes = useProjectStore.getState().project!.cardTypes
+    expect(screen.getAllByText(cardTypes[0]).length).toBeGreaterThan(0)
+  })
+
+  it('changing type to "select-rarity" shows read-only rarities and hides choices editor', async () => {
+    render(<CsvColumnEditor />)
+    const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
+    await userEvent.selectOptions(typeSelects[0], 'select-rarity')
+    expect(screen.queryAllByPlaceholderText(/add choice/i)).toHaveLength(0)
+  })
+
+  it('changing from "select-type" updates the store type', async () => {
+    render(<CsvColumnEditor />)
+    const colIndex = DEFAULT_CSV_COLUMNS.findIndex((c) => c.name === 'type')
     const typeSelects = screen.getAllByRole('combobox', { name: /column type/i })
     await userEvent.selectOptions(typeSelects[colIndex], 'text')
-    // choices editor for rarity should now be hidden
-    const choiceInputs = screen.queryAllByPlaceholderText(/add choice/i)
-    expect(choiceInputs).toHaveLength(0)
+    expect(getCols().find((c) => c.name === 'type')?.type).toBe('text')
   })
 
-  // ── add / remove choices ───────────────────────────────────────────────────
+  // ── plain "select" column choices editor ───────────────────────────────────
 
-  it('can add a choice to a select column via the Add button', async () => {
-    render(<CsvColumnEditor />)
-    const choiceInput = screen.getByPlaceholderText(/add choice/i)
-    await userEvent.type(choiceInput, 'legendary')
-    await userEvent.click(screen.getByRole('button', { name: /^add choice$/i }))
-    const rarityCol = getCols().find((c) => c.name === 'rarity')
-    expect(rarityCol?.choices).toContain('legendary')
-  })
+  describe('plain "select" column choices editor', () => {
+    let selectColId: string
 
-  it('can add a choice via Enter key', async () => {
-    render(<CsvColumnEditor />)
-    const choiceInput = screen.getByPlaceholderText(/add choice/i)
-    await userEvent.type(choiceInput, 'mythic{Enter}')
-    const rarityCol = getCols().find((c) => c.name === 'rarity')
-    expect(rarityCol?.choices).toContain('mythic')
-  })
+    beforeEach(async () => {
+      useProjectStore.getState().addCsvColumn()
+      const cols = getCols()
+      const newCol = cols[cols.length - 1]
+      selectColId = newCol.id
+      useProjectStore.getState().updateCsvColumn(newCol.id, {
+        name: 'status',
+        type: 'select',
+        choices: [],
+      })
+    })
 
-  it('clears the choice input after adding', async () => {
-    render(<CsvColumnEditor />)
-    const choiceInput = screen.getByPlaceholderText(/add choice/i)
-    await userEvent.type(choiceInput, 'legendary{Enter}')
-    expect(choiceInput).toHaveValue('')
-  })
+    it('can add a choice to a select column via the Add button', async () => {
+      render(<CsvColumnEditor />)
+      const choiceInput = screen.getByPlaceholderText(/add choice/i)
+      await userEvent.type(choiceInput, 'active')
+      await userEvent.click(screen.getByRole('button', { name: /^add choice$/i }))
+      expect(getCols().find((c) => c.id === selectColId)?.choices).toContain('active')
+    })
 
-  it('does not add duplicate choices', async () => {
-    render(<CsvColumnEditor />)
-    const choiceInput = screen.getByPlaceholderText(/add choice/i)
-    await userEvent.type(choiceInput, 'common{Enter}')
-    const rarityCol = getCols().find((c) => c.name === 'rarity')
-    expect(rarityCol?.choices?.filter((c) => c === 'common')).toHaveLength(1)
-  })
+    it('can add a choice via Enter key', async () => {
+      render(<CsvColumnEditor />)
+      const choiceInput = screen.getByPlaceholderText(/add choice/i)
+      await userEvent.type(choiceInput, 'draft{Enter}')
+      expect(getCols().find((c) => c.id === selectColId)?.choices).toContain('draft')
+    })
 
-  it('can remove a choice via its × button', async () => {
-    render(<CsvColumnEditor />)
-    await userEvent.click(screen.getByRole('button', { name: /remove "common"/i }))
-    const rarityCol = getCols().find((c) => c.name === 'rarity')
-    expect(rarityCol?.choices).not.toContain('common')
+    it('clears the choice input after adding', async () => {
+      render(<CsvColumnEditor />)
+      const choiceInput = screen.getByPlaceholderText(/add choice/i)
+      await userEvent.type(choiceInput, 'active{Enter}')
+      expect(choiceInput).toHaveValue('')
+    })
+
+    it('does not add duplicate choices', async () => {
+      useProjectStore.getState().updateCsvColumn(selectColId, { choices: ['active'] })
+      render(<CsvColumnEditor />)
+      const choiceInput = screen.getByPlaceholderText(/add choice/i)
+      await userEvent.type(choiceInput, 'active{Enter}')
+      expect(getCols().find((c) => c.id === selectColId)?.choices?.filter((c) => c === 'active')).toHaveLength(1)
+    })
+
+    it('can remove a choice via its × button', async () => {
+      useProjectStore.getState().updateCsvColumn(selectColId, { choices: ['active', 'draft'] })
+      render(<CsvColumnEditor />)
+      await userEvent.click(screen.getByRole('button', { name: /remove "active"/i }))
+      expect(getCols().find((c) => c.id === selectColId)?.choices).not.toContain('active')
+    })
   })
 
   // ── delete column ──────────────────────────────────────────────────────────

@@ -53,8 +53,8 @@ const DEFAULT_PHASE_MAP: ProjectFile['phaseMap'] = {
 export const DEFAULT_CSV_COLUMNS: CsvColumnDef[] = [
   { id: 'csv-name',   name: 'name',   type: 'text' },
   { id: 'csv-class',  name: 'class',  type: 'text' },
-  { id: 'csv-type',   name: 'type',   type: 'text' },
-  { id: 'csv-rarity', name: 'rarity', type: 'select', choices: ['common', 'rare', 'epic'] },
+  { id: 'csv-type',   name: 'type',   type: 'select-type' },
+  { id: 'csv-rarity', name: 'rarity', type: 'select-rarity' },
   { id: 'csv-cost',   name: 'cost',   type: 'number' },
   { id: 'csv-power',  name: 'power',  type: 'number' },
   { id: 'csv-hp',     name: 'hp',     type: 'number' },

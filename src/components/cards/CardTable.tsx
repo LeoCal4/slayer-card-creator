@@ -28,7 +28,12 @@ function isCellDisabled(field: string, type: string): boolean {
   }
 }
 
-function computeAnomalies(card: CardData, csvColumns: CsvColumnDef[]): Set<string> {
+function computeAnomalies(
+  card: CardData,
+  csvColumns: CsvColumnDef[],
+  cardTypes: string[],
+  rarities: string[],
+): Set<string> {
   const anomalous = new Set<string>()
   for (const col of csvColumns) {
     const key = col.name.toLowerCase()
@@ -38,6 +43,10 @@ function computeAnomalies(card: CardData, csvColumns: CsvColumnDef[]): Set<strin
       if (typeof val !== 'number') anomalous.add(key)
     } else if (col.type === 'select' && col.choices?.length) {
       if (!col.choices.includes(String(val ?? ''))) anomalous.add(key)
+    } else if (col.type === 'select-type' && cardTypes.length) {
+      if (!cardTypes.includes(String(val ?? ''))) anomalous.add(key)
+    } else if (col.type === 'select-rarity' && rarities.length) {
+      if (!rarities.includes(String(val ?? ''))) anomalous.add(key)
     }
   }
   return anomalous
@@ -51,7 +60,9 @@ function sortAriaLabel(sorted: false | 'asc' | 'desc'): 'ascending' | 'descendin
 
 export function CardTable() {
   const project = useProjectStore((s) => s.project)
-  const csvColumns = useProjectStore((s) => s.project?.csvColumns ?? DEFAULT_CSV_COLUMNS)
+  const csvColumns = useMemo(() => project?.csvColumns ?? DEFAULT_CSV_COLUMNS, [project])
+  const cardTypes = useMemo(() => project?.cardTypes ?? [], [project])
+  const rarities = useMemo(() => project ? Object.keys(project.rarityConfig) : [], [project])
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -365,7 +376,7 @@ export function CardTable() {
                 <CardRow
                   key={row.id}
                   row={row}
-                  anomalous={computeAnomalies(row.original, csvColumns)}
+                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities)}
                 />
               ))}
             </tbody>

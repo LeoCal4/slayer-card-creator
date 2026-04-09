@@ -455,13 +455,10 @@ describe('csvColumns store actions', () => {
     expect(cols.find((c) => c.name === 'hp')?.type).toBe('number')
   })
 
-  it('default rarity column has type "select" with choices', () => {
+  it('default rarity column has type "select-rarity"', () => {
     const cols = useProjectStore.getState().project!.csvColumns ?? []
     const rarityCol = cols.find((c) => c.name === 'rarity')
-    expect(rarityCol?.type).toBe('select')
-    expect(rarityCol?.choices).toContain('common')
-    expect(rarityCol?.choices).toContain('rare')
-    expect(rarityCol?.choices).toContain('epic')
+    expect(rarityCol?.type).toBe('select-rarity')
   })
 
   it('addCsvColumn() appends a new text column', () => {
