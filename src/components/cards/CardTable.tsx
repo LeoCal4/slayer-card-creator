@@ -9,21 +9,50 @@ import {
   type SortingState,
   type ColumnSizingState,
 } from '@tanstack/react-table'
-import { useProjectStore } from '@/store/projectStore'
+import { useProjectStore, DEFAULT_CSV_COLUMNS } from '@/store/projectStore'
 import { CardRow } from './CardRow'
 import { EmptyState } from '@/components/common/EmptyState'
 import type { CardData, Rarity } from '@/types/card'
+import type { CsvColumnDef } from '@/types/project'
 
 const RARITIES: Rarity[] = ['common', 'rare', 'epic']
 
-function isCellDisabled(field: 'cost' | 'power' | 'hp' | 'vp' | 'speed', type: string): boolean {
+function isCellDisabled(field: string, type: string): boolean {
   switch (field) {
     case 'power':
     case 'hp': return type !== 'Slayer' && type !== 'Errant'
     case 'vp': return type !== 'Errant'
     case 'cost': return type === 'Dungeon' || type === 'Phase'
     case 'speed': return type === 'Dungeon' || type === 'Phase' || type === 'Status'
+    default: return false
   }
+}
+
+function computeAnomalies(
+  card: CardData,
+  csvColumns: CsvColumnDef[],
+  cardTypes: string[],
+  rarities: string[],
+  classes: string[],
+): Set<string> {
+  const anomalous = new Set<string>()
+  for (const col of csvColumns) {
+    const key = col.name.toLowerCase()
+    if (isCellDisabled(key, card.type)) continue
+    const val = (card as Record<string, unknown>)[key]
+    if (col.type === 'number') {
+      if (typeof val !== 'number') anomalous.add(key)
+    } else if (col.type === 'select' && col.choices?.length) {
+      if (!col.choices.includes(String(val ?? ''))) anomalous.add(key)
+    } else if (col.type === 'select-type' && cardTypes.length) {
+      if (!cardTypes.includes(String(val ?? ''))) anomalous.add(key)
+    } else if (col.type === 'select-rarity' && rarities.length) {
+      if (!rarities.includes(String(val ?? ''))) anomalous.add(key)
+    } else if (col.type === 'select-class' && classes.length) {
+      if (!classes.includes(String(val ?? ''))) anomalous.add(key)
+    }
+  }
+  return anomalous
 }
 
 function sortAriaLabel(sorted: false | 'asc' | 'desc'): 'ascending' | 'descending' | undefined {
@@ -34,6 +63,10 @@ function sortAriaLabel(sorted: false | 'asc' | 'desc'): 'ascending' | 'descendin
 
 export function CardTable() {
   const project = useProjectStore((s) => s.project)
+  const csvColumns = useMemo(() => project?.csvColumns ?? DEFAULT_CSV_COLUMNS, [project])
+  const cardTypes = useMemo(() => project?.cardTypes ?? [], [project])
+  const rarities = useMemo(() => project ? Object.keys(project.rarityConfig) : [], [project])
+  const classes = useMemo(() => project ? Object.keys(project.classColors) : [], [project])
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -95,16 +128,24 @@ export function CardTable() {
         header: 'Type',
         size: 100,
         minSize: 60,
-        cell: ({ row }) => (
-          <select
-            aria-label="type"
-            className="bg-neutral-800 text-sm text-neutral-100 rounded"
-            value={row.original.type}
-            onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
-          >
-            {project?.cardTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        ),
+        cell: ({ row }) => {
+          const knownTypes = project?.cardTypes ?? []
+          const currentType = row.original.type
+          const isUnknown = !knownTypes.includes(currentType)
+          return (
+            <select
+              aria-label="type"
+              className="bg-neutral-800 text-sm text-neutral-100 rounded"
+              value={currentType}
+              onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
+            >
+              {isUnknown && (
+                <option value={currentType}>{currentType}</option>
+              )}
+              {knownTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          )
+        },
       },
       {
         accessorKey: 'rarity',
@@ -344,7 +385,11 @@ export function CardTable() {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <CardRow key={row.id} row={row} />
+                <CardRow
+                  key={row.id}
+                  row={row}
+                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities, classes)}
+                />
               ))}
             </tbody>
           </table>

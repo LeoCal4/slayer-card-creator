@@ -1,6 +1,15 @@
 import type { CardData, CardType, Rarity } from './card'
 import type { Template } from './template'
 
+export type CsvColumnType = 'text' | 'number' | 'select' | 'select-type' | 'select-rarity' | 'select-class'
+
+export interface CsvColumnDef {
+  id: string
+  name: string
+  type: CsvColumnType
+  choices?: string[]
+}
+
 export interface ClassConfig {
   primary: string
   secondary: string
@@ -35,6 +44,7 @@ export interface ProjectFile {
   phaseAbbreviations: Record<string, string>
   phaseMap: PhaseMap
   rarityConfig: Record<Rarity, RarityConfig>
+  csvColumns?: CsvColumnDef[]
   templates: Template[]
   cards: CardData[]
   artFolderPath: string
