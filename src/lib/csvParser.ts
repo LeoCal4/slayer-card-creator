@@ -1,5 +1,6 @@
 import Papa from 'papaparse'
 import type { CardData, CardType, Rarity } from '@/types/card'
+import type { CsvColumnDef } from '@/types/project'
 const RARITY_ALIASES: Record<string, string> = {
   comune: 'common',
   rara: 'rare',
@@ -16,6 +17,7 @@ export interface ParseResult {
 export interface ParseOptions {
   delimiter?: string
   validTypes?: string[]
+  csvColumns?: CsvColumnDef[]
 }
 
 function cleanValue(val: string | undefined): string {
@@ -53,19 +55,65 @@ export function mergeByName(existing: CardData[], incoming: CardData[]): CardDat
 }
 
 export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
-  const validTypesSet = options.validTypes ? new Set(options.validTypes) : null
+  const { validTypes, delimiter, csvColumns } = options
+  const validTypesSet = validTypes ? new Set(validTypes) : null
 
   const parsed = Papa.parse<Record<string, string>>(raw, {
     header: true,
     skipEmptyLines: true,
     transformHeader: (h) => h.toLowerCase().trim(),
-    ...(options.delimiter ? { delimiter: options.delimiter } : {}),
+    ...(delimiter ? { delimiter } : {}),
   })
 
   const errors: string[] = []
   const cards: CardData[] = []
-
   const headers = parsed.meta.fields ?? []
+
+  // ── Modular path: csvColumns provided ──────────────────────────────────────
+  if (csvColumns) {
+    if (!headers.includes('name')) {
+      errors.push('Missing required column: name')
+      return { cards, errors }
+    }
+
+    const colMap = new Map(csvColumns.map((c) => [c.name.toLowerCase(), c]))
+
+    parsed.data.forEach((row, i) => {
+      const rowNum = i + 2
+      const typeRaw = cleanValue(row['type'])
+
+      // If validTypes is provided, warn about unknown types but still import the row
+      if (validTypesSet && !validTypesSet.has(typeRaw)) {
+        errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
+      }
+
+      function getNum(key: string): number | undefined {
+        const colDef = colMap.get(key)
+        return colDef?.type === 'number' ? sanitizeNumber(row[key]) : sanitizeNumber(row[key])
+      }
+
+      const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
+      const rarity = ((RARITY_ALIASES[rarityInput] ?? rarityInput) || 'common') as Rarity
+
+      cards.push({
+        id: crypto.randomUUID(),
+        name: cleanValue(row['name']),
+        class: normalizeClass(cleanValue(row['class'])),
+        type: typeRaw as CardType,
+        rarity,
+        cost: getNum('cost'),
+        power: getNum('power'),
+        hp: getNum('hp'),
+        vp: getNum('vp'),
+        speed: getNum('speed'),
+        effect: cleanValue(row['effect']),
+      })
+    })
+
+    return { cards, errors }
+  }
+
+  // ── Legacy path: hardcoded column handling ─────────────────────────────────
   const missingCols = REQUIRED_COLUMNS.filter((c) => !headers.includes(c))
   if (missingCols.length > 0) {
     errors.push(`Missing required columns: ${missingCols.join(', ')}`)
@@ -80,8 +128,9 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
     const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
     const rarityRaw = (RARITY_ALIASES[rarityInput] ?? rarityInput) as Rarity
 
+    // Unknown type is a warning — row still imported
     if (validTypesSet && !validTypesSet.has(typeRaw)) {
-      rowErrors.push(`Row ${rowNum}: invalid type "${typeRaw}"`)
+      errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
     }
     if (!RARITIES.has(rarityInput)) {
       rowErrors.push(`Row ${rowNum}: invalid rarity "${rarityInput}"`)

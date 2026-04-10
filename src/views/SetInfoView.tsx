@@ -4,6 +4,7 @@ import { CardTypeTable } from '@/components/set-info/CardTypeTable'
 import { PhaseMapTable } from '@/components/set-info/PhaseMapTable'
 import { RarityConfigTable } from '@/components/set-info/RarityConfigTable'
 import { EffectFormattingEditor } from '@/components/set-info/EffectFormattingEditor'
+import { CsvColumnEditor } from '@/components/set-info/CsvColumnEditor'
 
 export function SetInfoView() {
   const project = useProjectStore((s) => s.project)
@@ -116,6 +117,11 @@ export function SetInfoView() {
       <section>
         <h2 className="text-base font-semibold text-neutral-100 mb-4">Phase Configuration</h2>
         <PhaseMapTable />
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-neutral-100 mb-4">CSV Columns</h2>
+        <CsvColumnEditor />
       </section>
 
       <section>
