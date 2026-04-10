@@ -114,6 +114,18 @@ describe('renderText', () => {
     const node = renderText(layer, baseCtx)
     expect(node!.attrs.text).toBe('2/4')
   })
+
+  it('renders staticText directly when set, ignoring field', () => {
+    const layer: TextLayer = { ...baseText, field: 'name', staticText: 'Custom Label' }
+    const node = renderText(layer, baseCtx)
+    expect(node!.attrs.text).toBe('Custom Label')
+  })
+
+  it('renders empty string when staticText is empty', () => {
+    const layer: TextLayer = { ...baseText, field: 'name', staticText: '' }
+    const node = renderText(layer, baseCtx)
+    expect(node!.attrs.text).toBe('')
+  })
 })
 
 describe('renderImage', () => {

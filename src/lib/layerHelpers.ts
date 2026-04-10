@@ -35,7 +35,9 @@ export function shouldShowLayer(
 export function resolveFieldText(
   field: TextLayer['field'],
   card: CardData | null,
+  staticText?: string,
 ): string {
+  if (staticText !== undefined) return staticText
   if (!field) return ''
   if (!card) return `[${field}]`
   if (field === 'stats') return `${card.power ?? '-'}/${card.hp ?? '-'}`
