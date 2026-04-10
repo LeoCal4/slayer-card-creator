@@ -131,18 +131,51 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
       <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
       <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
       <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
+        <label className="text-xs text-neutral-500 w-24 shrink-0">Text Source</label>
         <select
-          aria-label="Field"
-          value={layer.field ?? ''}
-          onChange={(e) => { snap(); up({ field: (e.target.value as TextLayer['field']) || undefined }) }}
+          aria-label="Text Source"
+          value={layer.staticText !== undefined ? 'static' : 'field'}
+          onChange={(e) => {
+            snap()
+            if (e.target.value === 'static') {
+              up({ staticText: '' })
+            } else {
+              up({ staticText: undefined })
+            }
+          }}
           className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
         >
-          {TEXT_FIELDS.map((f) => (
-            <option key={f} value={f}>{f || '(none)'}</option>
-          ))}
+          <option value="field">From field</option>
+          <option value="static">Static text</option>
         </select>
       </div>
+      {layer.staticText !== undefined ? (
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-neutral-500 w-24 shrink-0">Static Text</label>
+          <input
+            type="text"
+            aria-label="Static Text"
+            value={layer.staticText}
+            onChange={(e) => up({ staticText: e.target.value })}
+            onFocus={snap}
+            className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 flex-1 outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
+          <select
+            aria-label="Field"
+            value={layer.field ?? ''}
+            onChange={(e) => { snap(); up({ field: (e.target.value as TextLayer['field']) || undefined }) }}
+            className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            {TEXT_FIELDS.map((f) => (
+              <option key={f} value={f}>{f || '(none)'}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} onFocus={snap} />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Font Style</label>
