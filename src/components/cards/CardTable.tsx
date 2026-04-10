@@ -128,16 +128,24 @@ export function CardTable() {
         header: 'Type',
         size: 100,
         minSize: 60,
-        cell: ({ row }) => (
-          <select
-            aria-label="type"
-            className="bg-neutral-800 text-sm text-neutral-100 rounded"
-            value={row.original.type}
-            onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
-          >
-            {project?.cardTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        ),
+        cell: ({ row }) => {
+          const knownTypes = project?.cardTypes ?? []
+          const currentType = row.original.type
+          const isUnknown = !knownTypes.includes(currentType)
+          return (
+            <select
+              aria-label="type"
+              className="bg-neutral-800 text-sm text-neutral-100 rounded"
+              value={currentType}
+              onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
+            >
+              {isUnknown && (
+                <option value={currentType}>{currentType}</option>
+              )}
+              {knownTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          )
+        },
       },
       {
         accessorKey: 'rarity',
