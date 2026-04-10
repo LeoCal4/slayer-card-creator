@@ -109,15 +109,16 @@ describe('parseCSV', () => {
     expect(cards[0].rarity).toBe('common')
   })
 
-  it('skips invalid rows but still includes valid ones when validTypes is provided', () => {
+  it('emits a warning but still imports rows with unknown types when validTypes is provided', () => {
     const csv = `name,class,type,rarity,effect
 Good,Mage,Action,common,Draw.
 Bad,Mage,INVALID,common,Nope.`
     const validTypes = ['Slayer', 'Errant', 'Action', 'Ploy', 'Intervention', 'Chamber', 'Relic', 'Dungeon', 'Phase', 'Status']
     const { cards, errors } = parseCSV(csv, { validTypes })
-    expect(cards).toHaveLength(1)
-    expect(cards[0].name).toBe('Good')
+    expect(cards).toHaveLength(2)
+    expect(cards[1].name).toBe('Bad')
     expect(errors.length).toBeGreaterThan(0)
+    expect(errors[0]).toMatch(/INVALID/)
   })
 
   it('accepts Status as a valid card type', () => {

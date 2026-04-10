@@ -82,10 +82,9 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
       const rowNum = i + 2
       const typeRaw = cleanValue(row['type'])
 
-      // If validTypes is provided, still enforce type validation (and skip bad rows)
+      // If validTypes is provided, warn about unknown types but still import the row
       if (validTypesSet && !validTypesSet.has(typeRaw)) {
-        errors.push(`Row ${rowNum}: invalid type "${typeRaw}"`)
-        return
+        errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
       }
 
       function getNum(key: string): number | undefined {
@@ -129,8 +128,9 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
     const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
     const rarityRaw = (RARITY_ALIASES[rarityInput] ?? rarityInput) as Rarity
 
+    // Unknown type is a warning — row still imported
     if (validTypesSet && !validTypesSet.has(typeRaw)) {
-      rowErrors.push(`Row ${rowNum}: invalid type "${typeRaw}"`)
+      errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
     }
     if (!RARITIES.has(rarityInput)) {
       rowErrors.push(`Row ${rowNum}: invalid rarity "${rarityInput}"`)
