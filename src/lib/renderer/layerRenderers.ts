@@ -25,7 +25,7 @@ export function renderRect(layer: RectLayer, ctx: RenderContext): Konva.Rect | n
 export function renderText(layer: TextLayer, ctx: RenderContext): Konva.Node | null {
   if (layer.visible === false) return null
 
-  const text = resolveFieldText(layer.field, ctx.card)
+  const text = resolveFieldText(layer.field, ctx.card, layer.staticText)
   const formatting = ctx.project.set.effectFormatting
 
   // Use rich text rendering for the effect field when formatting rules are defined

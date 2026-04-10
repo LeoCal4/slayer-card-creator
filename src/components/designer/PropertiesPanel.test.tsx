@@ -39,6 +39,15 @@ const TEMPLATE: Template = {
       locked: false,
     },
     {
+      id: 'text-static',
+      type: 'text',
+      x: 5, y: 50, width: 200, height: 30,
+      staticText: 'Hello!',
+      fontSize: 14,
+      visible: true,
+      locked: false,
+    },
+    {
       id: 'phase-1',
       type: 'phase-icons',
       x: 5, y: 5, width: 200, height: 30,
@@ -177,6 +186,68 @@ describe('PropertiesPanel — text layer', () => {
   it('renders showIfField dropdown', () => {
     render(<PropertiesPanel templateId="tmpl-1" />)
     expect(screen.getByRole('combobox', { name: /show if field/i })).toBeInTheDocument()
+  })
+
+  it('renders Text Source dropdown defaulting to "field" when field is set', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('combobox', { name: /text source/i })).toHaveValue('field')
+  })
+
+  it('shows Field dropdown when text source is "field"', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('combobox', { name: /^field$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: /static text/i })).not.toBeInTheDocument()
+  })
+
+  it('switching text source to "static" shows static text input and hides field dropdown', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /text source/i }), 'static')
+    expect(screen.queryByRole('combobox', { name: /^field$/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /static text/i })).toBeInTheDocument()
+  })
+
+  it('switching to static sets staticText on the layer', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /text source/i }), 'static')
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'text-1')! as any
+    expect(layer.staticText).toBe('')
+  })
+
+  it('editing static text input updates the store', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /text source/i }), 'static')
+    const input = screen.getByRole('textbox', { name: /static text/i })
+    await userEvent.clear(input)
+    await userEvent.type(input, 'My Label')
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'text-1')! as any
+    expect(layer.staticText).toBe('My Label')
+  })
+
+  it('switching back to field clears staticText', async () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /text source/i }), 'static')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /text source/i }), 'field')
+    const layer = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!.layers.find((l) => l.id === 'text-1')! as any
+    expect(layer.staticText).toBeUndefined()
+  })
+})
+
+describe('PropertiesPanel — text layer (static source)', () => {
+  beforeEach(() => setup('text-static'))
+
+  it('renders Text Source dropdown defaulting to "static" when staticText is set', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('combobox', { name: /text source/i })).toHaveValue('static')
+  })
+
+  it('shows static text input with current value', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.getByRole('textbox', { name: /static text/i })).toHaveValue('Hello!')
+  })
+
+  it('does not show field dropdown when in static mode', () => {
+    render(<PropertiesPanel templateId="tmpl-1" />)
+    expect(screen.queryByRole('combobox', { name: /^field$/i })).not.toBeInTheDocument()
   })
 })
 
