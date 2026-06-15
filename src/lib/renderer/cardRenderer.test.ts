@@ -4,7 +4,7 @@ import type { RenderContext } from './cardRenderer'
 import type { RectLayer, TextLayer } from '@/types/template'
 
 const ctx: RenderContext = {
-  card: { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '' },
+  card: { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {} },
   template: {
     id: 'tmpl-1', name: 'Test', cardTypes: ['Slayer'],
     canvas: { width: 375, height: 523 },

@@ -5,18 +5,18 @@ import type { Template } from '@/types/template'
 
 const fullSlayer: CardData = {
   id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer',
-  rarity: 'common', cost: 3, power: 4, hp: 5, speed: 2, effect: 'Strike.',
+  rarity: 'common', effect: 'Strike.', extras: { cost: 3, power: 4, hp: 5, speed: 2 },
 }
 const fullErrant: CardData = {
   id: 'c2', name: 'Runner', class: 'Rogue', type: 'Errant',
-  rarity: 'common', cost: 2, power: 2, hp: 3, vp: 1, speed: 3, effect: 'Evade.',
+  rarity: 'common', effect: 'Evade.', extras: { cost: 2, power: 2, hp: 3, vp: 1, speed: 3 },
 }
 const fullAction: CardData = {
   id: 'c3', name: 'Fireball', class: 'Mage', type: 'Action',
-  rarity: 'rare', cost: 3, speed: 1, effect: 'Deal 3 damage.',
+  rarity: 'rare', effect: 'Deal 3 damage.', extras: { cost: 3, speed: 1 },
 }
 const fullDungeon: CardData = {
-  id: 'c4', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
+  id: 'c4', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.', extras: {},
 }
 
 describe('getMissingFields', () => {
@@ -42,22 +42,22 @@ describe('getMissingFields', () => {
   })
 
   it('flags missing power for Slayer', () => {
-    const card = { ...fullSlayer, power: undefined }
+    const card = { ...fullSlayer, extras: { ...fullSlayer.extras, power: undefined as unknown as number } }
     expect(getMissingFields(card)).toContain('power')
   })
 
   it('flags missing hp for Errant', () => {
-    const card = { ...fullErrant, hp: undefined }
+    const card = { ...fullErrant, extras: { ...fullErrant.extras, hp: undefined as unknown as number } }
     expect(getMissingFields(card)).toContain('hp')
   })
 
   it('flags missing vp for Errant', () => {
-    const card = { ...fullErrant, vp: undefined }
+    const card = { ...fullErrant, extras: { ...fullErrant.extras, vp: undefined as unknown as number } }
     expect(getMissingFields(card)).toContain('vp')
   })
 
   it('does not flag missing vp for Slayer', () => {
-    const card = { ...fullSlayer, vp: undefined }
+    const card = { ...fullSlayer, extras: { ...fullSlayer.extras, vp: undefined as unknown as number } }
     expect(getMissingFields(card)).not.toContain('vp')
   })
 
@@ -69,7 +69,7 @@ describe('getMissingFields', () => {
   })
 
   it('flags missing speed for Slayer', () => {
-    const card = { ...fullSlayer, speed: undefined }
+    const card = { ...fullSlayer, extras: { ...fullSlayer.extras, speed: undefined as unknown as number } }
     expect(getMissingFields(card)).toContain('speed')
   })
 
@@ -84,7 +84,7 @@ describe('getMissingFields', () => {
   })
 
   it('flags missing cost for Action', () => {
-    const card = { ...fullAction, cost: undefined }
+    const card = { ...fullAction, extras: { ...fullAction.extras, cost: undefined as unknown as number } }
     expect(getMissingFields(card)).toContain('cost')
   })
 })

@@ -1,7 +1,8 @@
 import type { CardData, CardType } from '@/types/card'
+import { isCoreField } from '@/types/card'
 import type { Template } from '@/types/template'
 
-export const REQUIRED_FIELDS: Record<CardType, (keyof CardData)[]> = {
+export const REQUIRED_FIELDS: Record<CardType, string[]> = {
   Slayer:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'speed', 'effect'],
   Errant:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'speed', 'effect'],
   Action:       ['name', 'class', 'type', 'rarity', 'cost', 'speed', 'effect'],
@@ -14,10 +15,10 @@ export const REQUIRED_FIELDS: Record<CardType, (keyof CardData)[]> = {
   Status:       ['name', 'type', 'effect'],
 }
 
-export function getMissingFields(card: CardData): (keyof CardData)[] {
+export function getMissingFields(card: CardData): string[] {
   const required = REQUIRED_FIELDS[card.type] ?? []
   return required.filter((field) => {
-    const val = card[field]
+    const val = isCoreField(field) ? card[field] : card.extras?.[field]
     return val === undefined || val === null || val === ''
   })
 }

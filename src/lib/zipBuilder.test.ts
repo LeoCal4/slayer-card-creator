@@ -29,9 +29,9 @@ const project: ProjectFile = {
     { id: 'tmpl-1', name: 'Creature', cardTypes: ['Slayer', 'Errant'], canvas: { width: 375, height: 523 }, layers: [] },
   ],
   cards: [
-    { id: 'c1', name: 'Axehand',    class: 'Warrior', type: 'Slayer',  rarity: 'common', effect: '' },
-    { id: 'c2', name: 'Shadowblade', class: 'Rogue',   type: 'Errant',  rarity: 'rare',   effect: '' },
-    { id: 'c3', name: 'Fireball',   class: 'Mage',    type: 'Action',  rarity: 'common', effect: '' },
+    { id: 'c1', name: 'Axehand',    class: 'Warrior', type: 'Slayer',  rarity: 'common', effect: '', extras: {} },
+    { id: 'c2', name: 'Shadowblade', class: 'Rogue',   type: 'Errant',  rarity: 'rare',   effect: '', extras: {} },
+    { id: 'c3', name: 'Fireball',   class: 'Mage',    type: 'Action',  rarity: 'common', effect: '', extras: {} },
   ],
   artFolderPath: '',
   customImages: {},

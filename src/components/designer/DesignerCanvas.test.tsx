@@ -53,7 +53,7 @@ describe('DesignerCanvas', () => {
 
   it('hides a layer with showIfField when the preview card field is empty', () => {
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'Test', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '', power: 3, hp: 3,
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '', extras: { power: 3, hp: 3 },
     })
     useUiStore.getState().setPreviewCard('c1')
     render(<DesignerCanvas templateId="tmpl-1" />)
@@ -65,7 +65,7 @@ describe('DesignerCanvas', () => {
 
   it('shows a layer with showIfField when the preview card field is set', () => {
     useProjectStore.getState().addCard({
-      id: 'c2', name: 'Fireball', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '', power: 3, hp: 3, cost: 3,
+      id: 'c2', name: 'Fireball', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '', extras: { power: 3, hp: 3, cost: 3 },
     })
     useUiStore.getState().setPreviewCard('c2')
     render(<DesignerCanvas templateId="tmpl-1" />)
@@ -106,7 +106,7 @@ describe('DesignerCanvas', () => {
   it('phase-icons text nodes have verticalAlign middle', () => {
     useProjectStore.getState().updatePhaseMap('Slayer', ['Encounter'])
     useProjectStore.getState().addCard({
-      id: 'c-phase', name: 'Foo', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '',
+      id: 'c-phase', name: 'Foo', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {},
     })
     useUiStore.getState().setPreviewCard('c-phase')
     render(<DesignerCanvas templateId="tmpl-1" />)
@@ -120,7 +120,7 @@ describe('DesignerCanvas', () => {
 
   it('text layer shows card value when preview card is set', () => {
     useProjectStore.getState().addCard({
-      id: 'c3', name: 'Ace', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '',
+      id: 'c3', name: 'Ace', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {},
     })
     useUiStore.getState().setPreviewCard('c3')
     render(<DesignerCanvas templateId="tmpl-1" />)
@@ -180,7 +180,7 @@ describe('DesignerCanvas — art image loading', () => {
 
   it('calls readArtFile with artFolderPath and card name when preview card is set', async () => {
     useProjectStore.getState().addCard({
-      id: 'c-art', name: 'Fireball', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '',
+      id: 'c-art', name: 'Fireball', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '', extras: {},
     })
     useUiStore.getState().setPreviewCard('c-art')
     render(<DesignerCanvas templateId="tmpl-art" />)
@@ -197,7 +197,7 @@ describe('DesignerCanvas — art image loading', () => {
   it('does not call readArtFile when artFolderPath is empty', () => {
     useProjectStore.getState().setArtFolderPath('')
     useProjectStore.getState().addCard({
-      id: 'c-art2', name: 'IceSpike', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '',
+      id: 'c-art2', name: 'IceSpike', class: 'Mage', type: 'Slayer', rarity: 'common', effect: '', extras: {},
     })
     useUiStore.getState().setPreviewCard('c-art2')
     render(<DesignerCanvas templateId="tmpl-art" />)

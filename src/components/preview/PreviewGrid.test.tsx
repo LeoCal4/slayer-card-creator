@@ -21,9 +21,9 @@ vi.stubGlobal('IntersectionObserver', class {
 })
 
 const cards: CardData[] = [
-  { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '' },
-  { id: 'c2', name: 'Shadowblade', class: 'Rogue', type: 'Errant', rarity: 'rare', effect: '' },
-  { id: 'c3', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'epic', effect: '' },
+  { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {} },
+  { id: 'c2', name: 'Shadowblade', class: 'Rogue', type: 'Errant', rarity: 'rare', effect: '', extras: {} },
+  { id: 'c3', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'epic', effect: '', extras: {} },
 ]
 
 const templates: Template[] = [

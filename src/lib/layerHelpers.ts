@@ -1,6 +1,12 @@
 import type { CardData } from '@/types/card'
+import { isCoreField } from '@/types/card'
 import type { ClassConfig } from '@/types/project'
 import type { RectLayer, TextLayer, BadgeLayer } from '@/types/template'
+
+function readField(card: CardData, field: string): string | number | undefined {
+  if (isCoreField(field)) return card[field]
+  return card.extras?.[field]
+}
 
 const FALLBACK_FILL = '#555555'
 
@@ -23,12 +29,12 @@ function makeGradient(
 }
 
 export function shouldShowLayer(
-  layer: { showIfField?: keyof CardData },
+  layer: { showIfField?: string },
   previewCard: CardData | null,
 ): boolean {
   if (!layer.showIfField) return true
   if (!previewCard) return true
-  const val = previewCard[layer.showIfField]
+  const val = readField(previewCard, layer.showIfField)
   return val !== undefined && val !== null && val !== '' && val !== 0
 }
 
@@ -40,9 +46,15 @@ export function resolveFieldText(
   if (staticText !== undefined) return staticText
   if (!field) return ''
   if (!card) return `[${field}]`
-  if (field === 'stats') return `${card.power ?? '-'}/${card.hp ?? '-'}`
-  if (field === 'statsVP') return `${card.vp ?? '-'} VP`
-  const val = card[field as keyof CardData]
+  if (field === 'stats') {
+    const p = readField(card, 'power'); const h = readField(card, 'hp')
+    return `${p ?? '-'}/${h ?? '-'}`
+  }
+  if (field === 'statsVP') {
+    const v = readField(card, 'vp')
+    return `${v ?? '-'} VP`
+  }
+  const val = readField(card, field)
   const str = val !== undefined && val !== null ? String(val) : `[${field}]`
   return str.replace(/\\n/g, '\n')
 }

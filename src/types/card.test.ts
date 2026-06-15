@@ -15,7 +15,7 @@ describe('Rarity', () => {
 })
 
 describe('CardData', () => {
-  it('requires id, name, class, type, rarity, effect; all stats optional', () => {
+  it('requires id, name, class, type, rarity, effect, extras; stats live in extras', () => {
     void ({
       id: 'abc-123',
       name: 'Flame Serpent',
@@ -23,6 +23,7 @@ describe('CardData', () => {
       type: 'Slayer',
       rarity: 'common',
       effect: 'Haste.',
+      extras: {},
     } satisfies CardData)
 
     void ({
@@ -32,10 +33,12 @@ describe('CardData', () => {
       type: 'Errant',
       rarity: 'epic',
       effect: 'Stealth.',
-      cost: 2,
-      power: 2,
-      hp: 1,
-      vp: 3,
+      extras: {
+        cost: 2,
+        power: 2,
+        hp: 1,
+        vp: 3,
+      },
     } satisfies CardData)
   })
 
@@ -47,6 +50,7 @@ describe('CardData', () => {
       type: 'Slayer',
       rarity: 'rare',
       effect: 'Shield.',
+      extras: {},
     } satisfies CardData)
   })
 })

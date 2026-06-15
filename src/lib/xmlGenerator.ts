@@ -79,7 +79,8 @@ export function generateXML(project: ProjectFile): string {
     appendText(doc, propEl, 'maintype', maintype)
 
     if (card.type !== 'Dungeon' && card.type !== 'Phase' && card.type !== 'Status') {
-      const cost = card.cost !== undefined ? String(card.cost) : ''
+      const costVal = card.extras?.['cost']
+      const cost = costVal !== undefined ? String(costVal) : ''
       appendText(doc, propEl, 'manacost', cost)
       appendText(doc, propEl, 'cmc', cost)
     }
@@ -91,7 +92,7 @@ export function generateXML(project: ProjectFile): string {
     appendText(doc, propEl, 'coloridentity', color)
 
     if (card.type === 'Slayer' || card.type === 'Errant') {
-      appendText(doc, propEl, 'pt', `${card.power ?? 0}/${card.hp ?? 0}`)
+      appendText(doc, propEl, 'pt', `${card.extras?.['power'] ?? 0}/${card.extras?.['hp'] ?? 0}`)
     }
 
     appendText(doc, cardEl, 'tablerow', String(TABLEROW[card.type]))

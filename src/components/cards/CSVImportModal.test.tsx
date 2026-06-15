@@ -111,7 +111,7 @@ describe('CSVImportModal', () => {
 
   it('shows merge dialog when existing cards are present', async () => {
     useProjectStore.getState().addCard({
-      id: 'ex-1', name: 'Existing', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.',
+      id: 'ex-1', name: 'Existing', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.', extras: {},
     })
     render(<CSVImportModal />)
     await userEvent.click(screen.getByRole('button', { name: /import csv/i }))
@@ -122,7 +122,7 @@ describe('CSVImportModal', () => {
 
   it('"Replace All" replaces all existing cards', async () => {
     useProjectStore.getState().addCard({
-      id: 'ex-1', name: 'Existing', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.',
+      id: 'ex-1', name: 'Existing', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.', extras: {},
     })
     render(<CSVImportModal />)
     await userEvent.click(screen.getByRole('button', { name: /import csv/i }))
@@ -134,7 +134,7 @@ describe('CSVImportModal', () => {
 
   it('"Merge by Name" updates matching cards and appends new ones', async () => {
     useProjectStore.getState().addCard({
-      id: 'ex-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old effect.',
+      id: 'ex-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old effect.', extras: {},
     })
     render(<CSVImportModal />)
     await userEvent.click(screen.getByRole('button', { name: /import csv/i }))

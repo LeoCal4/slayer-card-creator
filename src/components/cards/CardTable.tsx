@@ -13,19 +13,12 @@ import { useProjectStore, DEFAULT_CSV_COLUMNS } from '@/store/projectStore'
 import { CardRow } from './CardRow'
 import { EmptyState } from '@/components/common/EmptyState'
 import type { CardData, Rarity } from '@/types/card'
+import { isCoreField } from '@/types/card'
 import type { CsvColumnDef } from '@/types/project'
 
-const RARITIES: Rarity[] = ['common', 'rare', 'epic']
-
-function isCellDisabled(field: string, type: string): boolean {
-  switch (field) {
-    case 'power':
-    case 'hp': return type !== 'Slayer' && type !== 'Errant'
-    case 'vp': return type !== 'Errant'
-    case 'cost': return type === 'Dungeon' || type === 'Phase'
-    case 'speed': return type === 'Dungeon' || type === 'Phase' || type === 'Status'
-    default: return false
-  }
+function getCellValue(card: CardData, key: string): string | number | undefined {
+  if (isCoreField(key)) return card[key]
+  return card.extras?.[key]
 }
 
 function computeAnomalies(
@@ -38,8 +31,7 @@ function computeAnomalies(
   const anomalous = new Set<string>()
   for (const col of csvColumns) {
     const key = col.name.toLowerCase()
-    if (isCellDisabled(key, card.type)) continue
-    const val = (card as Record<string, unknown>)[key]
+    const val = getCellValue(card, key)
     if (col.type === 'number') {
       if (typeof val !== 'number') anomalous.add(key)
     } else if (col.type === 'select' && col.choices?.length) {
@@ -61,12 +53,149 @@ function sortAriaLabel(sorted: false | 'asc' | 'desc'): 'ascending' | 'descendin
   return undefined
 }
 
+function CoreFieldCell({
+  card,
+  field,
+  updateCard,
+  cardTypes,
+  rarities,
+}: {
+  card: CardData
+  field: 'name' | 'class' | 'type' | 'rarity' | 'effect'
+  updateCard: (id: string, partial: Partial<CardData>) => void
+  cardTypes: string[]
+  rarities: string[]
+}) {
+  if (field === 'type') {
+    const isUnknown = !cardTypes.includes(card.type)
+    return (
+      <select
+        aria-label="type"
+        className="bg-neutral-800 text-sm text-neutral-100 rounded"
+        value={card.type}
+        onChange={(e) => updateCard(card.id, { type: e.target.value })}
+      >
+        {isUnknown && <option value={card.type}>{card.type}</option>}
+        {cardTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+      </select>
+    )
+  }
+  if (field === 'rarity') {
+    const options = rarities.length > 0 ? rarities : ['common', 'rare', 'epic']
+    return (
+      <select
+        aria-label="rarity"
+        className="bg-neutral-800 text-sm text-neutral-100 rounded"
+        value={card.rarity}
+        onChange={(e) => updateCard(card.id, { rarity: e.target.value as Rarity })}
+      >
+        {options.map((r) => <option key={r} value={r}>{r}</option>)}
+      </select>
+    )
+  }
+  return (
+    <input
+      aria-label={field}
+      className="bg-transparent w-full text-sm text-neutral-100 outline-none"
+      value={card[field]}
+      onChange={(e) => updateCard(card.id, { [field]: e.target.value })}
+    />
+  )
+}
+
+function ExtraFieldCell({
+  card,
+  col,
+  updateCard,
+  cardTypes,
+  rarities,
+}: {
+  card: CardData
+  col: CsvColumnDef
+  updateCard: (id: string, partial: Partial<CardData>) => void
+  cardTypes: string[]
+  rarities: string[]
+}) {
+  const key = col.name.toLowerCase()
+  const val = card.extras?.[key]
+
+  function setVal(next: string | number | undefined) {
+    const nextExtras = { ...(card.extras ?? {}) }
+    if (next === undefined || next === '') {
+      delete nextExtras[key]
+    } else {
+      nextExtras[key] = next
+    }
+    updateCard(card.id, { extras: nextExtras })
+  }
+
+  if (col.type === 'number') {
+    return (
+      <input
+        aria-label={key}
+        type="number"
+        className="bg-transparent w-16 text-sm text-neutral-100 outline-none"
+        value={typeof val === 'number' ? val : ''}
+        onChange={(e) => setVal(e.target.value === '' ? undefined : parseInt(e.target.value, 10))}
+      />
+    )
+  }
+
+  if (col.type === 'select' || col.type === 'select-type' || col.type === 'select-rarity') {
+    const choices =
+      col.type === 'select' ? (col.choices ?? []) :
+      col.type === 'select-type' ? cardTypes :
+      rarities
+    const current = val !== undefined ? String(val) : ''
+    return (
+      <select
+        aria-label={key}
+        className="bg-neutral-800 text-sm text-neutral-100 rounded"
+        value={current}
+        onChange={(e) => setVal(e.target.value || undefined)}
+      >
+        <option value="">(none)</option>
+        {!choices.includes(current) && current && <option value={current}>{current}</option>}
+        {choices.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+    )
+  }
+
+  return (
+    <input
+      aria-label={key}
+      className="bg-transparent w-full text-sm text-neutral-100 outline-none"
+      value={val !== undefined ? String(val) : ''}
+      onChange={(e) => setVal(e.target.value || undefined)}
+    />
+  )
+}
+
+const DEFAULT_SIZE_BY_TYPE: Record<string, number> = {
+  text: 150,
+  number: 70,
+  select: 100,
+  'select-type': 100,
+  'select-rarity': 80,
+  'select-class': 100,
+}
+
+const CORE_SIZE_OVERRIDES: Record<string, number> = {
+  name: 150,
+  class: 100,
+  type: 100,
+  rarity: 80,
+  effect: 280,
+}
+
 export function CardTable() {
   const project = useProjectStore((s) => s.project)
-  const csvColumns = useMemo(() => project?.csvColumns ?? DEFAULT_CSV_COLUMNS, [project])
-  const cardTypes = useMemo(() => project?.cardTypes ?? [], [project])
-  const rarities = useMemo(() => project ? Object.keys(project.rarityConfig) : [], [project])
-  const classes = useMemo(() => project ? Object.keys(project.classColors) : [], [project])
+  const csvColumns = project?.csvColumns ?? DEFAULT_CSV_COLUMNS
+  const cardTypes = project?.cardTypes ?? []
+  const rarityConfig = project?.rarityConfig
+  const classColors = project?.classColors
+  const rarities = useMemo(() => rarityConfig ? Object.keys(rarityConfig) : [], [rarityConfig])
+  const classes = useMemo(() => classColors ? Object.keys(classColors) : [], [classColors])
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -75,8 +204,8 @@ export function CardTable() {
   const [globalFilter, setGlobalFilter] = useState('')
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 
-  const columns = useMemo<ColumnDef<CardData>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<CardData>[]>(() => {
+    const cols: ColumnDef<CardData>[] = [
       {
         id: 'delete',
         header: '',
@@ -95,192 +224,45 @@ export function CardTable() {
           </button>
         ),
       },
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        size: 150,
-        minSize: 60,
-        cell: ({ row }) => (
-          <input
-            aria-label="name"
-            className="bg-transparent w-full text-sm text-neutral-100 outline-none"
-            value={row.original.name}
-            onChange={(e) => updateCard(row.original.id, { name: e.target.value })}
-          />
-        ),
-      },
-      {
-        accessorKey: 'class',
-        header: 'Class',
-        size: 100,
-        minSize: 60,
-        cell: ({ row }) => (
-          <input
-            aria-label="class"
-            className="bg-transparent w-full text-sm text-neutral-100 outline-none"
-            value={row.original.class}
-            onChange={(e) => updateCard(row.original.id, { class: e.target.value })}
-          />
-        ),
-      },
-      {
-        accessorKey: 'type',
-        header: 'Type',
-        size: 100,
-        minSize: 60,
+    ]
+
+    for (const col of csvColumns) {
+      const key = col.name.toLowerCase()
+      const size = CORE_SIZE_OVERRIDES[key] ?? DEFAULT_SIZE_BY_TYPE[col.type] ?? 100
+      cols.push({
+        id: key,
+        accessorFn: (card) => getCellValue(card, key),
+        header: col.name,
+        size,
+        minSize: 50,
         cell: ({ row }) => {
-          const knownTypes = project?.cardTypes ?? []
-          const currentType = row.original.type
-          const isUnknown = !knownTypes.includes(currentType)
+          const card = row.original
+          if (isCoreField(key)) {
+            return (
+              <CoreFieldCell
+                card={card}
+                field={key}
+                updateCard={updateCard}
+                cardTypes={cardTypes}
+                rarities={rarities}
+              />
+            )
+          }
           return (
-            <select
-              aria-label="type"
-              className="bg-neutral-800 text-sm text-neutral-100 rounded"
-              value={currentType}
-              onChange={(e) => updateCard(row.original.id, { type: e.target.value })}
-            >
-              {isUnknown && (
-                <option value={currentType}>{currentType}</option>
-              )}
-              {knownTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <ExtraFieldCell
+              card={card}
+              col={col}
+              updateCard={updateCard}
+              cardTypes={cardTypes}
+              rarities={rarities}
+            />
           )
         },
-      },
-      {
-        accessorKey: 'rarity',
-        header: 'Rarity',
-        size: 80,
-        minSize: 60,
-        cell: ({ row }) => (
-          <select
-            aria-label="rarity"
-            className="bg-neutral-800 text-sm text-neutral-100 rounded"
-            value={row.original.rarity}
-            onChange={(e) => updateCard(row.original.id, { rarity: e.target.value as Rarity })}
-          >
-            {RARITIES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        ),
-      },
-      {
-        accessorKey: 'cost',
-        header: 'Cost',
-        size: 64,
-        minSize: 50,
-        cell: ({ row }) => (
-          <input
-            aria-label="cost"
-            type="number"
-            min={0}
-            className="bg-transparent w-12 text-sm text-neutral-100 outline-none disabled:opacity-30"
-            value={row.original.cost ?? ''}
-            disabled={isCellDisabled('cost', row.original.type)}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
-              updateCard(row.original.id, { cost: val })
-            }}
-          />
-        ),
-      },
-      {
-        accessorKey: 'power',
-        header: 'Power',
-        size: 70,
-        minSize: 50,
-        cell: ({ row }) => (
-          <input
-            aria-label="power"
-            type="number"
-            min={0}
-            className="bg-transparent w-12 text-sm text-neutral-100 outline-none disabled:opacity-30"
-            value={row.original.power ?? ''}
-            disabled={isCellDisabled('power', row.original.type)}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
-              updateCard(row.original.id, { power: val })
-            }}
-          />
-        ),
-      },
-      {
-        accessorKey: 'hp',
-        header: 'HP',
-        size: 64,
-        minSize: 50,
-        cell: ({ row }) => (
-          <input
-            aria-label="hp"
-            type="number"
-            min={0}
-            className="bg-transparent w-12 text-sm text-neutral-100 outline-none disabled:opacity-30"
-            value={row.original.hp ?? ''}
-            disabled={isCellDisabled('hp', row.original.type)}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
-              updateCard(row.original.id, { hp: val })
-            }}
-          />
-        ),
-      },
-      {
-        accessorKey: 'vp',
-        header: 'VP',
-        size: 64,
-        minSize: 50,
-        cell: ({ row }) => (
-          <input
-            aria-label="vp"
-            type="number"
-            min={0}
-            className="bg-transparent w-12 text-sm text-neutral-100 outline-none disabled:opacity-30"
-            value={row.original.vp ?? ''}
-            disabled={isCellDisabled('vp', row.original.type)}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
-              updateCard(row.original.id, { vp: val })
-            }}
-          />
-        ),
-      },
-      {
-        accessorKey: 'speed',
-        header: 'Speed',
-        size: 70,
-        minSize: 50,
-        cell: ({ row }) => (
-          <input
-            aria-label="speed"
-            type="number"
-            min={1}
-            max={3}
-            className="bg-transparent w-12 text-sm text-neutral-100 outline-none disabled:opacity-30"
-            value={row.original.speed ?? ''}
-            disabled={isCellDisabled('speed', row.original.type)}
-            onChange={(e) => {
-              const val = e.target.value === '' ? undefined : parseInt(e.target.value, 10)
-              updateCard(row.original.id, { speed: val })
-            }}
-          />
-        ),
-      },
-      {
-        accessorKey: 'effect',
-        header: 'Effect',
-        size: 280,
-        minSize: 80,
-        cell: ({ row }) => (
-          <input
-            aria-label="effect"
-            className="bg-transparent w-full text-sm text-neutral-100 outline-none"
-            value={row.original.effect}
-            onChange={(e) => updateCard(row.original.id, { effect: e.target.value })}
-          />
-        ),
-      },
-    ],
-    [updateCard, deleteCard],
-  )
+      })
+    }
+
+    return cols
+  }, [csvColumns, cardTypes, rarities, updateCard, deleteCard])
 
   const table = useReactTable({
     data: project?.cards ?? [],
@@ -326,6 +308,7 @@ export function CardTable() {
               type: project.cardTypes[0] ?? '',
               rarity: 'common',
               effect: '',
+              extras: {},
             })
           }
           className="px-3 py-1 text-sm rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"

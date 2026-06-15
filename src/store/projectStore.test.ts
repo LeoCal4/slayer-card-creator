@@ -71,14 +71,14 @@ describe('addCard / updateCard / deleteCard', () => {
 
   it('addCard appends a card', () => {
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Draw.',
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Draw.', extras: {},
     })
     expect(useProjectStore.getState().project?.cards).toHaveLength(1)
   })
 
   it('updateCard modifies the matching card only', () => {
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Draw.',
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Draw.', extras: {},
     })
     useProjectStore.getState().updateCard('c1', { name: 'Updated' })
     expect(useProjectStore.getState().project?.cards[0].name).toBe('Updated')
@@ -86,7 +86,7 @@ describe('addCard / updateCard / deleteCard', () => {
 
   it('deleteCard removes by id', () => {
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Draw.',
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Draw.', extras: {},
     })
     useProjectStore.getState().deleteCard('c1')
     expect(useProjectStore.getState().project?.cards).toHaveLength(0)
@@ -123,7 +123,7 @@ describe('addCardType / deleteCardType / renameCardType', () => {
 
   it('deleteCardType reassigns cards of that type to the first remaining type', () => {
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x',
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x', extras: {},
     })
     useProjectStore.getState().deleteCardType('Action')
     expect(useProjectStore.getState().project?.cards[0].type).not.toBe('Action')
@@ -144,7 +144,7 @@ describe('addCardType / deleteCardType / renameCardType', () => {
 
   it('renameCardType updates card types in cards', () => {
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x',
+      id: 'c1', name: 'Test', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x', extras: {},
     })
     useProjectStore.getState().renameCardType('Action', 'Spell')
     expect(useProjectStore.getState().project?.cards[0].type).toBe('Spell')
@@ -248,7 +248,7 @@ describe('dirty state tracking', () => {
     useProjectStore.getState().newProject()
     freshUiStore()
     useProjectStore.getState().addCard({
-      id: 'c1', name: 'T', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x',
+      id: 'c1', name: 'T', class: 'Mage', type: 'Action', rarity: 'common', effect: 'x', extras: {},
     })
     expect(useUiStore.getState().isDirty).toBe(true)
   })

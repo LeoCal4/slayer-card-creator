@@ -87,5 +87,18 @@ export function deserialize(raw: string): ProjectFile {
   if (!parsed.csvColumns) {
     parsed.csvColumns = DEFAULT_CSV_COLUMNS.map((c) => ({ ...c, choices: c.choices ? [...c.choices] : undefined }))
   }
+  // Migrate: move legacy hardcoded card number fields into the extras bag
+  if (Array.isArray(parsed.cards)) {
+    const LEGACY_NUMBER_FIELDS = ['cost', 'power', 'hp', 'vp', 'speed'] as const
+    for (const card of parsed.cards) {
+      if (!card.extras || typeof card.extras !== 'object') card.extras = {}
+      for (const f of LEGACY_NUMBER_FIELDS) {
+        if (card[f] !== undefined && card[f] !== null && !(f in card.extras)) {
+          card.extras[f] = card[f]
+        }
+        delete card[f]
+      }
+    }
+  }
   return parsed as ProjectFile
 }

@@ -38,8 +38,8 @@ function setupProject() {
       ...p,
       set: { name: 'My Set', code: 'MST', type: 'Core', releaseDate: '' },
       cards: [
-        { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '' },
-        { id: 'c2', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: '' },
+        { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {} },
+        { id: 'c2', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: '', extras: {} },
       ],
       artFolderPath: '/art',
     },

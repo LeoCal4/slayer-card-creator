@@ -17,7 +17,7 @@ vi.stubGlobal('URL', {
 })
 
 const card: CardData = {
-  id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '',
+  id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {},
 }
 
 const template: Template = {

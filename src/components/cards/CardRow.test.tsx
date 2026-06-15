@@ -10,7 +10,7 @@ import type { CardData } from '@/types/card'
 
 const COLS: ColumnDef<CardData>[] = [
   { accessorKey: 'name',   header: 'Name',   cell: ({ row }) => <input aria-label="name"   value={row.original.name}   readOnly /> },
-  { accessorKey: 'power',  header: 'Power',  cell: ({ row }) => <input aria-label="power"  value={row.original.power  ?? ''} readOnly /> },
+  { accessorKey: 'power',  header: 'Power',  cell: ({ row }) => <input aria-label="power"  value={row.original.extras?.power  ?? ''} readOnly /> },
   { accessorKey: 'effect', header: 'Effect', cell: ({ row }) => <input aria-label="effect" value={row.original.effect} readOnly /> },
 ]
 
@@ -34,7 +34,7 @@ function TableWrapper({
 
 const BASE_CARD: CardData = {
   id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer',
-  rarity: 'common', cost: 3, power: 4, hp: 5, effect: 'Strike.',
+  rarity: 'common', effect: 'Strike.', extras: { cost: 3, power: 4, hp: 5 },
 }
 
 describe('CardRow', () => {

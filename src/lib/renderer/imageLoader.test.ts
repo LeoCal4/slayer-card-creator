@@ -16,8 +16,8 @@ const baseProject: ProjectFile = {
   },
   templates: [],
   cards: [
-    { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '' },
-    { id: 'c2', name: 'Shadowblade', class: 'Rogue', type: 'Errant', rarity: 'rare', effect: '' },
+    { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '', extras: {} },
+    { id: 'c2', name: 'Shadowblade', class: 'Rogue', type: 'Errant', rarity: 'rare', effect: '', extras: {} },
   ],
   artFolderPath: '/art',
   customImages: {

@@ -1,4 +1,4 @@
-import type { CardData, CardType } from './card'
+import type { CardType } from './card'
 
 interface LayerBase {
   id: string
@@ -9,7 +9,7 @@ interface LayerBase {
   label?: string
   visible?: boolean
   locked?: boolean
-  showIfField?: keyof CardData
+  showIfField?: string
 }
 
 export interface RectLayer extends LayerBase {
@@ -34,7 +34,7 @@ export interface ImageLayer extends LayerBase {
 
 export interface TextLayer extends LayerBase {
   type: 'text'
-  field?: keyof CardData | 'stats' | 'statsVP'
+  field?: string
   staticText?: string
   fontSize: number
   fontFamily?: string
@@ -48,7 +48,7 @@ export interface TextLayer extends LayerBase {
 export interface BadgeLayer extends LayerBase {
   type: 'badge'
   shape: 'circle' | 'banner'
-  field: keyof CardData
+  field: string
   fill?: string
   fillSource?: 'class.primary' | 'class.secondary'
   textFill?: string

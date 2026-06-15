@@ -10,13 +10,13 @@ function setup() {
   useUiStore.setState({ isDirty: false, previewCardId: null })
   useProjectStore.getState().newProject()
   useProjectStore.getState().addCard({
-    id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: '', cost: 3,
+    id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: '', extras: { cost: 3 },
   })
   useProjectStore.getState().addCard({
-    id: 'c2', name: 'Dragonslayer', class: 'Warrior', type: 'Slayer', rarity: 'rare', effect: '', power: 4, hp: 4,
+    id: 'c2', name: 'Dragonslayer', class: 'Warrior', type: 'Slayer', rarity: 'rare', effect: '', extras: { power: 4, hp: 4 },
   })
   useProjectStore.getState().addCard({
-    id: 'c3', name: 'Frost Nova', class: 'Mage', type: 'Action', rarity: 'epic', effect: '', cost: 2,
+    id: 'c3', name: 'Frost Nova', class: 'Mage', type: 'Action', rarity: 'epic', effect: '', extras: { cost: 2 },
   })
 }
 
@@ -60,7 +60,7 @@ describe('PreviewCardSelector', () => {
 
   it('lists matching cards in alphabetical order', () => {
     useProjectStore.getState().addCard({
-      id: 'c4', name: 'Arctic Blast', class: 'Mage', type: 'Action', rarity: 'common', effect: '',
+      id: 'c4', name: 'Arctic Blast', class: 'Mage', type: 'Action', rarity: 'common', effect: '', extras: {},
     })
     render(<PreviewCardSelector cardTypes={['Action']} />)
     const opts = within(screen.getByRole('combobox', { name: /preview as/i })).getAllByRole('option')

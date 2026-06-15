@@ -7,7 +7,7 @@ import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, Rar
 const baseCtx: RenderContext = {
   card: {
     id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer',
-    rarity: 'common', effect: 'Charge.', cost: 3, power: 2, hp: 4,
+    rarity: 'common', effect: 'Charge.', extras: { cost: 3, power: 2, hp: 4 },
   },
   template: {
     id: 'tmpl-1', name: 'Slayer', cardTypes: ['Slayer'],
@@ -176,7 +176,7 @@ describe('renderBadge', () => {
   })
 
   it('returns a Konva.Group for banner shape', () => {
-    const ctx = { ...baseCtx, card: { ...baseCtx.card, speed: 2 } }
+    const ctx = { ...baseCtx, card: { ...baseCtx.card, extras: { ...baseCtx.card.extras, speed: 2 } } }
     const node = renderBadge(baseBannerBadge, ctx)
     expect(node).toBeInstanceOf(Konva.Group)
     expect(node!.attrs.x).toBe(20)

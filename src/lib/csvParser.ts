@@ -1,6 +1,8 @@
 import Papa from 'papaparse'
 import type { CardData, CardType, Rarity } from '@/types/card'
+import { isCoreField } from '@/types/card'
 import type { CsvColumnDef } from '@/types/project'
+
 const RARITY_ALIASES: Record<string, string> = {
   comune: 'common',
   rara: 'rare',
@@ -46,12 +48,23 @@ export function mergeByName(existing: CardData[], incoming: CardData[]): CardDat
   for (const card of incoming) {
     const idx = result.findIndex((c) => c.name === card.name)
     if (idx !== -1) {
-      result[idx] = { ...result[idx], ...card, id: result[idx].id }
+      const prev = result[idx]
+      result[idx] = {
+        ...prev,
+        ...card,
+        id: prev.id,
+        extras: { ...prev.extras, ...card.extras },
+      }
     } else {
       result.push(card)
     }
   }
   return result
+}
+
+function parseRarity(raw: string): Rarity {
+  const rarityInput = raw.toLowerCase() || 'common'
+  return ((RARITY_ALIASES[rarityInput] ?? rarityInput) || 'common') as Rarity
 }
 
 export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
@@ -76,37 +89,36 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
       return { cards, errors }
     }
 
-    const colMap = new Map(csvColumns.map((c) => [c.name.toLowerCase(), c]))
-
     parsed.data.forEach((row, i) => {
       const rowNum = i + 2
       const typeRaw = cleanValue(row['type'])
 
-      // If validTypes is provided, warn about unknown types but still import the row
       if (validTypesSet && !validTypesSet.has(typeRaw)) {
         errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
       }
 
-      function getNum(key: string): number | undefined {
-        const colDef = colMap.get(key)
-        return colDef?.type === 'number' ? sanitizeNumber(row[key]) : sanitizeNumber(row[key])
+      const extras: Record<string, string | number> = {}
+      for (const col of csvColumns) {
+        const key = col.name.toLowerCase()
+        if (isCoreField(key)) continue
+        const cellVal = row[key]
+        if (col.type === 'number') {
+          const n = sanitizeNumber(cellVal)
+          if (n !== undefined) extras[key] = n
+        } else {
+          const s = cleanValue(cellVal)
+          if (s) extras[key] = s
+        }
       }
-
-      const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
-      const rarity = ((RARITY_ALIASES[rarityInput] ?? rarityInput) || 'common') as Rarity
 
       cards.push({
         id: crypto.randomUUID(),
         name: cleanValue(row['name']),
         class: normalizeClass(cleanValue(row['class'])),
         type: typeRaw as CardType,
-        rarity,
-        cost: getNum('cost'),
-        power: getNum('power'),
-        hp: getNum('hp'),
-        vp: getNum('vp'),
-        speed: getNum('speed'),
+        rarity: parseRarity(cleanValue(row['rarity'])),
         effect: cleanValue(row['effect']),
+        extras,
       })
     })
 
@@ -126,9 +138,7 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
 
     const typeRaw = cleanValue(row['type'])
     const rarityInput = cleanValue(row['rarity']).toLowerCase() || 'common'
-    const rarityRaw = (RARITY_ALIASES[rarityInput] ?? rarityInput) as Rarity
 
-    // Unknown type is a warning — row still imported
     if (validTypesSet && !validTypesSet.has(typeRaw)) {
       errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
     }
@@ -139,18 +149,21 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
     errors.push(...rowErrors)
     if (rowErrors.length > 0) return
 
+    const extras: Record<string, string | number> = {}
+    const cost = sanitizeNumber(row['cost']); if (cost !== undefined) extras['cost'] = cost
+    const power = sanitizeNumber(row['power']); if (power !== undefined) extras['power'] = power
+    const hp = sanitizeNumber(row['hp']); if (hp !== undefined) extras['hp'] = hp
+    const vp = sanitizeNumber(row['vp']); if (vp !== undefined) extras['vp'] = vp
+    const speed = sanitizeNumber(row['speed']); if (speed !== undefined) extras['speed'] = speed
+
     cards.push({
       id: crypto.randomUUID(),
       name: cleanValue(row['name']),
       class: normalizeClass(cleanValue(row['class'])),
       type: typeRaw as CardType,
-      rarity: rarityRaw,
-      cost: sanitizeNumber(row['cost']),
-      power: sanitizeNumber(row['power']),
-      hp: sanitizeNumber(row['hp']),
-      vp: sanitizeNumber(row['vp']),
-      speed: sanitizeNumber(row['speed']),
+      rarity: parseRarity(cleanValue(row['rarity'])),
       effect: cleanValue(row['effect']),
+      extras,
     })
   })
 

@@ -5,7 +5,7 @@ import type { RectLayer } from '@/types/template'
 
 const CARD: CardData = {
   id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action',
-  rarity: 'common', cost: 3, effect: 'Deal 3 damage.',
+  rarity: 'common', effect: 'Deal 3 damage.', extras: { cost: 3 },
 }
 
 const CLASS_COLORS = {
@@ -23,12 +23,12 @@ describe('shouldShowLayer', () => {
   })
 
   it('returns false when the card field is undefined', () => {
-    const cardNoCost = { ...CARD, cost: undefined }
+    const cardNoCost = { ...CARD, extras: { ...CARD.extras, cost: undefined as unknown as number } }
     expect(shouldShowLayer({ showIfField: 'cost' }, cardNoCost)).toBe(false)
   })
 
   it('returns false when the card field is 0', () => {
-    const cardZeroCost = { ...CARD, cost: 0 }
+    const cardZeroCost = { ...CARD, extras: { ...CARD.extras, cost: 0 } }
     expect(shouldShowLayer({ showIfField: 'cost' }, cardZeroCost)).toBe(false)
   })
 
@@ -46,7 +46,7 @@ describe('shouldShowLayer', () => {
 describe('resolveFieldText', () => {
   const CARD_FULL: CardData = {
     id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action',
-    rarity: 'common', cost: 3, effect: 'Deal 3 damage.', power: 4, hp: 2, vp: 1,
+    rarity: 'common', effect: 'Deal 3 damage.', extras: { cost: 3, power: 4, hp: 2, vp: 1 },
   }
 
   it('returns [field] placeholder when no card provided', () => {
@@ -68,7 +68,7 @@ describe('resolveFieldText', () => {
   })
 
   it('uses dash when power or hp is undefined in stats', () => {
-    const noStats = { ...CARD_FULL, power: undefined, hp: undefined }
+    const noStats = { ...CARD_FULL, extras: { ...CARD_FULL.extras, power: undefined as unknown as number, hp: undefined as unknown as number } }
     expect(resolveFieldText('stats', noStats)).toBe('-/-')
   })
 
@@ -77,7 +77,7 @@ describe('resolveFieldText', () => {
   })
 
   it('returns [field] when the field is undefined on the card', () => {
-    const noCost = { ...CARD_FULL, cost: undefined }
+    const noCost = { ...CARD_FULL, extras: { ...CARD_FULL.extras, cost: undefined as unknown as number } }
     expect(resolveFieldText('cost', noCost)).toBe('[cost]')
   })
 

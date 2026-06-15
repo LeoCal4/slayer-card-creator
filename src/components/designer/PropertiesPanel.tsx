@@ -2,19 +2,24 @@ import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { ColorPicker } from '@/components/common/ColorPicker'
 import { pushSnapshot } from '@/lib/undoRedo'
-import type { CardData } from '@/types/card'
 import type { RectLayer, TextLayer, ImageLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
+
+function useFieldOptions() {
+  const csvColumns = useProjectStore((s) => s.project?.csvColumns ?? [])
+  return csvColumns.map((c) => c.name.toLowerCase())
+}
+
+function useNumberFieldOptions() {
+  const csvColumns = useProjectStore((s) => s.project?.csvColumns ?? [])
+  return csvColumns.filter((c) => c.type === 'number').map((c) => c.name.toLowerCase())
+}
 
 function snapshotLayers(templateId: string) {
   const layers = useProjectStore.getState().project?.templates.find((t) => t.id === templateId)?.layers ?? []
   pushSnapshot(layers)
 }
 
-const SHOW_IF_OPTIONS: (keyof CardData | '')[] = ['', 'cost', 'power', 'hp', 'vp', 'speed', 'effect']
-
-const TEXT_FIELDS: (keyof CardData | 'stats' | 'statsVP' | '')[] = [
-  '', 'name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'speed', 'effect', 'stats', 'statsVP',
-]
+const EXTRA_TEXT_FIELDS = ['stats', 'statsVP'] as const
 
 const FONT_STYLES = ['normal', 'bold', 'italic', 'bold italic'] as const
 const ALIGN_OPTIONS = ['left', 'center', 'right'] as const
@@ -61,6 +66,32 @@ function ColorRow({ label, value, onChange, onPickerOpen }: { label: string; val
   )
 }
 
+function ShowIfFieldSelect<T extends { showIfField?: string }>({
+  value,
+  onChange,
+}: {
+  value: string | undefined
+  onChange: (next: T['showIfField']) => void
+}) {
+  const options = useFieldOptions()
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
+      <select
+        aria-label="Show If Field"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value || undefined)}
+        className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+        <option value="">(always)</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<RectLayer>) => updateLayer(templateId, layer.id, partial)
@@ -101,19 +132,10 @@ function RectProps({ layer, templateId }: { layer: RectLayer; templateId: string
       <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} onPickerOpen={snap} />
       <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} onFocus={snap} />
       <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} onFocus={snap} />
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
-        <select
-          aria-label="Show If Field"
-          value={layer.showIfField ?? ''}
-          onChange={(e) => { snap(); up({ showIfField: (e.target.value as keyof CardData) || undefined }) }}
-          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {SHOW_IF_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>{opt || '(always)'}</option>
-          ))}
-        </select>
-      </div>
+      <ShowIfFieldSelect
+        value={layer.showIfField}
+        onChange={(next) => { snap(); up({ showIfField: next }) }}
+      />
     </div>
   )
 }
@@ -162,19 +184,10 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
           />
         </div>
       ) : (
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
-          <select
-            aria-label="Field"
-            value={layer.field ?? ''}
-            onChange={(e) => { snap(); up({ field: (e.target.value as TextLayer['field']) || undefined }) }}
-            className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
-          >
-            {TEXT_FIELDS.map((f) => (
-              <option key={f} value={f}>{f || '(none)'}</option>
-            ))}
-          </select>
-        </div>
+        <TextFieldSelect
+          value={layer.field}
+          onChange={(next) => { snap(); up({ field: next }) }}
+        />
       )}
       <NumInput label="Font Size" value={layer.fontSize} onChange={(v) => up({ fontSize: v })} min={6} onFocus={snap} />
       <div className="flex items-center gap-2">
@@ -205,24 +218,40 @@ function TextProps({ layer, templateId }: { layer: TextLayer; templateId: string
         </select>
       </div>
       <NumInput label="Line Height" value={layer.lineHeight} onChange={(v) => up({ lineHeight: v })} min={0.5} max={5} step={0.1} onFocus={snap} />
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
-        <select
-          aria-label="Show If Field"
-          value={layer.showIfField ?? ''}
-          onChange={(e) => { snap(); up({ showIfField: (e.target.value as keyof CardData) || undefined }) }}
-          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {SHOW_IF_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>{opt || '(always)'}</option>
-          ))}
-        </select>
-      </div>
+      <ShowIfFieldSelect
+        value={layer.showIfField}
+        onChange={(next) => { snap(); up({ showIfField: next }) }}
+      />
     </div>
   )
 }
 
-const BADGE_FIELDS: (keyof CardData)[] = ['cost', 'power', 'hp', 'vp', 'speed']
+function TextFieldSelect({
+  value,
+  onChange,
+}: {
+  value: string | undefined
+  onChange: (next: string | undefined) => void
+}) {
+  const options = useFieldOptions()
+  const allOptions = [...options, ...EXTRA_TEXT_FIELDS]
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
+      <select
+        aria-label="Field"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value || undefined)}
+        className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+        <option value="">(none)</option>
+        {allOptions.map((f) => (
+          <option key={f} value={f}>{f}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
 
 function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
@@ -287,6 +316,32 @@ function ImageProps({ layer, templateId }: { layer: ImageLayer; templateId: stri
   )
 }
 
+function BadgeFieldSelect({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (next: string) => void
+}) {
+  const options = useNumberFieldOptions()
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
+      <select
+        aria-label="Field"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+        {!options.includes(value) && value && <option value={value}>{value}</option>}
+        {options.map((f) => (
+          <option key={f} value={f}>{f}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: string }) {
   const updateLayer = useProjectStore((s) => s.updateLayer)
   const up = (partial: Partial<BadgeLayer>) => updateLayer(templateId, layer.id, partial)
@@ -299,19 +354,10 @@ function BadgeProps({ layer, templateId }: { layer: BadgeLayer; templateId: stri
       <NumInput label="Y" value={layer.y} onChange={(v) => up({ y: v })} onFocus={snap} />
       <NumInput label="Width" value={layer.width} onChange={(v) => up({ width: v })} min={1} onFocus={snap} />
       <NumInput label="Height" value={layer.height} onChange={(v) => up({ height: v })} min={1} onFocus={snap} />
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Field</label>
-        <select
-          aria-label="Field"
-          value={layer.field}
-          onChange={(e) => { snap(); up({ field: e.target.value as BadgeLayer['field'] }) }}
-          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {BADGE_FIELDS.map((f) => (
-            <option key={f} value={f}>{f}</option>
-          ))}
-        </select>
-      </div>
+      <BadgeFieldSelect
+        value={layer.field}
+        onChange={(next) => { snap(); up({ field: next }) }}
+      />
       <div className="flex items-center gap-2">
         <label className="text-xs text-neutral-500 w-24 shrink-0">Fill Source</label>
         <select
@@ -383,19 +429,10 @@ function RarityDiamondProps({ layer, templateId }: { layer: RarityDiamondLayer; 
       <ColorRow label="Stroke" value={layer.stroke} onChange={(v) => up({ stroke: v })} onPickerOpen={snap} />
       <NumInput label="Stroke Width" value={layer.strokeWidth} onChange={(v) => up({ strokeWidth: v })} min={0} onFocus={snap} />
       <NumInput label="Opacity" value={layer.opacity} onChange={(v) => up({ opacity: v })} min={0} max={1} step={0.1} onFocus={snap} />
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-neutral-500 w-24 shrink-0">Show If Field</label>
-        <select
-          aria-label="Show If Field"
-          value={layer.showIfField ?? ''}
-          onChange={(e) => { snap(); up({ showIfField: (e.target.value as keyof CardData) || undefined }) }}
-          className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          {SHOW_IF_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>{opt || '(always)'}</option>
-          ))}
-        </select>
-      </div>
+      <ShowIfFieldSelect
+        value={layer.showIfField}
+        onChange={(next) => { snap(); up({ showIfField: next }) }}
+      />
     </div>
   )
 }

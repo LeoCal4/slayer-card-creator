@@ -10,10 +10,10 @@ function setupProject() {
   useUiStore.setState({ isDirty: false })
   useProjectStore.getState().newProject()
   useProjectStore.getState().addCard({
-    id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3 damage.',
+    id: 'c1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3 damage.', extras: {},
   })
   useProjectStore.getState().addCard({
-    id: 'c2', name: 'Arrow Shot', class: 'Hunter', type: 'Ploy', rarity: 'rare', effect: 'Pierce armor.',
+    id: 'c2', name: 'Arrow Shot', class: 'Hunter', type: 'Ploy', rarity: 'rare', effect: 'Pierce armor.', extras: {},
   })
 }
 
@@ -88,20 +88,6 @@ describe('CardTable', () => {
     expect(useProjectStore.getState().project!.cards.find((c) => c.id === 'c1')?.name).toBe('Inferno')
   })
 
-  it('power and hp inputs are disabled for non-fighter card types', () => {
-    render(<CardTable />)
-    const powerInputs = screen.getAllByRole('spinbutton', { name: /power/i })
-    const hpInputs = screen.getAllByRole('spinbutton', { name: /hp/i })
-    powerInputs.forEach((input) => expect(input).toBeDisabled())
-    hpInputs.forEach((input) => expect(input).toBeDisabled())
-  })
-
-  it('vp input is disabled for non-Errant card types', () => {
-    render(<CardTable />)
-    const vpInputs = screen.getAllByRole('spinbutton', { name: /vp/i })
-    vpInputs.forEach((input) => expect(input).toBeDisabled())
-  })
-
   it('shows empty state when no project is loaded', () => {
     useProjectStore.setState({ project: null })
     render(<CardTable />)
@@ -120,17 +106,10 @@ describe('CardTable', () => {
     expect(screen.getByRole('columnheader', { name: /speed/i })).toBeInTheDocument()
   })
 
-  it('speed input is enabled for Action type cards', () => {
-    render(<CardTable />)
-    const speedInputs = screen.getAllByRole('spinbutton', { name: /speed/i })
-    // c1 is Action, c2 is Ploy — both playable, so enabled
-    speedInputs.forEach((input) => expect(input).not.toBeDisabled())
-  })
-
   it('shows yellow outline on a number-column cell when the value is missing', () => {
     // Add a card missing 'cost' (which is a number column in default csvColumns)
     useProjectStore.getState().addCard({
-      id: 'c3', name: 'Ghost', class: '', type: 'Action', rarity: 'common', effect: 'Haunt.',
+      id: 'c3', name: 'Ghost', class: '', type: 'Action', rarity: 'common', effect: 'Haunt.', extras: {},
       // cost is undefined → anomalous for number column, but Action cards have cost enabled
     })
     const { container } = render(<CardTable />)
@@ -143,16 +122,6 @@ describe('CardTable', () => {
     expect(cells[5].className).toContain('yellow')
   })
 
-  it('does NOT show yellow outline on a disabled cell even when value is missing', () => {
-    // Action cards have 'power' disabled
-    const { container } = render(<CardTable />)
-    const rows = container.querySelectorAll('tbody tr')
-    // c1 = Fireball (Action) — power is disabled, should not be anomalous
-    const cells = rows[0].querySelectorAll('td')
-    // power column is index 6 (delete=0, name=1, class=2, type=3, rarity=4, cost=5, power=6)
-    expect(cells[6].className).not.toContain('yellow')
-  })
-
   it('shows yellow outline on a select-type cell when value is not in choices', () => {
     // rarity column is 'select' with choices [common, rare, epic]
     // All test cards have valid rarities so let's directly check no yellow on rarity
@@ -161,15 +130,5 @@ describe('CardTable', () => {
     expect(screen.getByRole('columnheader', { name: /rarity/i })).toBeInTheDocument()
   })
 
-  it('speed input is disabled for Dungeon type cards', () => {
-    useProjectStore.getState().addCard({
-      id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
-    })
-    render(<CardTable />)
-    // There are now 3 cards: Action, Ploy, Dungeon. Only Dungeon should have disabled speed.
-    const speedInputs = screen.getAllByRole('spinbutton', { name: /speed/i })
-    const disabledInputs = speedInputs.filter((input) => (input as HTMLInputElement).disabled)
-    expect(disabledInputs).toHaveLength(1)
-  })
 })
 

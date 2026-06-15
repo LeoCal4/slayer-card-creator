@@ -36,30 +36,30 @@ describe('parseCSV', () => {
   it('sanitizes numeric fields — strips emoji and non-numeric chars', () => {
     const { cards, errors } = parseCSV(NUMERIC_CSV)
     expect(errors).toHaveLength(0)
-    expect(cards[0].cost).toBe(3)
-    expect(cards[0].power).toBe(5)
-    expect(cards[0].hp).toBe(8)
-    expect(cards[0].vp).toBeUndefined()
-    expect(cards[0].speed).toBe(2)
+    expect(cards[0].extras.cost).toBe(3)
+    expect(cards[0].extras.power).toBe(5)
+    expect(cards[0].extras.hp).toBe(8)
+    expect(cards[0].extras.vp).toBeUndefined()
+    expect(cards[0].extras.speed).toBe(2)
   })
 
   it('parses speed column as a number', () => {
     const csv = 'name,class,type,rarity,speed,effect\nRunner,Rogue,Slayer,common,3,Dash.'
     const { cards, errors } = parseCSV(csv)
     expect(errors).toHaveLength(0)
-    expect(cards[0].speed).toBe(3)
+    expect(cards[0].extras.speed).toBe(3)
   })
 
   it('returns undefined for empty speed field', () => {
     const csv = 'name,class,type,rarity,speed,effect\nFoo,Mage,Action,common,,Draw.'
     const { cards } = parseCSV(csv)
-    expect(cards[0].speed).toBeUndefined()
+    expect(cards[0].extras.speed).toBeUndefined()
   })
 
   it('returns undefined for empty numeric fields', () => {
     const csv = 'name,class,type,rarity,cost,effect\nFoo,Mage,Action,common,,Draw.'
     const { cards } = parseCSV(csv)
-    expect(cards[0].cost).toBeUndefined()
+    expect(cards[0].extras.cost).toBeUndefined()
   })
 
   it('returns an error (and no cards) when required columns are missing', () => {
@@ -220,7 +220,7 @@ describe('parseCSV with csvColumns option', () => {
     const csv = 'name,type,effect,cost\nFireball,Action,Burn.,3💰'
     const { cards, errors } = parseCSV(csv, { csvColumns: cols })
     expect(errors).toHaveLength(0)
-    expect(cards[0].cost).toBe(3)
+    expect(cards[0].extras.cost).toBe(3)
   })
 
   it('stores text-column values as strings', () => {
@@ -300,7 +300,7 @@ describe('parseCSV with csvColumns option', () => {
 
 describe('mergeByName', () => {
   const base: CardData = {
-    id: 'orig-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.',
+    id: 'orig-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.', extras: {},
   }
 
   it('keeps existing card with updated fields when names match', () => {
@@ -313,7 +313,7 @@ describe('mergeByName', () => {
 
   it('appends new cards that do not match any existing name', () => {
     const incoming: CardData = {
-      id: 'new-2', name: 'Iceball', class: 'Mage', type: 'Action', rarity: 'rare', effect: 'Freeze.',
+      id: 'new-2', name: 'Iceball', class: 'Mage', type: 'Action', rarity: 'rare', effect: 'Freeze.', extras: {},
     }
     const result = mergeByName([base], [incoming])
     expect(result).toHaveLength(2)
