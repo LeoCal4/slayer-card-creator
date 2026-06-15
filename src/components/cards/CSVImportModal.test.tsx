@@ -89,13 +89,13 @@ describe('CSVImportModal', () => {
     expect(screen.getByText(/INVALID/i)).toBeInTheDocument()
   })
 
-  it('"Proceed" in error dialog imports the valid rows', async () => {
+  it('"Proceed" in warning dialog imports all rows including warned ones', async () => {
     ;(window.electronAPI.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(ERROR_CSV)
     render(<CSVImportModal />)
     await userEvent.click(screen.getByRole('button', { name: /import csv/i }))
     await screen.findByRole('dialog')
     await userEvent.click(screen.getByRole('button', { name: /proceed/i }))
-    expect(useProjectStore.getState().project!.cards).toHaveLength(1)
+    expect(useProjectStore.getState().project!.cards).toHaveLength(2)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 

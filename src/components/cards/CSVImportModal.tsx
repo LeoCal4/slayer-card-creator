@@ -11,6 +11,7 @@ export function CSVImportModal() {
   const setCards = useProjectStore((s) => s.setCards)
   const existingCards = useProjectStore((s) => s.project?.cards) ?? []
   const validTypes = useProjectStore((s) => s.project?.cardTypes)
+  const csvColumns = useProjectStore((s) => s.project?.csvColumns)
 
   const [step, setStep] = useState<ModalStep | null>(null)
   const [delimiter, setDelimiter] = useState(',')
@@ -24,7 +25,7 @@ export function CSVImportModal() {
     if (!filePath) return
 
     const raw = await window.electronAPI.readFile(filePath)
-    const result = parseCSV(raw, { delimiter, validTypes })
+    const result = parseCSV(raw, { delimiter, validTypes, csvColumns })
 
     if (result.errors.length > 0) {
       setStep({ type: 'errors', errors: result.errors, cards: result.cards })
@@ -98,11 +99,11 @@ export function CSVImportModal() {
           <div className="bg-neutral-900 border border-neutral-700 rounded-xl p-8 w-[480px] max-h-[70vh] flex flex-col gap-5 shadow-2xl">
             {step.type === 'errors' && (
               <>
-                <h2 className="text-lg font-semibold text-neutral-100">Parse Warnings</h2>
+                <h2 className="text-lg font-semibold text-neutral-100">Import Warnings</h2>
                 <p className="text-sm text-neutral-400">
-                  The following rows were skipped. You can still proceed with the valid rows.
+                  The following issues were found. Affected rows will still be imported and shown with a warning highlight.
                 </p>
-                <ul className="flex-1 overflow-auto space-y-1 text-sm text-red-400 font-mono">
+                <ul className="flex-1 overflow-auto space-y-1 text-sm text-yellow-400 font-mono">
                   {step.errors.map((err, i) => (
                     <li key={i}>{err}</li>
                   ))}
@@ -118,7 +119,7 @@ export function CSVImportModal() {
                     onClick={handleProceedErrors}
                     className="px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-500 text-white"
                   >
-                    Proceed ({step.cards.length} valid rows)
+                    Proceed ({step.cards.length} rows)
                   </button>
                 </div>
               </>

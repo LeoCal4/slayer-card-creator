@@ -85,6 +85,22 @@ describe('resolveFieldText', () => {
     const card: CardData = { ...CARD_FULL, effect: 'Line one.\\nLine two.' }
     expect(resolveFieldText('effect', card)).toBe('Line one.\nLine two.')
   })
+
+  it('returns staticText as-is when provided, regardless of field', () => {
+    expect(resolveFieldText('name', CARD_FULL, 'Hello World')).toBe('Hello World')
+  })
+
+  it('returns empty staticText when staticText is an empty string', () => {
+    expect(resolveFieldText('name', CARD_FULL, '')).toBe('')
+  })
+
+  it('returns staticText even when card is null', () => {
+    expect(resolveFieldText('name', null, 'Static!')).toBe('Static!')
+  })
+
+  it('falls through to field logic when staticText is undefined', () => {
+    expect(resolveFieldText('name', CARD_FULL, undefined)).toBe('Fireball')
+  })
 })
 
 describe('resolveRectFill', () => {

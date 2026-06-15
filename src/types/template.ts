@@ -35,6 +35,7 @@ export interface ImageLayer extends LayerBase {
 export interface TextLayer extends LayerBase {
   type: 'text'
   field?: keyof CardData | 'stats' | 'statsVP'
+  staticText?: string
   fontSize: number
   fontFamily?: string
   fontStyle?: 'normal' | 'bold' | 'italic' | 'bold italic'

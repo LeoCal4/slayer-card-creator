@@ -107,7 +107,7 @@ function TextNode({
   onHoverEnd: () => void
 }) {
   const { bound, saveDragStart } = useDragBound()
-  const text = resolveFieldText(layer.field, previewCard)
+  const text = resolveFieldText(layer.field, previewCard, layer.staticText)
   const sharedDragProps = {
     draggable: !layer.locked,
     dragBoundFunc: bound,
