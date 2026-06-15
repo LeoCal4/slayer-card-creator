@@ -32,11 +32,6 @@ export function deserialize(raw: string): ProjectFile {
   if (typeof parsed !== 'object' || parsed === null) {
     throw new Error('Invalid project file: not an object')
   }
-  for (const key of REQUIRED_KEYS) {
-    if (!(key in parsed)) {
-      throw new Error(`Invalid project file: missing required key "${key}"`)
-    }
-  }
   // Migrate: rename frameImages → customImages (old project files)
   if (!parsed.customImages && parsed.frameImages) {
     parsed.customImages = parsed.frameImages
@@ -52,6 +47,11 @@ export function deserialize(raw: string): ProjectFile {
           }
         }
       }
+    }
+  }
+  for (const key of REQUIRED_KEYS) {
+    if (!(key in parsed)) {
+      throw new Error(`Invalid project file: missing required key "${key}"`)
     }
   }
   // Migrate: fill in cardTypes if absent (old project files)
