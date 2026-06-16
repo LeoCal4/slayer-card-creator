@@ -1,8 +1,78 @@
 import { useUiStore } from '@/store/uiStore'
 import { useProjectStore } from '@/store/projectStore'
 import type { TemplateLayer } from '@/types/template'
+import type { CardTemplateOverride } from '@/types/project'
 
 const MAX_UNDO = 50
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function deepCopyOverride(override: CardTemplateOverride): CardTemplateOverride {
+  return {
+    templateId: override.templateId,
+    layerOverrides: Object.fromEntries(
+      Object.entries(override.layerOverrides).map(([k, v]) => [
+        k,
+        { hidden: v.hidden, props: v.props ? { ...v.props } : undefined },
+      ])
+    ),
+    extraLayers: override.extraLayers.map((l) => ({ ...l })),
+  }
+}
+
+// ─── Card override undo / redo ───────────────────────────────────────────────
+
+/**
+ * Capture a snapshot of the card's current override before a mutating action.
+ * Stores null when no override exists (represents "clean" state).
+ */
+export function pushCardSnapshot(cardId: string): void {
+  const override = useProjectStore.getState().project?.cardOverrides?.[cardId] ?? null
+  const copy = override ? deepCopyOverride(override) : null
+  useUiStore.setState((state) => {
+    const current = state.cardUndoStack[cardId] ?? []
+    const next = [...current, copy]
+    if (next.length > MAX_UNDO) next.shift()
+    return {
+      cardUndoStack: { ...state.cardUndoStack, [cardId]: next },
+      cardRedoStack: { ...state.cardRedoStack, [cardId]: [] },
+    }
+  })
+}
+
+export function performCardUndo(cardId: string): void {
+  const { cardUndoStack, cardRedoStack } = useUiStore.getState()
+  const stack = cardUndoStack[cardId] ?? []
+  if (stack.length === 0) return
+
+  const currentOverride = useProjectStore.getState().project?.cardOverrides?.[cardId] ?? null
+  const currentCopy = currentOverride ? deepCopyOverride(currentOverride) : null
+  const snapshot = stack[stack.length - 1]
+  const redoStack = cardRedoStack[cardId] ?? []
+
+  useUiStore.setState({
+    cardUndoStack: { ...cardUndoStack, [cardId]: stack.slice(0, -1) },
+    cardRedoStack: { ...cardRedoStack, [cardId]: [...redoStack, currentCopy] },
+  })
+  useProjectStore.getState().setCardOverride(cardId, snapshot ?? undefined)
+}
+
+export function performCardRedo(cardId: string): void {
+  const { cardUndoStack, cardRedoStack } = useUiStore.getState()
+  const stack = cardRedoStack[cardId] ?? []
+  if (stack.length === 0) return
+
+  const currentOverride = useProjectStore.getState().project?.cardOverrides?.[cardId] ?? null
+  const currentCopy = currentOverride ? deepCopyOverride(currentOverride) : null
+  const snapshot = stack[stack.length - 1]
+  const undoStack = cardUndoStack[cardId] ?? []
+
+  useUiStore.setState({
+    cardUndoStack: { ...cardUndoStack, [cardId]: [...undoStack, currentCopy] },
+    cardRedoStack: { ...cardRedoStack, [cardId]: stack.slice(0, -1) },
+  })
+  useProjectStore.getState().setCardOverride(cardId, snapshot ?? undefined)
+}
 
 /**
  * Call immediately before any undoable mutation.
