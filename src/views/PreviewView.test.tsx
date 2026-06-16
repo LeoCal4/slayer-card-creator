@@ -10,7 +10,7 @@ vi.mock('@/lib/renderer/cardRenderer', () => ({
 
 vi.mock('@/lib/renderer/imageLoader', () => ({
   preloadArtImages: vi.fn().mockResolvedValue(new Map()),
-  preloadFrameImages: vi.fn().mockResolvedValue(new Map()),
+  preloadCustomImages: vi.fn().mockResolvedValue(new Map()),
 }))
 
 vi.stubGlobal('URL', {
@@ -32,7 +32,7 @@ function setup() {
     project: state.project ? { ...state.project, templates: [], cards: [] } : null,
   }))
   useProjectStore.getState().addCard({
-    id: 'card-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3.',
+    id: 'card-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3.', extras: {},
   })
   useProjectStore.getState().addTemplate({
     id: 'tmpl-action',

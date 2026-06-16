@@ -2,13 +2,14 @@ import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 import { ColorPicker } from '@/components/common/ColorPicker'
 import { pushCardSnapshot } from '@/lib/undoRedo'
-import type { CardData } from '@/types/card'
 import type { RectLayer, TextLayer, BadgeLayer, PhaseIconsLayer, RarityDiamondLayer, TemplateLayer } from '@/types/template'
 
-const SHOW_IF_OPTIONS: (keyof CardData | '')[] = ['', 'cost', 'power', 'hp', 'vp', 'speed', 'effect']
-const TEXT_FIELDS: (keyof CardData | 'stats' | 'statsVP' | '')[] = [
-  '', 'name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'vp', 'speed', 'effect', 'stats', 'statsVP',
-]
+function useFieldOptions() {
+  const csvColumns = useProjectStore((s) => s.project?.csvColumns ?? [])
+  return csvColumns.map((c) => c.name.toLowerCase())
+}
+
+const EXTRA_TEXT_FIELDS = ['stats', 'statsVP'] as const
 const FONT_STYLES = ['normal', 'bold', 'italic', 'bold italic'] as const
 const ALIGN_OPTIONS = ['left', 'center', 'right'] as const
 
@@ -124,6 +125,9 @@ function RectProps({ layer, cardId, templateId }: { layer: RectLayer; cardId: st
 
 function TextProps({ layer, cardId, templateId }: { layer: TextLayer; cardId: string; templateId: string }) {
   const { up, snap, isOverridden, reset } = useCardLayerEditor(cardId, templateId, layer.id)
+  const fieldOptions = useFieldOptions()
+  const textFields = ['', ...fieldOptions, ...EXTRA_TEXT_FIELDS]
+  const showIfOptions = ['', ...fieldOptions]
   return (
     <div className="space-y-2 p-3">
       <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Text</p>
@@ -168,7 +172,7 @@ function TextProps({ layer, cardId, templateId }: { layer: TextLayer; cardId: st
             onChange={(e) => { snap(); up({ field: (e.target.value as TextLayer['field']) || undefined }) }}
             className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            {TEXT_FIELDS.map((f) => (
+            {textFields.map((f) => (
               <option key={f} value={f}>{f || '(none)'}</option>
             ))}
           </select>
@@ -207,10 +211,10 @@ function TextProps({ layer, cardId, templateId }: { layer: TextLayer; cardId: st
           <select
             aria-label="Show If Field"
             value={layer.showIfField ?? ''}
-            onChange={(e) => up({ showIfField: (e.target.value as keyof CardData) || undefined })}
+            onChange={(e) => up({ showIfField: e.target.value || undefined })}
             className="bg-neutral-800 text-neutral-100 text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            {SHOW_IF_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt || '(always)'}</option>)}
+            {showIfOptions.map((opt) => <option key={opt} value={opt}>{opt || '(always)'}</option>)}
           </select>
         </OverrideRow>
       </div>

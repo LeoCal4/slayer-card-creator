@@ -13,7 +13,7 @@ function setup() {
     project: state.project ? { ...state.project, templates: [] } : null,
   }))
   useProjectStore.getState().addCard({
-    id: 'card-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3 damage.',
+    id: 'card-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Deal 3 damage.', extras: {},
   })
   useProjectStore.getState().addTemplate({
     id: 'tmpl-action',
@@ -64,7 +64,7 @@ describe('CardDesignerView', () => {
 
   it('shows "no template" message when no template matches the card type', () => {
     useProjectStore.getState().addCard({
-      id: 'card-dungeon', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
+      id: 'card-dungeon', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.', extras: {},
     })
     // No template has cardTypes including 'Dungeon' in setup
     useProjectStore.getState().updateTemplate('tmpl-action', { cardTypes: ['Action'] })

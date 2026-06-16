@@ -159,7 +159,7 @@ describe('projectStore — card override actions', () => {
 
   describe('deleteCard cleanup', () => {
     it('removes card overrides when the card is deleted', () => {
-      useProjectStore.getState().addCard({ id: 'card-1', name: 'Test', class: '', type: 'Action', rarity: 'common', effect: '' })
+      useProjectStore.getState().addCard({ id: 'card-1', name: 'Test', class: '', type: 'Action', rarity: 'common', effect: '', extras: {} })
       useProjectStore.getState().updateCardLayerProps('card-1', 'tmpl-1', 'layer-1', { x: 5 } as any)
       useProjectStore.getState().deleteCard('card-1')
       expect(useProjectStore.getState().project?.cardOverrides?.['card-1']).toBeUndefined()
