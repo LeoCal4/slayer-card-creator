@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import type { CardData, CardType, Rarity } from '@/types/card'
-import type { ClassConfig, CsvColumnDef, ProjectFile, RarityConfig, SetInfo } from '@/types/project'
+import type { CardTemplateOverride, ClassConfig, CsvColumnDef, ProjectFile, RarityConfig, SetInfo } from '@/types/project'
 import type { Template, TemplateLayer } from '@/types/template'
 import { serialize, deserialize } from '@/lib/projectFile'
 import { useUiStore } from '@/store/uiStore'
@@ -50,6 +50,19 @@ const DEFAULT_PHASE_MAP: ProjectFile['phaseMap'] = {
   Status:       [],
 }
 
+const DEFAULT_CSV_COLUMN_REQUIREMENTS: Record<string, string[]> = {
+  Slayer:       ['name', 'class', 'type', 'rarity', 'hp', 'vp'],
+  Errant:       ['name', 'class', 'type', 'rarity', 'cost', 'power', 'hp', 'speed'],
+  Action:       ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
+  Ploy:         ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
+  Intervention: ['name', 'class', 'type', 'rarity', 'cost', 'effect'],
+  Chamber:      ['name', 'type', 'rarity', 'hp', 'effect'],
+  Relic:        ['name', 'type', 'rarity', 'cost', 'effect'],
+  Dungeon:      ['name', 'type', 'rarity', 'vp', 'effect'],
+  Phase:        ['name', 'type'],
+  Status:       ['name', 'type', 'effect'],
+}
+
 export const DEFAULT_CSV_COLUMNS: CsvColumnDef[] = [
   { id: 'csv-name',   name: 'name',   type: 'text' },
   { id: 'csv-class',  name: 'class',  type: 'select-class' },
@@ -83,6 +96,10 @@ function createDefaultProject(): ProjectFile {
       epic:   { ...DEFAULT_RARITY_CONFIG.epic,   aliases: [...DEFAULT_RARITY_CONFIG.epic.aliases] },
     },
     csvColumns: DEFAULT_CSV_COLUMNS.map((c) => ({ ...c, choices: c.choices ? [...c.choices] : undefined })),
+    csvColumnRequirements: Object.fromEntries(
+      Object.entries(DEFAULT_CSV_COLUMN_REQUIREMENTS).map(([k, v]) => [k, [...v]])
+    ),
+    cardOverrides: {},
     templates: STARTER_TEMPLATES.map((t) => ({ ...t })),
     cards: [],
     artFolderPath: '',
@@ -122,6 +139,15 @@ interface ProjectState {
   addCsvColumn: () => void
   updateCsvColumn: (id: string, partial: Partial<CsvColumnDef>) => void
   deleteCsvColumn: (id: string) => void
+  updateCsvColumnRequirements: (type: CardType, columns: string[]) => void
+
+  updateCardLayerProps: (cardId: string, templateId: string, layerId: string, props: Partial<TemplateLayer>) => void
+  resetCardLayerProp: (cardId: string, layerId: string, key: string) => void
+  toggleCardLayerHidden: (cardId: string, templateId: string, layerId: string, hidden: boolean) => void
+  addCardExtraLayer: (cardId: string, templateId: string, layer: TemplateLayer) => void
+  deleteCardExtraLayer: (cardId: string, layerId: string) => void
+  clearCardOverrides: (cardId: string) => void
+  setCardOverride: (cardId: string, override: CardTemplateOverride | undefined) => void
 
   addTemplate: (template: Template) => void
   updateTemplate: (id: string, partial: Partial<Template>) => void
@@ -235,6 +261,7 @@ export const useProjectStore = create<ProjectState>()(
         if (!state.project) return
         state.project.cardTypes = state.project.cardTypes.filter((t) => t !== name)
         delete state.project.phaseMap[name]
+        if (state.project.csvColumnRequirements) delete state.project.csvColumnRequirements[name]
         state.project.cards.forEach((c) => {
           if (c.type === name) c.type = state.project!.cardTypes[0] ?? ''
         })
@@ -253,6 +280,10 @@ export const useProjectStore = create<ProjectState>()(
         if (state.project.phaseMap[oldName] !== undefined) {
           state.project.phaseMap[newName] = state.project.phaseMap[oldName]
           delete state.project.phaseMap[oldName]
+        }
+        if (state.project.csvColumnRequirements?.[oldName] !== undefined) {
+          state.project.csvColumnRequirements[newName] = state.project.csvColumnRequirements[oldName]
+          delete state.project.csvColumnRequirements[oldName]
         }
         state.project.cards.forEach((c) => { if (c.type === oldName) c.type = newName })
         state.project.templates.forEach((tmpl) => {
@@ -333,6 +364,94 @@ export const useProjectStore = create<ProjectState>()(
       set((state) => {
         if (!state.project?.csvColumns) return
         state.project.csvColumns = state.project.csvColumns.filter((c) => c.id !== id)
+      })
+      markDirty()
+    },
+
+    updateCsvColumnRequirements: (type, columns) => {
+      set((state) => {
+        if (!state.project) return
+        if (!state.project.csvColumnRequirements) state.project.csvColumnRequirements = {}
+        state.project.csvColumnRequirements[type] = columns
+      })
+      markDirty()
+    },
+
+    updateCardLayerProps: (cardId, templateId, layerId, props) => {
+      set((state) => {
+        if (!state.project) return
+        if (!state.project.cardOverrides) state.project.cardOverrides = {}
+        if (!state.project.cardOverrides[cardId]) {
+          state.project.cardOverrides[cardId] = { templateId, layerOverrides: {}, extraLayers: [] }
+        }
+        const entry = state.project.cardOverrides[cardId]
+        if (!entry.layerOverrides[layerId]) entry.layerOverrides[layerId] = {}
+        Object.assign(entry.layerOverrides[layerId].props ??= {} as Partial<TemplateLayer>, props)
+      })
+      markDirty()
+    },
+
+    resetCardLayerProp: (cardId, layerId, key) => {
+      set((state) => {
+        const props = state.project?.cardOverrides?.[cardId]?.layerOverrides?.[layerId]?.props
+        if (!props) return
+        delete (props as Record<string, unknown>)[key]
+      })
+      markDirty()
+    },
+
+    toggleCardLayerHidden: (cardId, templateId, layerId, hidden) => {
+      set((state) => {
+        if (!state.project) return
+        if (!state.project.cardOverrides) state.project.cardOverrides = {}
+        if (!state.project.cardOverrides[cardId]) {
+          state.project.cardOverrides[cardId] = { templateId, layerOverrides: {}, extraLayers: [] }
+        }
+        const entry = state.project.cardOverrides[cardId]
+        if (!entry.layerOverrides[layerId]) entry.layerOverrides[layerId] = {}
+        entry.layerOverrides[layerId].hidden = hidden
+      })
+      markDirty()
+    },
+
+    addCardExtraLayer: (cardId, templateId, layer) => {
+      set((state) => {
+        if (!state.project) return
+        if (!state.project.cardOverrides) state.project.cardOverrides = {}
+        if (!state.project.cardOverrides[cardId]) {
+          state.project.cardOverrides[cardId] = { templateId, layerOverrides: {}, extraLayers: [] }
+        }
+        state.project.cardOverrides[cardId].extraLayers.push(layer)
+      })
+      markDirty()
+    },
+
+    deleteCardExtraLayer: (cardId, layerId) => {
+      set((state) => {
+        if (!state.project?.cardOverrides?.[cardId]) return
+        const entry = state.project.cardOverrides[cardId]
+        entry.extraLayers = entry.extraLayers.filter((l) => l.id !== layerId)
+      })
+      markDirty()
+    },
+
+    clearCardOverrides: (cardId) => {
+      set((state) => {
+        if (!state.project?.cardOverrides) return
+        delete state.project.cardOverrides[cardId]
+      })
+      markDirty()
+    },
+
+    setCardOverride: (cardId, override) => {
+      set((state) => {
+        if (!state.project) return
+        if (!state.project.cardOverrides) state.project.cardOverrides = {}
+        if (override) {
+          state.project.cardOverrides[cardId] = override
+        } else {
+          delete state.project.cardOverrides[cardId]
+        }
       })
       markDirty()
     },
@@ -435,7 +554,9 @@ export const useProjectStore = create<ProjectState>()(
 
     deleteCard: (id) => {
       set((state) => {
-        if (state.project) state.project.cards = state.project.cards.filter((c) => c.id !== id)
+        if (!state.project) return
+        state.project.cards = state.project.cards.filter((c) => c.id !== id)
+        if (state.project.cardOverrides) delete state.project.cardOverrides[id]
       })
       markDirty()
     },

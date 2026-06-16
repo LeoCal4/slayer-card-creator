@@ -1,13 +1,15 @@
 import { create } from 'zustand'
 import type { TemplateLayer } from '@/types/template'
+import type { CardTemplateOverride } from '@/types/project'
 
-export type ViewId = 'set-info' | 'templates' | 'designer' | 'cards' | 'preview' | 'export'
+export type ViewId = 'set-info' | 'templates' | 'designer' | 'card-designer' | 'cards' | 'preview' | 'export'
 
 interface UiState {
   activeView: ViewId
   activeTemplateId: string | null
   selectedLayerId: string | null
   previewCardId: string | null
+  activeCardId: string | null
   exportStatus: 'idle' | 'running' | 'done' | 'error'
   exportProgress: { current: number; total: number }
   projectFilePath: string | null
@@ -16,11 +18,14 @@ interface UiState {
   snapGridSize: number
   undoStack: TemplateLayer[][]
   redoStack: TemplateLayer[][]
+  cardUndoStack: Record<string, (CardTemplateOverride | null)[]>
+  cardRedoStack: Record<string, (CardTemplateOverride | null)[]>
 
   setActiveView: (view: ViewId) => void
   setActiveTemplate: (id: string | null) => void
   setSelectedLayer: (id: string | null) => void
   setPreviewCard: (id: string | null) => void
+  setActiveCard: (id: string | null) => void
   setExportStatus: (status: UiState['exportStatus']) => void
   setExportProgress: (progress: { current: number; total: number }) => void
   setProjectFilePath: (path: string | null) => void
@@ -28,6 +33,7 @@ interface UiState {
   setSnapGridEnabled: (enabled: boolean) => void
   setSnapGridSize: (size: number) => void
   clearUndoHistory: () => void
+  clearCardUndoHistory: (cardId: string) => void
 }
 
 export const useUiStore = create<UiState>()((set) => ({
@@ -35,6 +41,7 @@ export const useUiStore = create<UiState>()((set) => ({
   activeTemplateId: null,
   selectedLayerId: null,
   previewCardId: null,
+  activeCardId: null,
   exportStatus: 'idle',
   exportProgress: { current: 0, total: 0 },
   projectFilePath: null,
@@ -43,11 +50,14 @@ export const useUiStore = create<UiState>()((set) => ({
   snapGridSize: 5,
   undoStack: [],
   redoStack: [],
+  cardUndoStack: {},
+  cardRedoStack: {},
 
   setActiveView: (view) => set({ activeView: view }),
   setActiveTemplate: (id) => set({ activeTemplateId: id }),
   setSelectedLayer: (id) => set({ selectedLayerId: id }),
   setPreviewCard: (id) => set({ previewCardId: id }),
+  setActiveCard: (id) => set({ activeCardId: id }),
   setExportStatus: (status) => set({ exportStatus: status }),
   setExportProgress: (progress) => set({ exportProgress: progress }),
   setProjectFilePath: (path) => set({ projectFilePath: path }),
@@ -55,4 +65,8 @@ export const useUiStore = create<UiState>()((set) => ({
   setSnapGridEnabled: (enabled) => set({ snapGridEnabled: enabled }),
   setSnapGridSize: (size) => set({ snapGridSize: size }),
   clearUndoHistory: () => set({ undoStack: [], redoStack: [] }),
+  clearCardUndoHistory: (cardId) => set((state) => ({
+    cardUndoStack: { ...state.cardUndoStack, [cardId]: [] },
+    cardRedoStack: { ...state.cardRedoStack, [cardId]: [] },
+  })),
 }))
