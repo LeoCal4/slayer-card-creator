@@ -5,13 +5,13 @@ import { CSVImportModal } from './CSVImportModal'
 import { useProjectStore } from '@/store/projectStore'
 import { useUiStore } from '@/store/uiStore'
 
-const VALID_CSV = `name,class,type,rarity,effect
-Fireball,Mage,Action,common,Deal 3 damage.
-Iceball,Mage,Action,rare,Freeze.`
+const VALID_CSV = `name,class,type,rarity,cost,effect
+Fireball,Mage,Action,common,2,Deal 3 damage.
+Iceball,Mage,Action,rare,3,Freeze.`
 
-const ERROR_CSV = `name,class,type,rarity,effect
-Fireball,Mage,Action,common,Deal 3 damage.
-BadRow,Mage,INVALID,common,Nope.`
+const ERROR_CSV = `name,class,type,rarity,cost,effect
+Fireball,Mage,Action,common,2,Deal 3 damage.
+BadRow,Mage,INVALID,common,1,Nope.`
 
 function resetStores() {
   useProjectStore.setState({ project: null })
@@ -47,7 +47,7 @@ describe('CSVImportModal', () => {
   })
 
   it('parses tab-delimited CSV when tab delimiter is selected', async () => {
-    const tsv = 'name\tclass\ttype\trarity\teffect\nFireball\tMage\tAction\tcommon\tDraw.'
+    const tsv = 'name\tclass\ttype\trarity\tcost\teffect\nFireball\tMage\tAction\tcommon\t2\tDraw.'
     ;(window.electronAPI.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(tsv)
     render(<CSVImportModal />)
     await userEvent.selectOptions(screen.getByRole('combobox', { name: /delimiter/i }), '\t')

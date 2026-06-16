@@ -14,6 +14,29 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /export/i })).toBeInTheDocument()
   })
 
+  it('renders "Designer – Template" nav link', () => {
+    render(<AppShell />)
+    expect(screen.getByRole('link', { name: /designer.*template/i })).toBeInTheDocument()
+  })
+
+  it('renders "Designer – Card" nav link', () => {
+    render(<AppShell />)
+    expect(screen.getByRole('link', { name: /designer.*card/i })).toBeInTheDocument()
+  })
+
+  it('clicking "Designer – Card" sets activeView to card-designer', async () => {
+    render(<AppShell />)
+    await userEvent.click(screen.getByRole('link', { name: /designer.*card/i }))
+    expect(useUiStore.getState().activeView).toBe('card-designer')
+  })
+
+  it('clicking "Designer – Template" sets activeView to designer', async () => {
+    useUiStore.setState({ activeView: 'card-designer' })
+    render(<AppShell />)
+    await userEvent.click(screen.getByRole('link', { name: /designer.*template/i }))
+    expect(useUiStore.getState().activeView).toBe('designer')
+  })
+
   it('clicking a nav link changes the active view', async () => {
     useUiStore.setState({ activeView: 'set-info' })
     render(<AppShell />)

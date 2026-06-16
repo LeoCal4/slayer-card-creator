@@ -11,9 +11,10 @@ interface Props {
   project: ProjectFile
   artImages: Map<string, HTMLImageElement>
   frameImages: Map<string, HTMLImageElement>
+  onCardDoubleClick?: (cardId: string) => void
 }
 
-export function PreviewGrid({ cards, templates, project, artImages, frameImages }: Props) {
+export function PreviewGrid({ cards, templates, project, artImages, frameImages, onCardDoubleClick }: Props) {
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
 
   function findTemplate(card: CardData): Template | undefined {
@@ -60,6 +61,7 @@ export function PreviewGrid({ cards, templates, project, artImages, frameImages 
               project={project}
               artImages={artImages}
               frameImages={frameImages}
+              onDoubleClick={onCardDoubleClick ? () => onCardDoubleClick(card.id) : undefined}
             />
           ))}
         </div>

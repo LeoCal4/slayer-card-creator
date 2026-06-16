@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useUiStore } from '@/store/uiStore'
 import { useProjectStore } from '@/store/projectStore'
-import { performUndo, performRedo, pushSnapshot } from '@/lib/undoRedo'
+import { performUndo, performRedo, pushSnapshot, performCardUndo, performCardRedo } from '@/lib/undoRedo'
 
 export function App() {
   const saveProject = useProjectStore((s) => s.saveProject)
@@ -25,8 +25,19 @@ export function App() {
         void saveProject()
       }
 
-      const { activeView, activeTemplateId, selectedLayerId } = useUiStore.getState()
-      if (activeView === 'designer' && activeTemplateId !== null) {
+      const { activeView, activeTemplateId, activeCardId, selectedLayerId } = useUiStore.getState()
+      if (activeView === 'card-designer' && activeCardId !== null) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
+          e.preventDefault()
+          performCardRedo(activeCardId)
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault()
+          performCardUndo(activeCardId)
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+          e.preventDefault()
+          performCardRedo(activeCardId)
+        }
+      } else if (activeView === 'designer' && activeTemplateId !== null) {
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
           e.preventDefault()
           performRedo(activeTemplateId)

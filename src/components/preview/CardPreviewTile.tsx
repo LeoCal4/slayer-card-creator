@@ -10,9 +10,10 @@ interface Props {
   project: ProjectFile
   artImages: Map<string, HTMLImageElement>
   frameImages: Map<string, HTMLImageElement>
+  onDoubleClick?: () => void
 }
 
-export function CardPreviewTile({ card, template, project, artImages, frameImages }: Props) {
+export function CardPreviewTile({ card, template, project, artImages, frameImages, onDoubleClick }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -45,7 +46,7 @@ export function CardPreviewTile({ card, template, project, artImages, frameImage
   }, [card, template, project, artImages, frameImages, isVisible])
 
   return (
-    <div>
+    <div onDoubleClick={onDoubleClick} className={onDoubleClick ? 'cursor-pointer' : undefined}>
       <div
         ref={ref}
         style={{ aspectRatio: '375/523' }}

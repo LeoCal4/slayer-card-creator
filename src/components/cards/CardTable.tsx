@@ -13,7 +13,7 @@ import { useProjectStore, DEFAULT_CSV_COLUMNS } from '@/store/projectStore'
 import { CardRow } from './CardRow'
 import { EmptyState } from '@/components/common/EmptyState'
 import type { CardData, Rarity } from '@/types/card'
-import type { CsvColumnDef } from '@/types/project'
+import type { CardTypeColumnMap, CsvColumnDef } from '@/types/project'
 
 const RARITIES: Rarity[] = ['common', 'rare', 'epic']
 
@@ -34,12 +34,18 @@ function computeAnomalies(
   cardTypes: string[],
   rarities: string[],
   classes: string[],
+  csvColumnRequirements?: CardTypeColumnMap,
 ): Set<string> {
   const anomalous = new Set<string>()
+  const requiredCols = csvColumnRequirements?.[card.type]
   for (const col of csvColumns) {
     const key = col.name.toLowerCase()
-    if (isCellDisabled(key, card.type)) continue
-    const val = (card as Record<string, unknown>)[key]
+    if (requiredCols !== undefined) {
+      if (!requiredCols.includes(col.name)) continue
+    } else {
+      if (isCellDisabled(key, card.type)) continue
+    }
+    const val = (card as unknown as Record<string, unknown>)[key]
     if (col.type === 'number') {
       if (typeof val !== 'number') anomalous.add(key)
     } else if (col.type === 'select' && col.choices?.length) {
@@ -67,6 +73,7 @@ export function CardTable() {
   const cardTypes = useMemo(() => project?.cardTypes ?? [], [project])
   const rarities = useMemo(() => project ? Object.keys(project.rarityConfig) : [], [project])
   const classes = useMemo(() => project ? Object.keys(project.classColors) : [], [project])
+  const csvColumnRequirements = project?.csvColumnRequirements
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -388,7 +395,7 @@ export function CardTable() {
                 <CardRow
                   key={row.id}
                   row={row}
-                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities, classes)}
+                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities, classes, csvColumnRequirements)}
                 />
               ))}
             </tbody>

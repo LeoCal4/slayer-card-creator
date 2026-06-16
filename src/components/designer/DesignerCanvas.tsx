@@ -12,6 +12,12 @@ import type { ClassConfig, RarityConfig, EffectFormatting } from '@/types/projec
 
 interface Props {
   templateId: string
+  /** When provided, this template is rendered instead of the store-based one (card designer mode). */
+  templateOverride?: import('@/types/template').Template
+  /** When provided, layer position updates go here instead of the default updateLayer store action. */
+  onUpdateLayer?: (layerId: string, partial: Partial<import('@/types/template').TemplateLayer>) => void
+  /** When provided, called before a drag commit instead of the default pushSnapshot (use for card-mode undo). */
+  onBeforeDrag?: () => void
 }
 
 function snapToGrid(v: number, size: number) {
@@ -486,9 +492,11 @@ function LayerNode({
   return null
 }
 
-export function DesignerCanvas({ templateId }: Props) {
+export function DesignerCanvas({ templateId, templateOverride, onUpdateLayer, onBeforeDrag }: Props) {
   const project = useProjectStore((s) => s.project)
-  const updateLayer = useProjectStore((s) => s.updateLayer)
+  const updateLayerStore = useProjectStore((s) => s.updateLayer)
+  const updateLayer = (layerId: string, partial: Partial<import('@/types/template').TemplateLayer>) =>
+    onUpdateLayer ? onUpdateLayer(layerId, partial) : updateLayerStore(templateId, layerId, partial)
   const setSelectedLayer = useUiStore((s) => s.setSelectedLayer)
   const selectedLayerId = useUiStore((s) => s.selectedLayerId)
   const previewCardId = useUiStore((s) => s.previewCardId)
@@ -508,7 +516,7 @@ export function DesignerCanvas({ templateId }: Props) {
   }, [previewCardId, project?.artFolderPath])
 
   if (!project) return null
-  const template = project.templates.find((t) => t.id === templateId)
+  const template = templateOverride ?? project.templates.find((t) => t.id === templateId)
   if (!template) return null
 
   const previewCard = project.cards.find((c) => c.id === previewCardId) ?? null
@@ -579,7 +587,7 @@ export function DesignerCanvas({ templateId }: Props) {
             phases={phases}
             abbreviations={abbreviations}
             onDragMove={(x, y) => setDragPos({ layerId: layer.id, x, y })}
-            onDragEnd={(x, y) => { pushSnapshot(template.layers); updateLayer(templateId, layer.id, { x, y }); setDragPos(null) }}
+            onDragEnd={(x, y) => { onBeforeDrag ? onBeforeDrag() : pushSnapshot(template.layers); updateLayer(layer.id, { x, y }); setDragPos(null) }}
             onHover={() => setHoveredLayerId(layer.id)}
             onHoverEnd={() => setHoveredLayerId(null)}
           />

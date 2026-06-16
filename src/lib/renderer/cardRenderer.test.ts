@@ -1,7 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { renderCard } from './cardRenderer'
 import type { RenderContext } from './cardRenderer'
 import type { RectLayer, TextLayer } from '@/types/template'
+import type { CardTemplateOverride } from '@/types/project'
+import * as cardOverridesModule from '@/lib/cardOverrides'
 
 const ctx: RenderContext = {
   card: { id: 'c1', name: 'Axehand', class: 'Warrior', type: 'Slayer', rarity: 'common', effect: '' },
@@ -68,5 +70,75 @@ describe('renderCard', () => {
     }
     // Should complete without error (skipped layer means no crash)
     await expect(renderCard(ctxWithConditional)).resolves.toBeInstanceOf(Blob)
+  })
+
+  it('applies card override: hidden layer is excluded from render', async () => {
+    const override: CardTemplateOverride = {
+      templateId: 'tmpl-1',
+      layerOverrides: { 'l-bg': { hidden: true } },
+      extraLayers: [],
+    }
+    const ctxWithOverride: RenderContext = {
+      ...ctx,
+      project: { ...ctx.project, cardOverrides: { 'c1': override } },
+    }
+    await expect(renderCard(ctxWithOverride)).resolves.toBeInstanceOf(Blob)
+  })
+
+  it('applies card override: extra layer is appended and rendered', async () => {
+    const extra: RectLayer = { id: 'extra-1', type: 'rect', x: 0, y: 0, width: 50, height: 50, fill: '#f00' }
+    const override: CardTemplateOverride = {
+      templateId: 'tmpl-1',
+      layerOverrides: {},
+      extraLayers: [extra],
+    }
+    const ctxWithExtra: RenderContext = {
+      ...ctx,
+      project: { ...ctx.project, cardOverrides: { 'c1': override } },
+    }
+    await expect(renderCard(ctxWithExtra)).resolves.toBeInstanceOf(Blob)
+  })
+
+  it('applies card override: prop override merges into layer', async () => {
+    const override: CardTemplateOverride = {
+      templateId: 'tmpl-1',
+      layerOverrides: { 'l-bg': { props: { fill: '#ff0000' } as any } },
+      extraLayers: [],
+    }
+    const ctxWithProp: RenderContext = {
+      ...ctx,
+      project: { ...ctx.project, cardOverrides: { 'c1': override } },
+    }
+    await expect(renderCard(ctxWithProp)).resolves.toBeInstanceOf(Blob)
+  })
+
+  it('calls computeEffectiveTemplate with the matching card override', async () => {
+    const override: CardTemplateOverride = {
+      templateId: 'tmpl-1',
+      layerOverrides: { 'l-bg': { hidden: true } },
+      extraLayers: [],
+    }
+    const spy = vi.spyOn(cardOverridesModule, 'computeEffectiveTemplate')
+    const ctxWithOverride: RenderContext = {
+      ...ctx,
+      project: { ...ctx.project, cardOverrides: { 'c1': override } },
+    }
+    await renderCard(ctxWithOverride)
+    expect(spy).toHaveBeenCalledWith(ctx.template, override)
+    spy.mockRestore()
+  })
+
+  it('ignores overrides for other cards', async () => {
+    const override: CardTemplateOverride = {
+      templateId: 'tmpl-1',
+      layerOverrides: { 'l-bg': { hidden: true } },
+      extraLayers: [],
+    }
+    // Override is keyed to 'c2', not 'c1' — should have no effect on this render
+    const ctxOtherCard: RenderContext = {
+      ...ctx,
+      project: { ...ctx.project, cardOverrides: { 'c2': override } },
+    }
+    await expect(renderCard(ctxOtherCard)).resolves.toBeInstanceOf(Blob)
   })
 })

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useProjectStore } from '@/store/projectStore'
+import { useUiStore } from '@/store/uiStore'
 import { PreviewGrid } from '@/components/preview/PreviewGrid'
 import { preloadArtImages, preloadFrameImages } from '@/lib/renderer/imageLoader'
 import type { CardType } from '@/types/card'
@@ -8,6 +9,8 @@ type Filter = CardType | 'all'
 
 export function PreviewView() {
   const project = useProjectStore((s) => s.project)
+  const setActiveCard = useUiStore((s) => s.setActiveCard)
+  const setActiveView = useUiStore((s) => s.setActiveView)
   const [artImages, setArtImages] = useState<Map<string, HTMLImageElement>>(new Map())
   const [frameImages, setFrameImages] = useState<Map<string, HTMLImageElement>>(new Map())
   const [typeFilter, setTypeFilter] = useState<Filter>('all')
@@ -49,6 +52,10 @@ export function PreviewView() {
         project={project}
         artImages={artImages}
         frameImages={frameImages}
+        onCardDoubleClick={(cardId) => {
+          setActiveCard(cardId)
+          setActiveView('card-designer')
+        }}
       />
     </div>
   )

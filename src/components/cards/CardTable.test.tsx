@@ -161,6 +161,71 @@ describe('CardTable', () => {
     expect(screen.getByRole('columnheader', { name: /rarity/i })).toBeInTheDocument()
   })
 
+  it('shows yellow outline on a required column with missing value (csvColumnRequirements)', () => {
+    // Configure 'cost' as required for Action; the c1 Fireball card has no cost
+    useProjectStore.getState().updateCsvColumnRequirements('Action', ['cost'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const firebellRow = rows[0]
+    const cells = firebellRow.querySelectorAll('td')
+    // cost column is index 5 (delete=0, name=1, class=2, type=3, rarity=4, cost=5)
+    expect(cells[5].className).toContain('yellow')
+  })
+
+  it('does NOT show yellow outline on a non-required column even when value is missing (csvColumnRequirements)', () => {
+    // Configure only 'effect' as required for Action; cost is missing but not required
+    useProjectStore.getState().updateCsvColumnRequirements('Action', ['effect'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const firebellRow = rows[0]
+    const cells = firebellRow.querySelectorAll('td')
+    // cost column is index 5; not required → no yellow
+    expect(cells[5].className).not.toContain('yellow')
+  })
+
+  it('does NOT show yellow on a column for a type with no requirements even when other types have requirements', () => {
+    // Configure requirements only for Ploy, not Action
+    useProjectStore.getState().updateCsvColumnRequirements('Ploy', ['cost'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    // c1 Fireball is Action — falls back to isCellDisabled for Action, which allows cost warnings
+    // so cost for Action should still be yellow (fallback behavior)
+    const firebellRow = rows[0]
+    const cells = firebellRow.querySelectorAll('td')
+    expect(cells[5].className).toContain('yellow') // fallback to isCellDisabled for Action
+  })
+
+  it('does NOT show yellow on speed/power for a Dungeon card when those columns are not required', () => {
+    // The user scenario: all columns required for Dungeon except speed and power
+    useProjectStore.getState().addCard({
+      id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
+      // speed and power are undefined
+    })
+    useProjectStore.getState().updateCsvColumnRequirements('Dungeon', ['name', 'type', 'rarity', 'cost', 'hp', 'vp', 'effect'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const dungeonRow = rows[2] // c3 is third row
+    const cells = dungeonRow.querySelectorAll('td')
+    // power=6, speed=8 (delete=0, name=1, class=2, type=3, rarity=4, cost=5, power=6, hp=7, vp=8... wait)
+    // Columns: delete=0, name=1, class=2, type=3, rarity=4, cost=5, power=6, hp=7, vp=8, speed=9, effect=10
+    expect(cells[6].className).not.toContain('yellow')  // power not required
+    expect(cells[9].className).not.toContain('yellow')  // speed not required
+  })
+
+  it('shows yellow when requirements explicitly include a field that isCellDisabled would suppress', () => {
+    // isCellDisabled returns true for speed on Dungeon — but if user requires it, yellow should show
+    useProjectStore.getState().addCard({
+      id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',
+    })
+    useProjectStore.getState().updateCsvColumnRequirements('Dungeon', ['speed'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const dungeonRow = rows[2]
+    const cells = dungeonRow.querySelectorAll('td')
+    // speed column index 9; required by matrix despite isCellDisabled → must show yellow
+    expect(cells[9].className).toContain('yellow')
+  })
+
   it('speed input is disabled for Dungeon type cards', () => {
     useProjectStore.getState().addCard({
       id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.',

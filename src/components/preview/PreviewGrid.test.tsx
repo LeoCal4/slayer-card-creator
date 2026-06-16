@@ -94,4 +94,17 @@ describe('PreviewGrid', () => {
     )
     expect(screen.getByText(/no cards/i)).toBeInTheDocument()
   })
+
+  it('calls onCardDoubleClick with the card id when a tile is double-clicked', () => {
+    const onCardDoubleClick = vi.fn()
+    render(
+      <PreviewGrid
+        cards={cards} templates={templates} project={project}
+        artImages={new Map()} frameImages={new Map()}
+        onCardDoubleClick={onCardDoubleClick}
+      />
+    )
+    fireEvent.dblClick(screen.getByText('Axehand'))
+    expect(onCardDoubleClick).toHaveBeenCalledWith('c1')
+  })
 })

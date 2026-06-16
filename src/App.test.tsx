@@ -63,4 +63,36 @@ describe('App keyboard shortcuts', () => {
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true })
     expect(redoSpy).toHaveBeenCalledWith(templateId)
   })
+
+  it('Ctrl+Z in card-designer view calls performCardUndo with activeCardId', () => {
+    const undoSpy = vi.spyOn(undoRedo, 'performCardUndo')
+    useUiStore.setState({ activeView: 'card-designer', activeCardId: 'card-1' })
+    render(<App />)
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true })
+    expect(undoSpy).toHaveBeenCalledWith('card-1')
+  })
+
+  it('Ctrl+Y in card-designer view calls performCardRedo with activeCardId', () => {
+    const redoSpy = vi.spyOn(undoRedo, 'performCardRedo')
+    useUiStore.setState({ activeView: 'card-designer', activeCardId: 'card-1' })
+    render(<App />)
+    fireEvent.keyDown(window, { key: 'y', ctrlKey: true })
+    expect(redoSpy).toHaveBeenCalledWith('card-1')
+  })
+
+  it('Ctrl+Shift+Z in card-designer view calls performCardRedo', () => {
+    const redoSpy = vi.spyOn(undoRedo, 'performCardRedo')
+    useUiStore.setState({ activeView: 'card-designer', activeCardId: 'card-1' })
+    render(<App />)
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true })
+    expect(redoSpy).toHaveBeenCalledWith('card-1')
+  })
+
+  it('Ctrl+Z in card-designer with no activeCardId does not call performCardUndo', () => {
+    const undoSpy = vi.spyOn(undoRedo, 'performCardUndo')
+    useUiStore.setState({ activeView: 'card-designer', activeCardId: null })
+    render(<App />)
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true })
+    expect(undoSpy).not.toHaveBeenCalled()
+  })
 })
