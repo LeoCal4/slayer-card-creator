@@ -1,5 +1,5 @@
 import type { CardData, CardType, Rarity } from './card'
-import type { Template } from './template'
+import type { Template, TemplateLayer } from './template'
 
 export type CsvColumnType = 'text' | 'number' | 'select' | 'select-type' | 'select-rarity' | 'select-class'
 
@@ -22,6 +22,18 @@ export interface RarityConfig {
 }
 
 export type PhaseMap = Partial<Record<CardType, string[]>>
+export type CardTypeColumnMap = Partial<Record<CardType, string[]>>
+
+export interface LayerOverride {
+  hidden?: boolean
+  props?: Partial<TemplateLayer>
+}
+
+export interface CardTemplateOverride {
+  templateId: string
+  layerOverrides: Record<string, LayerOverride>
+  extraLayers: TemplateLayer[]
+}
 
 export interface EffectFormatting {
   boldTerms: string[]
@@ -45,6 +57,8 @@ export interface ProjectFile {
   phaseMap: PhaseMap
   rarityConfig: Record<Rarity, RarityConfig>
   csvColumns?: CsvColumnDef[]
+  csvColumnRequirements?: CardTypeColumnMap
+  cardOverrides?: Record<string, CardTemplateOverride>
   templates: Template[]
   cards: CardData[]
   artFolderPath: string
