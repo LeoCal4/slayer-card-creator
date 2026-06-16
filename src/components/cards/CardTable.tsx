@@ -14,7 +14,7 @@ import { CardRow } from './CardRow'
 import { EmptyState } from '@/components/common/EmptyState'
 import type { CardData, Rarity } from '@/types/card'
 import { isCoreField } from '@/types/card'
-import type { CsvColumnDef } from '@/types/project'
+import type { CardTypeColumnMap, CsvColumnDef } from '@/types/project'
 
 function getCellValue(card: CardData, key: string): string | number | undefined {
   if (isCoreField(key)) return card[key]
@@ -27,10 +27,13 @@ function computeAnomalies(
   cardTypes: string[],
   rarities: string[],
   classes: string[],
+  csvColumnRequirements?: CardTypeColumnMap,
 ): Set<string> {
   const anomalous = new Set<string>()
+  const requiredCols = csvColumnRequirements?.[card.type]
   for (const col of csvColumns) {
     const key = col.name.toLowerCase()
+    if (requiredCols !== undefined && !requiredCols.includes(col.name)) continue
     const val = getCellValue(card, key)
     if (col.type === 'number') {
       if (typeof val !== 'number') anomalous.add(key)
@@ -196,6 +199,7 @@ export function CardTable() {
   const classColors = project?.classColors
   const rarities = useMemo(() => rarityConfig ? Object.keys(rarityConfig) : [], [rarityConfig])
   const classes = useMemo(() => classColors ? Object.keys(classColors) : [], [classColors])
+  const csvColumnRequirements = project?.csvColumnRequirements
   const updateCard = useProjectStore((s) => s.updateCard)
   const deleteCard = useProjectStore((s) => s.deleteCard)
   const addCard = useProjectStore((s) => s.addCard)
@@ -371,7 +375,7 @@ export function CardTable() {
                 <CardRow
                   key={row.id}
                   row={row}
-                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities, classes)}
+                  anomalous={computeAnomalies(row.original, csvColumns, cardTypes, rarities, classes, csvColumnRequirements)}
                 />
               ))}
             </tbody>

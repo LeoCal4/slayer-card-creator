@@ -2,6 +2,7 @@ import { useUiStore, type ViewId } from '@/store/uiStore'
 import { SetInfoView } from '@/views/SetInfoView'
 import { TemplateListView } from '@/views/TemplateListView'
 import { TemplateDesignerView } from '@/views/TemplateDesignerView'
+import { CardDesignerView } from '@/views/CardDesignerView'
 import { CardListView } from '@/views/CardListView'
 import { PreviewView } from '@/views/PreviewView'
 import { ExportView } from '@/views/ExportView'
@@ -9,12 +10,13 @@ import { Header } from './Header'
 import { WelcomeModal } from './WelcomeModal'
 
 const NAV_LINKS: { id: ViewId; label: string }[] = [
-  { id: 'set-info',   label: 'Set Info' },
-  { id: 'templates',  label: 'Templates' },
-  { id: 'designer',   label: 'Designer' },
-  { id: 'cards',      label: 'Cards' },
-  { id: 'preview',    label: 'Preview' },
-  { id: 'export',     label: 'Export' },
+  { id: 'set-info',       label: 'Set Info' },
+  { id: 'templates',      label: 'Templates' },
+  { id: 'designer',       label: 'Designer \u2013 Template' },
+  { id: 'card-designer',  label: 'Designer \u2013 Card' },
+  { id: 'cards',          label: 'Cards' },
+  { id: 'preview',        label: 'Preview' },
+  { id: 'export',         label: 'Export' },
 ]
 
 function ActiveView() {
@@ -22,7 +24,8 @@ function ActiveView() {
   switch (activeView) {
     case 'set-info':   return <SetInfoView />
     case 'templates':  return <TemplateListView />
-    case 'designer':   return <TemplateDesignerView />
+    case 'designer':       return <TemplateDesignerView />
+    case 'card-designer':  return <CardDesignerView />
     case 'cards':      return <CardListView />
     case 'preview':    return <PreviewView />
     case 'export':     return <ExportView />

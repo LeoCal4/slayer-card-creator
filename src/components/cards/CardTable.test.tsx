@@ -130,5 +130,63 @@ describe('CardTable', () => {
     expect(screen.getByRole('columnheader', { name: /rarity/i })).toBeInTheDocument()
   })
 
+  it('shows yellow outline on a required column with missing value (csvColumnRequirements)', () => {
+    // Configure 'cost' as the only requirement for Action; the c1 Fireball card has no cost
+    useProjectStore.getState().updateCsvColumnRequirements('Action', ['cost'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const fireballRow = rows[0]
+    const cells = fireballRow.querySelectorAll('td')
+    // cost column is index 5 (delete=0, name=1, class=2, type=3, rarity=4, cost=5)
+    expect(cells[5].className).toContain('yellow')
+  })
+
+  it('does NOT show yellow outline on a non-required column even when value is missing', () => {
+    // Configure only 'effect' as required for Action; cost is missing but not required
+    useProjectStore.getState().updateCsvColumnRequirements('Action', ['effect'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const fireballRow = rows[0]
+    const cells = fireballRow.querySelectorAll('td')
+    // cost column is index 5; not required → no yellow
+    expect(cells[5].className).not.toContain('yellow')
+  })
+
+  it('keeps default requirements for other types when one type is reconfigured', () => {
+    // Reconfigure only Ploy; Action keeps its seeded default requirements (cost required)
+    useProjectStore.getState().updateCsvColumnRequirements('Ploy', ['cost'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const fireballRow = rows[0]
+    const cells = fireballRow.querySelectorAll('td')
+    expect(cells[5].className).toContain('yellow') // Action still requires cost by default
+  })
+
+  it('does NOT show yellow on columns excluded from a type’s requirements', () => {
+    useProjectStore.getState().addCard({
+      id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.', extras: {},
+    })
+    useProjectStore.getState().updateCsvColumnRequirements('Dungeon', ['name', 'type', 'rarity', 'cost', 'hp', 'vp', 'effect'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const dungeonRow = rows[2] // c3 is third row
+    const cells = dungeonRow.querySelectorAll('td')
+    // Columns: delete=0, name=1, class=2, type=3, rarity=4, cost=5, power=6, hp=7, vp=8, speed=9, effect=10
+    expect(cells[6].className).not.toContain('yellow')  // power not required
+    expect(cells[9].className).not.toContain('yellow')  // speed not required
+  })
+
+  it('shows yellow on a required column even when other types exclude it', () => {
+    useProjectStore.getState().addCard({
+      id: 'c3', name: 'Dark Keep', class: '', type: 'Dungeon', rarity: 'common', effect: 'Lurk.', extras: {},
+    })
+    useProjectStore.getState().updateCsvColumnRequirements('Dungeon', ['speed'])
+    const { container } = render(<CardTable />)
+    const rows = container.querySelectorAll('tbody tr')
+    const dungeonRow = rows[2]
+    const cells = dungeonRow.querySelectorAll('td')
+    // speed column index 9; required for Dungeon and missing → must show yellow
+    expect(cells[9].className).toContain('yellow')
+  })
 })
 

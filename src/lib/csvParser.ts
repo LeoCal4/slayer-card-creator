@@ -1,7 +1,7 @@
 import Papa from 'papaparse'
 import type { CardData, CardType, Rarity } from '@/types/card'
 import { isCoreField } from '@/types/card'
-import type { CsvColumnDef } from '@/types/project'
+import type { CardTypeColumnMap, CsvColumnDef } from '@/types/project'
 
 const RARITY_ALIASES: Record<string, string> = {
   comune: 'common',
@@ -20,6 +20,7 @@ export interface ParseOptions {
   delimiter?: string
   validTypes?: string[]
   csvColumns?: CsvColumnDef[]
+  csvColumnRequirements?: CardTypeColumnMap
 }
 
 function cleanValue(val: string | undefined): string {
@@ -67,8 +68,23 @@ function parseRarity(raw: string): Rarity {
   return ((RARITY_ALIASES[rarityInput] ?? rarityInput) || 'common') as Rarity
 }
 
+function checkColumnRequirements(
+  row: Record<string, string>,
+  rowNum: number,
+  typeRaw: string,
+  requirements: CardTypeColumnMap,
+  errors: string[],
+) {
+  const requiredCols = requirements[typeRaw] ?? []
+  for (const col of requiredCols) {
+    if (!cleanValue(row[col.toLowerCase()])) {
+      errors.push(`Row ${rowNum}: ${typeRaw} card is missing value for required column "${col}"`)
+    }
+  }
+}
+
 export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
-  const { validTypes, delimiter, csvColumns } = options
+  const { validTypes, delimiter, csvColumns, csvColumnRequirements } = options
   const validTypesSet = validTypes ? new Set(validTypes) : null
 
   const parsed = Papa.parse<Record<string, string>>(raw, {
@@ -95,6 +111,10 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
 
       if (validTypesSet && !validTypesSet.has(typeRaw)) {
         errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
+      }
+
+      if (csvColumnRequirements) {
+        checkColumnRequirements(row, rowNum, typeRaw, csvColumnRequirements, errors)
       }
 
       const extras: Record<string, string | number> = {}
@@ -141,6 +161,9 @@ export function parseCSV(raw: string, options: ParseOptions = {}): ParseResult {
 
     if (validTypesSet && !validTypesSet.has(typeRaw)) {
       errors.push(`Row ${rowNum}: unknown type "${typeRaw}" — imported with warning`)
+    }
+    if (csvColumnRequirements) {
+      checkColumnRequirements(row, rowNum, typeRaw, csvColumnRequirements, errors)
     }
     if (!RARITIES.has(rarityInput)) {
       rowErrors.push(`Row ${rowNum}: invalid rarity "${rarityInput}"`)

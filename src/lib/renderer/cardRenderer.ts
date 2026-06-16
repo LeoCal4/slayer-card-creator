@@ -1,5 +1,6 @@
 import Konva from 'konva'
 import { shouldShowLayer } from '@/lib/layerHelpers'
+import { computeEffectiveTemplate } from '@/lib/cardOverrides'
 import { renderRect, renderText, renderImage, renderBadge, renderPhaseIcons, renderRarityDiamond } from './layerRenderers'
 import type { CardData } from '@/types/card'
 import type { Template } from '@/types/template'
@@ -14,7 +15,8 @@ export interface RenderContext {
 }
 
 export async function renderCard(ctx: RenderContext): Promise<Blob> {
-  const { template } = ctx
+  const cardOverride = ctx.project.cardOverrides?.[ctx.card.id]
+  const template = computeEffectiveTemplate(ctx.template, cardOverride)
   const { width, height } = template.canvas
 
   const container = document.createElement('div')
