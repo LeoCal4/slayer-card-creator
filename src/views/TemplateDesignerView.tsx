@@ -17,7 +17,7 @@ export function TemplateDesignerView() {
   const clearUndoHistory = useUiStore((s) => s.clearUndoHistory)
   const undoCount = useUiStore((s) => s.undoStack.length)
   const redoCount = useUiStore((s) => s.redoStack.length)
-  const cardTypes = useProjectStore((s) => s.project?.cardTypes ?? [])
+  const cardTypes = useProjectStore((s) => s.project?.cardTypes) ?? []
   const templates = useProjectStore((s) => s.project?.templates)
   const updateTemplate = useProjectStore((s) => s.updateTemplate)
   const snapGridEnabled = useUiStore((s) => s.snapGridEnabled)

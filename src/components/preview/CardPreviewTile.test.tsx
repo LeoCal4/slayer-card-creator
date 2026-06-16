@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import { CardPreviewTile } from './CardPreviewTile'
 import type { CardData } from '@/types/card'
 import type { Template } from '@/types/template'
@@ -116,5 +116,18 @@ describe('CardPreviewTile', () => {
     )
     triggerIntersect(false)
     expect(renderCard).not.toHaveBeenCalled()
+  })
+
+  it('fires onDoubleClick when the tile is double-clicked', () => {
+    const onDoubleClick = vi.fn()
+    render(
+      <CardPreviewTile
+        card={card} template={template} project={project}
+        artImages={new Map()} customImages={new Map()}
+        onDoubleClick={onDoubleClick}
+      />
+    )
+    fireEvent.dblClick(screen.getByText('Axehand'))
+    expect(onDoubleClick).toHaveBeenCalledOnce()
   })
 })
