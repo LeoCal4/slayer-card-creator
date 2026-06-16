@@ -5,6 +5,7 @@ import { PhaseMapTable } from '@/components/set-info/PhaseMapTable'
 import { RarityConfigTable } from '@/components/set-info/RarityConfigTable'
 import { EffectFormattingEditor } from '@/components/set-info/EffectFormattingEditor'
 import { CsvColumnEditor } from '@/components/set-info/CsvColumnEditor'
+import { CardTypeColumnTable } from '@/components/set-info/CardTypeColumnTable'
 
 export function SetInfoView() {
   const project = useProjectStore((s) => s.project)
@@ -122,6 +123,14 @@ export function SetInfoView() {
       <section>
         <h2 className="text-base font-semibold text-neutral-100 mb-4">CSV Columns</h2>
         <CsvColumnEditor />
+      </section>
+
+      <section>
+        <h2 className="text-base font-semibold text-neutral-100 mb-4">CSV Column Requirements</h2>
+        <p className="text-xs text-neutral-500 mb-3">
+          Check which columns are required for each card type. Missing values for checked columns will produce import warnings.
+        </p>
+        <CardTypeColumnTable />
       </section>
 
       <section>

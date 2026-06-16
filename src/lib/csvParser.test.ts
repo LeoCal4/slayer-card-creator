@@ -298,6 +298,90 @@ describe('parseCSV with csvColumns option', () => {
   })
 })
 
+describe('parseCSV with csvColumnRequirements', () => {
+  const BASE_CSV = `name,type,effect,speed,power
+Dragon,Dungeon,Lurks in the dark.,,`
+
+  it('emits a warning when a required column is empty for that card type', () => {
+    const { errors } = parseCSV(BASE_CSV, { csvColumnRequirements: { Dungeon: ['speed'] } })
+    expect(errors.length).toBeGreaterThan(0)
+    expect(errors[0]).toMatch(/speed/)
+  })
+
+  it('does NOT emit a warning when the column is not required for that type', () => {
+    const { errors } = parseCSV(BASE_CSV, { csvColumnRequirements: { Dungeon: [] } })
+    expect(errors).toHaveLength(0)
+  })
+
+  it('still imports the row despite the missing required column', () => {
+    const { cards, errors } = parseCSV(BASE_CSV, { csvColumnRequirements: { Dungeon: ['speed'] } })
+    expect(cards).toHaveLength(1)
+    expect(errors.length).toBeGreaterThan(0)
+  })
+
+  it('only warns for types that have requirements defined', () => {
+    const csv = `name,type,effect,speed
+A,Slayer,Effect.,
+B,Dungeon,Effect.,`
+    const { errors } = parseCSV(csv, { csvColumnRequirements: { Slayer: ['speed'] } })
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toMatch(/Row 2/)
+  })
+
+  it('warns for multiple missing required columns on the same row', () => {
+    const { errors } = parseCSV(BASE_CSV, { csvColumnRequirements: { Dungeon: ['speed', 'power'] } })
+    expect(errors).toHaveLength(2)
+  })
+
+  it('does not warn when required column has a value', () => {
+    const csv = `name,type,effect,speed
+Runner,Slayer,Effect.,3`
+    const { errors } = parseCSV(csv, { csvColumnRequirements: { Slayer: ['speed'] } })
+    expect(errors).toHaveLength(0)
+  })
+
+  it('does not warn at all when csvColumnRequirements is empty', () => {
+    const { errors } = parseCSV(BASE_CSV, { csvColumnRequirements: {} })
+    expect(errors).toHaveLength(0)
+  })
+
+  it('includes the card type and column name in the warning message', () => {
+    const { errors } = parseCSV(BASE_CSV, { csvColumnRequirements: { Dungeon: ['speed'] } })
+    expect(errors[0]).toMatch(/Dungeon/)
+    expect(errors[0]).toMatch(/speed/)
+  })
+
+  it('works together with validTypes (both warnings can appear)', () => {
+    const csv = `name,type,effect,speed
+A,UNKNOWN,Effect.,`
+    const { errors } = parseCSV(csv, {
+      validTypes: ['Slayer'],
+      csvColumnRequirements: { UNKNOWN: ['speed'] },
+    })
+    const hasTypeWarning = errors.some((e) => /unknown type/i.test(e))
+    const hasColWarning = errors.some((e) => /speed/.test(e))
+    expect(hasTypeWarning).toBe(true)
+    expect(hasColWarning).toBe(true)
+  })
+
+  it('also works when csvColumns option is provided (modular path)', () => {
+    const cols = [
+      { id: 'c1', name: 'name',   type: 'text' as const },
+      { id: 'c2', name: 'type',   type: 'text' as const },
+      { id: 'c3', name: 'effect', type: 'text' as const },
+      { id: 'c4', name: 'speed',  type: 'number' as const },
+    ]
+    const csv = `name,type,effect,speed
+Dragon,Dungeon,Lurks.,`
+    const { errors } = parseCSV(csv, {
+      csvColumns: cols,
+      csvColumnRequirements: { Dungeon: ['speed'] },
+    })
+    expect(errors.length).toBeGreaterThan(0)
+    expect(errors[0]).toMatch(/speed/)
+  })
+})
+
 describe('mergeByName', () => {
   const base: CardData = {
     id: 'orig-1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'common', effect: 'Old.',
