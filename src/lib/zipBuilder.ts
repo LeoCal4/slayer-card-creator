@@ -2,6 +2,7 @@ import JSZip from 'jszip'
 import { preloadArtImages, preloadCustomImages } from './renderer/imageLoader'
 import { renderCard } from './renderer/cardRenderer'
 import { generateXML } from './xmlGenerator'
+import { getRetroIssues } from './cardValidation'
 import type { ProjectFile } from '@/types/project'
 
 export interface ZipProgress {
@@ -20,6 +21,9 @@ export async function buildZip(
   onProgress: (progress: ZipProgress) => void,
 ): Promise<ZipResult> {
   const warnings: string[] = []
+
+  // Flag any broken double-faced card links before rendering.
+  warnings.push(...getRetroIssues(project.cards))
 
   // Step 1: pre-load images
   const artImages  = await preloadArtImages(project)

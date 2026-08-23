@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getMissingFields, getCardsWithNoTemplate } from './cardValidation'
+import { getMissingFields, getCardsWithNoTemplate, getRetroIssues } from './cardValidation'
 import type { CardData } from '@/types/card'
 import type { Template } from '@/types/template'
 
@@ -108,5 +108,53 @@ describe('getCardsWithNoTemplate', () => {
 
   it('returns empty array when both cards and templates are empty', () => {
     expect(getCardsWithNoTemplate([], [])).toHaveLength(0)
+  })
+})
+
+describe('getRetroIssues', () => {
+  const front = (name: string, retro: string): CardData => ({
+    id: name, name, class: 'Warrior', type: 'Errant', rarity: 'rare',
+    effect: '', extras: { retro },
+  })
+  const plain = (name: string): CardData => ({
+    id: name, name, class: 'Warrior', type: 'Errant', rarity: 'rare', effect: '', extras: {},
+  })
+
+  it('returns no issues for a valid front/back pair', () => {
+    expect(getRetroIssues([front('Werewolf', 'Full Moon Beast'), plain('Full Moon Beast')])).toEqual([])
+  })
+
+  it('returns no issues for cards without any Retro links', () => {
+    expect(getRetroIssues([plain('Axehand'), plain('Fireball')])).toEqual([])
+  })
+
+  it('flags a Retro pointing at a non-existent card', () => {
+    const issues = getRetroIssues([front('Werewolf', 'Ghost Wolf')])
+    expect(issues).toHaveLength(1)
+    expect(issues[0]).toContain('Werewolf')
+    expect(issues[0]).toContain('Ghost Wolf')
+  })
+
+  it('flags a card naming itself as its back face', () => {
+    const issues = getRetroIssues([front('Werewolf', 'Werewolf')])
+    expect(issues).toEqual(['"Werewolf" lists itself as its own back face (Retro)'])
+  })
+
+  it('flags a back face referenced by multiple fronts', () => {
+    const issues = getRetroIssues([
+      front('Werewolf', 'Beast'),
+      front('Wolfman', 'Beast'),
+      plain('Beast'),
+    ])
+    expect(issues.some((i) => i.includes('multiple cards') && i.includes('Werewolf') && i.includes('Wolfman'))).toBe(true)
+  })
+
+  it('flags a back face that also carries its own Retro', () => {
+    const issues = getRetroIssues([
+      front('Werewolf', 'Beast'),
+      front('Beast', 'Something Else'),
+      plain('Something Else'),
+    ])
+    expect(issues.some((i) => i.includes('"Beast" is used as a back face but also has its own Retro'))).toBe(true)
   })
 })

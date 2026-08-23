@@ -1,4 +1,5 @@
 import type { CardType } from '@/types/card'
+import { RETRO_FIELD } from '@/types/card'
 import type { ProjectFile } from '@/types/project'
 
 const MAINTYPE: Record<CardType, string> = {
@@ -30,7 +31,6 @@ const TABLEROW: Record<CardType, number> = {
 // Front-face cards carry a "Retro" column naming their back face. Cockatrice
 // models a double-faced card as two linked <card> entries, joined by a
 // related / reverse-related pair with attach="transform".
-const RETRO_FIELD = 'retro'
 
 function appendText(doc: Document, parent: Element, tag: string, text: string): void {
   const el = doc.createElement(tag)
