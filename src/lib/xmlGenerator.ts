@@ -27,9 +27,21 @@ const TABLEROW: Record<CardType, number> = {
   Status:       1,
 }
 
+// Front-face cards carry a "Retro" column naming their back face. Cockatrice
+// models a double-faced card as two linked <card> entries, joined by a
+// related / reverse-related pair with attach="transform".
+const RETRO_FIELD = 'retro'
+
 function appendText(doc: Document, parent: Element, tag: string, text: string): void {
   const el = doc.createElement(tag)
   el.textContent = text
+  parent.appendChild(el)
+}
+
+function appendRelated(doc: Document, parent: Element, tag: string, name: string): void {
+  const el = doc.createElement(tag)
+  el.setAttribute('attach', 'transform')
+  el.textContent = name
   parent.appendChild(el)
 }
 
@@ -52,6 +64,13 @@ export function generateXML(project: ProjectFile): string {
   const cardsEl = doc.createElement('cards')
   root.appendChild(cardsEl)
 
+  // Map each back-face name to the front card that references it via "Retro".
+  const backToFront = new Map<string, string>()
+  for (const card of project.cards) {
+    const retro = String(card.extras?.[RETRO_FIELD] ?? '').trim()
+    if (retro) backToFront.set(retro, card.name)
+  }
+
   for (const card of project.cards) {
     const cardEl = doc.createElement('card')
     cardsEl.appendChild(cardEl)
@@ -73,8 +92,18 @@ export function generateXML(project: ProjectFile): string {
     const propEl = doc.createElement('prop')
     cardEl.appendChild(propEl)
 
+    // Double-faced linkage: a card with a "Retro" value is a front face; a card
+    // named by another's "Retro" is a back face. Either way it becomes a
+    // transform layout with the matching side.
+    const retro = String(card.extras?.[RETRO_FIELD] ?? '').trim()
+    const frontName = backToFront.get(card.name)
+    const isFront = retro !== ''
+    const isBack = frontName !== undefined
+
     const maintype = MAINTYPE[card.type]
-    appendText(doc, propEl, 'layout', 'normal')
+    appendText(doc, propEl, 'layout', isFront || isBack ? 'transform' : 'normal')
+    if (isFront) appendText(doc, propEl, 'side', 'front')
+    else if (isBack) appendText(doc, propEl, 'side', 'back')
     appendText(doc, propEl, 'type', `${maintype} — ${card.class} ${card.type}`)
     appendText(doc, propEl, 'maintype', maintype)
 
@@ -94,6 +123,9 @@ export function generateXML(project: ProjectFile): string {
     if (card.type === 'Slayer' || card.type === 'Errant') {
       appendText(doc, propEl, 'pt', `${card.extras?.['power'] ?? 0}/${card.extras?.['hp'] ?? 0}`)
     }
+
+    if (isFront) appendRelated(doc, cardEl, 'related', retro)
+    else if (isBack) appendRelated(doc, cardEl, 'reverse-related', frontName)
 
     appendText(doc, cardEl, 'tablerow', String(TABLEROW[card.type]))
     appendText(doc, cardEl, 'token', '0')

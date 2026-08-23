@@ -192,3 +192,56 @@ describe('generateXML', () => {
     expect(xml).toMatch(/^\s{2}<sets>/m)
   })
 })
+
+describe('generateXML — double-faced cards', () => {
+  const dfcProject: ProjectFile = {
+    ...project,
+    cards: [
+      { id: 'f1', name: 'Werewolf', class: 'Warrior', type: 'Errant', rarity: 'rare',
+        effect: 'Prowl.', extras: { cost: 2, power: 2, hp: 2, retro: 'Full Moon Beast' } },
+      { id: 'b1', name: 'Full Moon Beast', class: 'Warrior', type: 'Errant', rarity: 'rare',
+        effect: 'Rampage.', extras: { power: 5, hp: 5 } },
+      { id: 'n1', name: 'Fireball', class: 'Mage', type: 'Action', rarity: 'rare',
+        effect: 'Deal 3 damage.', extras: { cost: 2 } },
+    ],
+  }
+
+  function cardSection(xml: string, name: string): string {
+    const idx = xml.indexOf(`<name>${name}</name>`)
+    return xml.slice(idx, xml.indexOf('</card>', idx))
+  }
+
+  it('marks the front face with layout transform and side front', () => {
+    const front = cardSection(generateXML(dfcProject), 'Werewolf')
+    expect(front).toContain('<layout>transform</layout>')
+    expect(front).toContain('<side>front</side>')
+  })
+
+  it('marks the back face with layout transform and side back', () => {
+    const back = cardSection(generateXML(dfcProject), 'Full Moon Beast')
+    expect(back).toContain('<layout>transform</layout>')
+    expect(back).toContain('<side>back</side>')
+  })
+
+  it('links the front face to its back with related attach="transform"', () => {
+    const front = cardSection(generateXML(dfcProject), 'Werewolf')
+    expect(front).toContain('<related attach="transform">Full Moon Beast</related>')
+  })
+
+  it('links the back face to its front with reverse-related attach="transform"', () => {
+    const back = cardSection(generateXML(dfcProject), 'Full Moon Beast')
+    expect(back).toContain('<reverse-related attach="transform">Werewolf</reverse-related>')
+  })
+
+  it('does not emit the retro value as a card property', () => {
+    const front = cardSection(generateXML(dfcProject), 'Werewolf')
+    expect(front).not.toContain('<retro>')
+  })
+
+  it('leaves unrelated cards as normal layout with no related tags', () => {
+    const normal = cardSection(generateXML(dfcProject), 'Fireball')
+    expect(normal).toContain('<layout>normal</layout>')
+    expect(normal).not.toContain('<side>')
+    expect(normal).not.toContain('attach="transform"')
+  })
+})
