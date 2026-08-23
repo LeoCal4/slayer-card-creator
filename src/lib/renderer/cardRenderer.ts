@@ -1,6 +1,7 @@
 import Konva from 'konva'
 import { shouldShowLayer } from '@/lib/layerHelpers'
 import { computeEffectiveTemplate } from '@/lib/cardOverrides'
+import { getRenderTransform } from '@/lib/templateTransform'
 import { renderRect, renderText, renderImage, renderBadge, renderPhaseIcons, renderRarityDiamond } from './layerRenderers'
 import type { CardData } from '@/types/card'
 import type { Template } from '@/types/template'
@@ -17,7 +18,9 @@ export interface RenderContext {
 export async function renderCard(ctx: RenderContext): Promise<Blob> {
   const cardOverride = ctx.project.cardOverrides?.[ctx.card.id]
   const template = computeEffectiveTemplate(ctx.template, cardOverride)
-  const { width, height } = template.canvas
+  // Output images are always portrait-sized; a landscape design is rotated into
+  // a portrait frame so the exported file keeps portrait dimensions.
+  const transform = getRenderTransform(template.canvas)
 
   const container = document.createElement('div')
   container.style.position = 'absolute'
@@ -25,8 +28,9 @@ export async function renderCard(ctx: RenderContext): Promise<Blob> {
   container.style.top = '-9999px'
   document.body.appendChild(container)
 
-  const stage = new Konva.Stage({ container, width, height })
+  const stage = new Konva.Stage({ container, width: transform.width, height: transform.height })
   const layer = new Konva.Layer()
+  const group = new Konva.Group({ rotation: transform.rotation, x: transform.x, y: transform.y })
 
   for (const layerDef of template.layers) {
     if (!shouldShowLayer(layerDef, ctx.card)) continue
@@ -37,9 +41,10 @@ export async function renderCard(ctx: RenderContext): Promise<Blob> {
     else if (layerDef.type === 'badge') node = renderBadge(layerDef, ctx)
     else if (layerDef.type === 'phase-icons') node = renderPhaseIcons(layerDef, ctx)
     else if (layerDef.type === 'rarity-diamond') node = renderRarityDiamond(layerDef, ctx)
-    if (node) layer.add(node)
+    if (node) group.add(node)
   }
 
+  layer.add(group)
   stage.add(layer)
   stage.draw()
 

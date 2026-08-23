@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { renderCard } from '@/lib/renderer/cardRenderer'
+import { getRenderTransform } from '@/lib/templateTransform'
 import type { CardData } from '@/types/card'
 import type { Template } from '@/types/template'
 import type { ProjectFile } from '@/types/project'
@@ -49,7 +50,7 @@ export function CardPreviewTile({ card, template, project, artImages, customImag
     <div onDoubleClick={onDoubleClick} className={onDoubleClick ? 'cursor-pointer' : undefined}>
       <div
         ref={ref}
-        style={{ aspectRatio: '375/523' }}
+        style={{ aspectRatio: template ? `${getRenderTransform(template.canvas).width}/${getRenderTransform(template.canvas).height}` : '375/523' }}
         className="relative w-full bg-neutral-800 rounded overflow-hidden"
       >
         {loading && (
@@ -58,7 +59,7 @@ export function CardPreviewTile({ card, template, project, artImages, customImag
           </div>
         )}
         {dataUrl && (
-          <img src={dataUrl} alt={card.name} className="w-full h-full object-cover" />
+          <img src={dataUrl} alt={card.name} className="w-full h-full object-contain" />
         )}
         {!template && (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-500">

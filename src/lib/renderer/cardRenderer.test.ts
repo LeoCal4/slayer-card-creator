@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
+import Konva from 'konva'
 import { renderCard } from './cardRenderer'
 import type { RenderContext } from './cardRenderer'
 import type { RectLayer, TextLayer } from '@/types/template'
@@ -126,6 +127,35 @@ describe('renderCard', () => {
     await renderCard(ctxWithOverride)
     expect(spy).toHaveBeenCalledWith(ctx.template, override)
     spy.mockRestore()
+  })
+
+  function spyStageSize() {
+    const RealStage = Konva.Stage
+    const sizes: Array<{ width: number; height: number }> = []
+    const spy = vi.spyOn(Konva, 'Stage').mockImplementation((cfg: any) => {
+      sizes.push({ width: cfg.width, height: cfg.height })
+      return new RealStage(cfg)
+    })
+    return { sizes, restore: () => spy.mockRestore() }
+  }
+
+  it('renders a portrait template at its canvas dimensions', async () => {
+    const { sizes, restore } = spyStageSize()
+    await renderCard(ctx)
+    expect(sizes[0]).toEqual({ width: 375, height: 523 })
+    restore()
+  })
+
+  it('renders a landscape template into a portrait-sized image (dimensions not swapped)', async () => {
+    const { sizes, restore } = spyStageSize()
+    const landscapeCtx: RenderContext = {
+      ...ctx,
+      template: { ...ctx.template, canvas: { width: 523, height: 375 } },
+    }
+    await renderCard(landscapeCtx)
+    // Output stays portrait even though the design canvas is landscape.
+    expect(sizes[0]).toEqual({ width: 375, height: 523 })
+    restore()
   })
 
   it('ignores overrides for other cards', async () => {

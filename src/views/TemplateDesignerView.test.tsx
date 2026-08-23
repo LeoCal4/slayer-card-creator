@@ -163,3 +163,41 @@ describe('TemplateDesignerView — undo history cleared on template switch (task
     expect(useUiStore.getState().redoStack).toEqual([])
   })
 })
+
+describe('TemplateDesignerView orientation', () => {
+  beforeEach(setupWithTemplate)
+
+  it('marks Portrait as active for a taller-than-wide canvas', () => {
+    render(<TemplateDesignerView />)
+    expect(screen.getByRole('button', { name: /portrait/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /landscape/i })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('clicking Landscape swaps canvas width and height', async () => {
+    render(<TemplateDesignerView />)
+    await userEvent.click(screen.getByRole('button', { name: /landscape/i }))
+    const tmpl = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!
+    expect(tmpl.canvas).toEqual({ width: 523, height: 375 })
+    expect(screen.getByRole('button', { name: /landscape/i })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('rotating to Landscape repositions layers so none fall offscreen', async () => {
+    // A layer near the bottom of the portrait canvas (y up to 523).
+    useProjectStore.getState().updateTemplate('tmpl-1', {
+      layers: [{ id: 'l1', type: 'rect', x: 10, y: 470, width: 100, height: 40 }],
+    })
+    render(<TemplateDesignerView />)
+    await userEvent.click(screen.getByRole('button', { name: /landscape/i }))
+    const tmpl = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!
+    const layer = tmpl.layers[0]
+    expect(layer.x + layer.width).toBeLessThanOrEqual(tmpl.canvas.width)
+    expect(layer.y + layer.height).toBeLessThanOrEqual(tmpl.canvas.height)
+  })
+
+  it('clicking the already-active orientation does not change the canvas', async () => {
+    render(<TemplateDesignerView />)
+    await userEvent.click(screen.getByRole('button', { name: /portrait/i }))
+    const tmpl = useProjectStore.getState().project!.templates.find((t) => t.id === 'tmpl-1')!
+    expect(tmpl.canvas).toEqual({ width: 375, height: 523 })
+  })
+})

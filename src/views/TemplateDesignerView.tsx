@@ -9,6 +9,7 @@ import { LayerPanel } from '@/components/designer/LayerPanel'
 import { PropertiesPanel } from '@/components/designer/PropertiesPanel'
 import { AddLayerMenu } from '@/components/designer/AddLayerMenu'
 import { PreviewCardSelector } from '@/components/designer/PreviewCardSelector'
+import { rotateTemplate } from '@/lib/templateTransform'
 
 const SNAP_SIZES = [1, 5, 10, 20] as const
 
@@ -44,6 +45,16 @@ export function TemplateDesignerView() {
     )
   }
 
+  const isLandscape = template.canvas.width > template.canvas.height
+
+  function setOrientation(landscape: boolean) {
+    if (!template || landscape === isLandscape) return
+    // Rotate the whole layout 90° so layers follow the new orientation instead
+    // of falling offscreen below the now-shorter canvas.
+    const rotated = rotateTemplate(template, landscape ? 'cw' : 'ccw')
+    updateTemplate(activeTemplateId!, { canvas: rotated.canvas, layers: rotated.layers })
+  }
+
   function handleCardTypeChange(type: string, checked: boolean) {
     if (!template) return
     const next = checked
@@ -55,7 +66,7 @@ export function TemplateDesignerView() {
   return (
     <div className="flex flex-col h-full">
       {/* Top toolbar */}
-      <div className="flex items-center gap-4 px-4 py-2 border-b border-neutral-800 shrink-0">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 border-b border-neutral-800 shrink-0">
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -131,6 +142,37 @@ export function TemplateDesignerView() {
             }
             className="bg-neutral-800 text-neutral-100 text-sm rounded px-2 py-1 w-20 outline-none focus:ring-1 focus:ring-indigo-500"
           />
+        </div>
+
+        <div className="flex items-center gap-1" role="group" aria-label="Orientation">
+          <button
+            type="button"
+            aria-label="Portrait"
+            aria-pressed={!isLandscape}
+            onClick={() => setOrientation(false)}
+            className={[
+              'px-2 py-1 text-xs rounded border transition-colors',
+              !isLandscape
+                ? 'bg-indigo-600 border-indigo-500 text-white'
+                : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-200',
+            ].join(' ')}
+          >
+            Portrait
+          </button>
+          <button
+            type="button"
+            aria-label="Landscape"
+            aria-pressed={isLandscape}
+            onClick={() => setOrientation(true)}
+            className={[
+              'px-2 py-1 text-xs rounded border transition-colors',
+              isLandscape
+                ? 'bg-indigo-600 border-indigo-500 text-white'
+                : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-200',
+            ].join(' ')}
+          >
+            Landscape
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
